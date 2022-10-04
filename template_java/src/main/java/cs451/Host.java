@@ -3,6 +3,9 @@ package cs451;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import static cs451.Constants.PORT_MAX;
+import static cs451.Constants.PORT_MIN;
+
 public class Host {
 
     private static final String IP_START_REGEX = "/";
@@ -25,6 +28,10 @@ public class Host {
             port = Integer.parseInt(portString);
             if (port <= 0) {
                 System.err.println("Port in the hosts file must be a positive number!");
+                return false;
+            }
+            if (port < PORT_MIN || port > PORT_MAX) {
+                System.err.println("Port in the hosts file must be in the correct interval");
                 return false;
             }
         } catch (NumberFormatException e) {

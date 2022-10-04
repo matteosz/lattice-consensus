@@ -17,4 +17,12 @@ public class Constants {
 
     // indexes for config
     public static final int CONFIG_VALUE = 6;
+
+    // port number limits
+    public static final int PORT_MIN = 11000;
+    public static final int PORT_MAX = 11999;
+
+    // limit on the max number of message in an udp packet
+    public static final int MAX_COMPRESSION = 8;
+    public static final int PACKET_SIZE = 32;
 }
