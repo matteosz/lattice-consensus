@@ -23,10 +23,10 @@ public class Process {
     private final boolean isTarget;
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
-    public Process(Host host, int numHosts, boolean isTarget) {
+    public Process(Host host, int numHosts, int targetId) {
         this.host = host;
         this.numHosts = numHosts;
-        this.isTarget = isTarget;
+        this.isTarget = targetId == host.getId();
 
         for (int i = 0; i < numHosts; i++) {
             delivered.put(i+1, new HashSet<>());
@@ -120,7 +120,7 @@ public class Process {
 
         synchronized (toSend){
             packets.forEach(x -> {
-                    toSend.put(targetId, Packet.createPacket(x,packetNumber.incrementAndGet(), host.getId()));
+                    toSend.put(packetNumber.incrementAndGet(), Packet.createPacket(x,packetNumber.get(), host.getId()));
                     System.out.println("Process " + getId() + ": Added packet");
             });
         }

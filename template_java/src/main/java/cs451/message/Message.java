@@ -17,11 +17,6 @@ public class Message {
         content = new byte[MESSAGE_SIZE];
         Operations.intToByte(messageId, content, 0);
     }
-    private Message(int senderId, int messageId, byte[] content) {
-        this.senderId = senderId;
-        this.messageId = messageId;
-        this.content = content;
-    }
 
     public static Message createMessage(int senderId, int messageId) {
         return new Message(senderId, messageId);

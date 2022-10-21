@@ -9,9 +9,9 @@ public class PerfectLink extends Link {
 
     private final StubbornLink link;
 
-    public PerfectLink(int id, int port, List<Host> hosts, int targetId) {
-        super(id, hosts, targetId);
-        link = new StubbornLink(id, hosts, port, this::deliver, targetId);
+    public PerfectLink(int id, int port, List<Host> hosts) {
+        super(id, hosts);
+        link = new StubbornLink(id, hosts, port, this::deliver);
     }
 
     private void deliver(Packet packet) {

@@ -13,28 +13,25 @@ public abstract class Link {
     private Listener listener;
 
     private static final Map<Integer, Process> network = new HashMap<>();
-
+    protected static int targetId;
     private final int id;
-    protected final int targetId;
 
-    protected Link(int id, List<Host> hosts, int targetId) {
+    protected Link(int id, List<Host> hosts) {
         this.id = id;
-        this.targetId = targetId;
-        populateNetwork(hosts, targetId);
     }
 
-    protected Link(Listener listener, int id, List<Host> hosts, int targetId) {
-        this(id, hosts, targetId);
+    protected Link(Listener listener, int id, List<Host> hosts) {
+        this(id, hosts);
         this.listener = listener;
     }
 
-    private void populateNetwork(List<Host> hosts, int targetId) {
+    public static void populateNetwork(List<Host> hosts, int targetId) {
         if (!network.isEmpty()) {
             return;
         }
-
+        Link.targetId = targetId;
         for (Host host : hosts) {
-            network.put(host.getId(), new Process(host, hosts.size(), targetId==id));
+            network.put(host.getId(), new Process(host, hosts.size(), targetId));
         }
     }
 

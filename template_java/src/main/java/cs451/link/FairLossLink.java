@@ -20,8 +20,8 @@ public class FairLossLink extends Link {
     private DatagramSocket socket;
     private final BlockingQueue<DatagramPacket> packetsToSend = new LinkedBlockingQueue<>();
 
-    public FairLossLink(int id, List<Host> hosts, int port, Listener listener, int targetId) {
-        super(listener, id, hosts, targetId);
+    public FairLossLink(int id, List<Host> hosts, int port, Listener listener) {
+        super(listener, id, hosts);
 
         try {
             socket = new DatagramSocket(port);

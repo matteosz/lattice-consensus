@@ -10,9 +10,9 @@ import java.util.concurrent.Executors;
 public class StubbornLink extends Link {
     private final FairLossLink link;
 
-    public StubbornLink(int id, List<Host> hosts, int port, Listener listener, int targetId) {
-        super(listener, id, hosts, targetId);
-        link = new FairLossLink(id, hosts, port, this::deliver, targetId);
+    public StubbornLink(int id, List<Host> hosts, int port, Listener listener) {
+        super(listener, id, hosts);
+        link = new FairLossLink(id, hosts, port, this::deliver);
 
         Executors.newFixedThreadPool(1).execute(this::sendPackets);
     }
@@ -33,8 +33,8 @@ public class StubbornLink extends Link {
         List<Packet> packets = process.getPacketsToSend();
 
         for (Packet p : packets) {
-            link.enqueuePacket(p, targetId);
-            process.flagEvent(p, targetId, false);
+            link.enqueuePacket(p, Link.targetId);
+            process.flagEvent(p, Link.targetId, false);
         }
     }
 

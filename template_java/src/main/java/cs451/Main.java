@@ -30,7 +30,6 @@ public class Main {
         CommunicationService.start(parser);
 
         while (true) {
-            // Sleep for 1 hour
             Thread.sleep(60 * 60 * 1000);
         }
     }
