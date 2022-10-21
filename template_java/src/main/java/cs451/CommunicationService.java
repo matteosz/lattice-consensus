@@ -30,7 +30,7 @@ public class CommunicationService {
         Link.populateNetwork(hosts, targetId);
 
         process = pl.getNetwork().get(myId);
-        process.run(numMessages, targetId);
+        process.run(numMessages);
 
         pl = new PerfectLink(myId, hosts.get(myId-1).getPort(), hosts);
     }

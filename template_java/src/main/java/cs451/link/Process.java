@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 public class Process {
 
     private final Host host;
-    private final int numHosts;
     private final Map<Integer, Set<Integer>> delivered = new HashMap<>();
     private final Set<Integer> sent = new HashSet<>();
     private final Map<Integer, Packet> toSend = new HashMap<>();
@@ -25,7 +24,6 @@ public class Process {
 
     public Process(Host host, int numHosts, int targetId) {
         this.host = host;
-        this.numHosts = numHosts;
         this.isTarget = targetId == host.getId();
 
         for (int i = 0; i < numHosts; i++) {
@@ -97,11 +95,15 @@ public class Process {
         }
     }
 
+    public boolean isSending(Packet p) {
+        synchronized (toSend) {
+            return toSend.containsKey(p.getPacketId());
+        }
+    }
+
     public void stopSending(Packet p) {
         synchronized (toSend) {
             toSend.remove(p.getPacketId());
-            System.out.println("Process " + getId() +
-                    ": Stopped sending packet because ack received");
         }
     }
 
@@ -111,7 +113,7 @@ public class Process {
         return sb.toString();
     }
 
-    public void run(int numMessages, int targetId) {
+    public void run(int numMessages) {
 
         if (isTarget)
             return;

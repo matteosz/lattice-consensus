@@ -7,9 +7,6 @@ import cs451.parser.Parser;
 public class Main {
 
     private static void handleSignal() {
-        //immediately stop network packet processing
-        System.out.println("Immediately stopping network packet processing.");
-
         CommunicationService.log();
     }
 
@@ -25,7 +22,7 @@ public class Main {
 
         long pid = ProcessHandle.current().pid();
         System.out.println("My PID: " + pid + "\n");
-        System.out.println("From a new terminal type `kill -SIGINT " + pid + "` or `kill -SIGTERM " + pid + "` to stop processing packets\n");
+        System.out.println("kill -SIGINT/SIGTERM " + pid);
 
         CommunicationService.start(parser);
 

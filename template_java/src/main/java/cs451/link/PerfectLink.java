@@ -20,12 +20,8 @@ public class PerfectLink extends Link {
         if (process.isTarget() && !process.hasDelivered(packet)) {
             process.deliver(packet);
             process.flagEvent(packet, packet.getSenderId(), true);
-        } else if (!process.isTarget() && packet.isAck()){
+        } else if (!process.isTarget() && packet.isAck() &&  process.isSending(packet)){
             process.stopSending(packet);
         }
-    }
-
-    public void closeSocket() {
-        link.closeSocket();
     }
 }
