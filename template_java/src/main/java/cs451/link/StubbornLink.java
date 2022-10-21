@@ -5,9 +5,7 @@ import cs451.message.Packet;
 import cs451.parser.Host;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 public class StubbornLink extends Link {
     private final FairLossLink link;
@@ -26,14 +24,12 @@ public class StubbornLink extends Link {
     }
 
     private void sendPackets() {
-        for (;;)
-            getNetwork().entrySet().stream()
-                    .filter(x -> !x.getValue().isTarget())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                    .forEach(this::processPacket);
+        for (;;) {
+            processPacket(getProcess(getId()));
+        }
     }
 
-    private void processPacket(int id, Process process) {
+    private void processPacket(Process process) {
         List<Packet> packets = process.getPacketsToSend();
 
         for (Packet p : packets) {

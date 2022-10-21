@@ -2,7 +2,6 @@ package cs451;
 
 import cs451.link.PerfectLink;
 import cs451.link.Process;
-import cs451.parser.Config;
 import cs451.parser.Host;
 import cs451.parser.Parser;
 
@@ -19,20 +18,18 @@ public class CommunicationService {
 
     private CommunicationService() {}
 
-    public static void start(Parser parser, Config config) {
+    public static void start(Parser parser) {
         CommunicationService.parser = parser;
 
         List<Host> hosts = parser.hosts();
 
-        int myId = parser.myId(), targetId = config.getTarget(), numMessages = config.getMessages();
+        int myId = parser.myId(), targetId = parser.getConfig().getTarget();
+        int numMessages = parser.getConfig().getMessages();
 
-        Host myHost = hosts.get(myId-1);
-
-        pl = new PerfectLink(myId, myHost.getPort(), hosts, targetId);
+        pl = new PerfectLink(myId, hosts.get(myId-1).getPort(), hosts, targetId);
 
         process = pl.getNetwork().get(myId);
         process.run(numMessages, targetId);
-
     }
 
     public static void log() {

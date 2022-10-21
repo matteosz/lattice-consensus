@@ -29,8 +29,10 @@ public abstract class Link {
     }
 
     private void populateNetwork(List<Host> hosts, int targetId) {
-        if (!network.isEmpty())
+        if (!network.isEmpty()) {
             return;
+        }
+
         for (Host host : hosts) {
             network.put(host.getId(), new Process(host, hosts.size(), targetId==id));
         }
