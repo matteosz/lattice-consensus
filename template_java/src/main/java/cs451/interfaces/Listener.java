@@ -5,4 +5,5 @@ import cs451.message.Packet;
 @FunctionalInterface
 public interface Listener {
     void apply (Packet p);
+
 }

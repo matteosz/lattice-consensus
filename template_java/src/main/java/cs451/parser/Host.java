@@ -56,8 +56,13 @@ public class Host {
         return ip;
     }
 
-    public InetAddress getIpAsAddress() throws UnknownHostException {
-        return InetAddress.getByName(ip);
+    public InetAddress getIpAsAddress() {
+        try {
+            return InetAddress.getByName(ip);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public int getPort() {

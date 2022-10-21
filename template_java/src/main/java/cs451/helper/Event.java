@@ -1,7 +1,5 @@
 package cs451.helper;
 
-import java.util.Objects;
-
 public class Event {
 
     private char mode;
@@ -19,12 +17,19 @@ public class Event {
 
     @Override
     public String toString() {
+
         StringBuilder sb = new StringBuilder("").append(mode);
+
         if (mode == 'b') {
+
             sb.append(" ").append(sequenceNr);
+
         } else if (mode == 'd') {
+
             sb.append(" ").append(sender).append(" ").append(sequenceNr);
+
         }
+
         return sb.append("\n").toString();
     }
 }

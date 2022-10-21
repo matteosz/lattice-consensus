@@ -7,7 +7,6 @@ import java.util.List;
 public class Parser {
 
     private String[] args;
-    private long pid;
     private IdParser idParser;
     private HostsParser hostsParser;
     private OutputParser outputParser;
@@ -18,7 +17,6 @@ public class Parser {
     }
 
     public void parse() {
-        pid = ProcessHandle.current().pid();
 
         idParser = new IdParser();
         hostsParser = new HostsParser();
@@ -66,10 +64,6 @@ public class Parser {
 
     public String output() {
         return outputParser.getPath();
-    }
-
-    public String config() {
-        return configParser.getPath();
     }
 
     public Config getConfig() {

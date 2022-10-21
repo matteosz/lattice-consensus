@@ -13,14 +13,13 @@ import java.util.List;
 
 public class CommunicationService {
 
-    private static PerfectLink pl;
+    private static PerfectLink perfectLink;
     private static Parser parser;
     private static Process process;
 
-    private CommunicationService() {}
+    public static void start(Parser parse) {
 
-    public static void start(Parser parser) {
-        CommunicationService.parser = parser;
+        parser = parse;
 
         List<Host> hosts = parser.hosts();
 
@@ -29,18 +28,23 @@ public class CommunicationService {
 
         Link.populateNetwork(hosts, targetId);
 
-        process = pl.getNetwork().get(myId);
+        process = perfectLink.getProcess(myId);
         process.run(numMessages);
 
-        pl = new PerfectLink(myId, hosts.get(myId-1).getPort(), hosts);
+        perfectLink = new PerfectLink(myId, hosts.get(myId-1).getPort(), hosts);
+
     }
 
     public static void log() {
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(parser.output()), 32768)) {
             bw.write(process.logAllEvents());
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
+
+    private CommunicationService() {}
 
 }

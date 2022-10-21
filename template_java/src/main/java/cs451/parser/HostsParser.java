@@ -1,7 +1,5 @@
 package cs451.parser;
 
-import cs451.parser.Host;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,16 +12,14 @@ public class HostsParser {
 
     private static final String HOSTS_KEY = "--hosts";
     private static final String SPACES_REGEX = "\\s+";
-
-    private String filename;
     private List<Host> hosts = new ArrayList<>();
 
     public boolean populate(String key, String filename) {
+
         if (!key.equals(HOSTS_KEY)) {
             return false;
         }
 
-        this.filename = filename;
         try(BufferedReader br = new BufferedReader(new FileReader(filename))) {
             int lineNum = 1;
             for(String line; (line = br.readLine()) != null; lineNum++) {

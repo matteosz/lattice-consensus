@@ -6,7 +6,6 @@ import java.util.List;
 public class Compressor {
 
     public static final int MAX_COMPRESSION = 8;
-    private Compressor() {}
 
     public static List<List<Message>> compress(int nMessages, int senderId) {
 
@@ -14,6 +13,7 @@ public class Compressor {
         int packetLen = 0, packetCount = 0;
 
         for (int i = 1; i <= nMessages; i++) {
+
             Message m = Message.createMessage(senderId, i);
 
             if (packetLen == 0) {
@@ -27,9 +27,12 @@ public class Compressor {
                 packetLen = 0;
                 packetCount++;
             }
+
         }
 
         return packets;
     }
+
+    private Compressor() {}
 
 }

@@ -1,7 +1,5 @@
 package cs451.parser;
 
-import cs451.parser.Config;
-
 import java.io.File;
 
 public class ConfigParser {
