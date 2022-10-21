@@ -11,9 +11,6 @@ public class Main {
         System.out.println("Immediately stopping network packet processing.");
 
         CommunicationService.log();
-
-        //write/flush output file if necessary
-        System.out.println("Writing output.");
     }
 
     private static void initSignalHandlers() {

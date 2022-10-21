@@ -32,15 +32,19 @@ public class CommunicationService {
 
         process = pl.getNetwork().get(myId);
         process.run(numMessages, targetId);
+
     }
 
     public static void log() {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(parser.config()), 32768)) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(parser.output()), 32768)) {
             bw.write(process.logAllEvents());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        pl.closeSocket();
+        //write/flush output file if necessary
+        System.out.println("Writing output.");
+        System.out.println(process.logAllEvents());
+        //pl.closeSocket();
     }
 
 }
