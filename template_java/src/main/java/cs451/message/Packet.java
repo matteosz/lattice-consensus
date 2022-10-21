@@ -1,0 +1,110 @@
+package cs451.message;
+
+import cs451.helper.Operations;
+import cs451.interfaces.MessageListener;
+
+import java.util.LinkedList;
+import java.util.List;
+
+public class Packet {
+
+    public static final int NUM_MEX_OS = 0, PCK_ID_OS = Integer.BYTES + NUM_MEX_OS,
+                     SENDER_ID_OS = Integer.BYTES + PCK_ID_OS,
+                     IS_ACK_OS = 1 + SENDER_ID_OS, MEX_OS = 1 + IS_ACK_OS;
+    public static final int MAX_COMPRESSION = 8, HEADER = MEX_OS;
+    public static final int MAX_PACKET_SIZE = MAX_COMPRESSION*Message.MESSAGE_SIZE + HEADER;
+
+    private final int senderId, numMessages, packetId;
+    private final boolean isAck;
+    private final List<Message> messagesPacked;
+    private final byte[] data;
+
+    private Packet(List<Message> messages, int packetId, int senderId, boolean isAck) {
+        int numMessages = messages.size();
+        byte[] data = new byte[numMessages*Message.MESSAGE_SIZE+HEADER];
+        Operations.intToByte(numMessages, data, NUM_MEX_OS);
+        Operations.intToByte(packetId, data, PCK_ID_OS);
+        data[SENDER_ID_OS] = (byte) senderId;
+        data[IS_ACK_OS] = (byte) (isAck ? 1 : 0);
+
+        int ix = MEX_OS;
+        for (Message m : messages) {
+            Operations.intToByte(m.getMessageId(), data, ix);
+            ix += 4;
+        }
+
+        this.packetId = packetId;
+        this.senderId = senderId;
+        this.isAck = isAck;
+        this.data = data;
+        this.numMessages = numMessages;
+        this.messagesPacked = messages;
+    }
+
+    private Packet(byte[] data, int numMessages, int packetId, int senderId, boolean isAck) {
+        this.packetId = packetId;
+        this.senderId = senderId;
+        this.isAck = isAck;
+        this.data = data;
+        this.numMessages = numMessages;
+        this.messagesPacked = getMessagesPacked();
+    }
+
+    public static Packet createPacket(List<Message> messages, int packetNumber, int senderId) {
+        return new Packet(messages, packetNumber, senderId, false);
+    }
+
+    public byte[] getBytes() {
+        return data;
+    }
+    public static Packet getPacket(byte[] data) {
+        int numMessages = Operations.byteToInt(data, NUM_MEX_OS);
+        int packetId = Operations.byteToInt(data, PCK_ID_OS);
+        int senderId = data[SENDER_ID_OS];
+        boolean isAck = data[IS_ACK_OS] != 0;
+        return new Packet(data, numMessages, packetId, senderId, isAck);
+    }
+
+    public Packet convertToAck(int newSenderId) {
+        byte[] newData = data.clone();
+        newData[SENDER_ID_OS] = (byte) newSenderId;
+        newData[IS_ACK_OS] = 1;
+        return new Packet(newData, numMessages, packetId, newSenderId, true);
+    }
+
+    public List<Message> getMessages() {
+        return messagesPacked;
+    }
+
+    public int getSenderId() {
+        return senderId;
+    }
+
+    public int getNumMessages() {
+        return numMessages;
+    }
+
+    public int getPacketId() {
+        return packetId;
+    }
+
+    public boolean isAck() {
+        return isAck;
+    }
+
+    private List<Message> getMessagesPacked() {
+        List<Message> messagesPacked = new LinkedList<>();
+        int pointer = MEX_OS;
+        for (int i = 0; i < numMessages; i++) {
+            int mexId = Operations.byteToInt(data, pointer);
+            pointer += 4;
+            messagesPacked.add(Message.createMessage(senderId, mexId));
+        }
+        return messagesPacked;
+    }
+
+    public void deliverMessages(MessageListener toExecute) {
+        messagesPacked.forEach(toExecute::apply);
+    }
+
+}

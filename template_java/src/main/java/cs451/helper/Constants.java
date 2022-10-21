@@ -1,6 +1,8 @@
-package cs451;
+package cs451.helper;
 
 public class Constants {
+
+    private Constants() {}
     public static final int ARG_LIMIT_CONFIG = 7;
 
     // indexes for id
@@ -21,8 +23,4 @@ public class Constants {
     // port number limits
     public static final int PORT_MIN = 11000;
     public static final int PORT_MAX = 11999;
-
-    // limit on the max number of message in an udp packet
-    public static final int MAX_COMPRESSION = 8;
-    public static final int PACKET_SIZE = 32;
 }

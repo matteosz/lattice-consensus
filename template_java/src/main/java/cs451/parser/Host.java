@@ -1,10 +1,10 @@
-package cs451;
+package cs451.parser;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static cs451.Constants.PORT_MAX;
-import static cs451.Constants.PORT_MIN;
+import static cs451.helper.Constants.PORT_MAX;
+import static cs451.helper.Constants.PORT_MIN;
 
 public class Host {
 
@@ -54,6 +54,10 @@ public class Host {
 
     public String getIp() {
         return ip;
+    }
+
+    public InetAddress getIpAsAddress() throws UnknownHostException {
+        return InetAddress.getByName(ip);
     }
 
     public int getPort() {

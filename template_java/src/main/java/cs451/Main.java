@@ -1,13 +1,17 @@
 package cs451;
 
+import cs451.parser.Config;
+import cs451.parser.Parser;
+
 import java.io.IOException;
-import java.util.List;
 
 public class Main {
 
     private static void handleSignal() {
         //immediately stop network packet processing
         System.out.println("Immediately stopping network packet processing.");
+
+        CommunicationService.log();
 
         //write/flush output file if necessary
         System.out.println("Writing output.");
@@ -21,27 +25,18 @@ public class Main {
         Parser parser = new Parser(args);
         parser.parse();
 
+        Config config = parser.getConfig();
+
         initSignalHandlers();
 
         long pid = ProcessHandle.current().pid();
         System.out.println("My PID: " + pid + "\n");
         System.out.println("From a new terminal type `kill -SIGINT " + pid + "` or `kill -SIGTERM " + pid + "` to stop processing packets\n");
 
-        List<Host> hosts = parser.hosts();
-        int myId = parser.myId();
-        Host myHost = hosts.get(myId);
-        Config config = parser.getConfig();
-        Host target = hosts.get(config.getTarget());
-        int messages = config.getMessages();
+        CommunicationService.createInstance();
 
-        if (myId == config.getTarget()) {
-            Process receiver = new Process(target, messages, hosts.size());
-            receiver.listenAll();
-        }
-        else {
-            Process sender = new Process(myHost, target, messages);
-            sender.sendAll();
-        }
+        CommunicationService.start(parser, config);
+
         // After a process finishes broadcasting,
         // it waits forever for the delivery of messages.
         while (true) {
