@@ -31,7 +31,7 @@ public class CommunicationService {
         process = perfectLink.getProcess(myId);
         process.run(numMessages);
 
-        perfectLink = new PerfectLink(myId, hosts.get(myId-1).getPort(), hosts);
+        perfectLink = new PerfectLink(myId, hosts.get(myId-1).getPort());
 
     }
 
