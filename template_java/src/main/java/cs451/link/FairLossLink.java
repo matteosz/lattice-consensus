@@ -74,7 +74,8 @@ public class FairLossLink extends Link {
     }
 
     public void closeSocket() {
-        socket.close();
+        if (socket != null)
+            socket.close();
     }
 }
 

@@ -21,9 +21,9 @@ public class Event {
     public String toString() {
         StringBuilder sb = new StringBuilder(mode);
         if (mode == 'b') {
-            sb.append(" ").append(Integer.toString(sequenceNr));
+            sb.append(" ").append(sequenceNr);
         } else if (mode == 'd') {
-            sb.append(" ").append(Integer.toString(sender)).append(" ").append(Integer.toString(sequenceNr));
+            sb.append(" ").append(sender).append(" ").append(sequenceNr);
         }
         return sb.append("\n").toString();
     }

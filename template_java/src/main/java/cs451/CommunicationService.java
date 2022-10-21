@@ -14,8 +14,8 @@ import java.util.List;
 public class CommunicationService {
 
     private static PerfectLink pl;
-    private static Process process;
     private static Parser parser;
+    private static Process process;
 
     private CommunicationService() {}
 
@@ -28,11 +28,10 @@ public class CommunicationService {
 
         Host myHost = hosts.get(myId-1);
 
-
-        process = new Process(myHost, hosts.size(), targetId == myId);
-        process.run(numMessages, targetId);
         pl = new PerfectLink(myId, myHost.getPort(), hosts, targetId);
 
+        process = pl.getNetwork().get(myId);
+        process.run(numMessages, targetId);
     }
 
     public static void log() {

@@ -27,16 +27,8 @@ public class Message {
         return new Message(senderId, messageId);
     }
 
-    public int getSenderId() {
-        return senderId;
-    }
-
     public int getMessageId() {
         return messageId;
-    }
-
-    public byte[] getContent() {
-        return content;
     }
 
     @Override

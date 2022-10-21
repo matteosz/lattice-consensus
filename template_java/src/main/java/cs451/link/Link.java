@@ -32,12 +32,7 @@ public abstract class Link {
         if (!network.isEmpty())
             return;
         for (Host host : hosts) {
-            int i = host.getId();
-            if (i != id) {
-                Process p;
-                p = new Process(host, hosts.size(), targetId==id);
-                network.put(i, p);
-            }
+            network.put(host.getId(), new Process(host, hosts.size(), targetId==id));
         }
     }
 
