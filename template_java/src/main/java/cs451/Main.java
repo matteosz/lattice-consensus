@@ -33,8 +33,6 @@ public class Main {
         System.out.println("My PID: " + pid + "\n");
         System.out.println("From a new terminal type `kill -SIGINT " + pid + "` or `kill -SIGTERM " + pid + "` to stop processing packets\n");
 
-        CommunicationService.createInstance();
-
         CommunicationService.start(parser, config);
 
         // After a process finishes broadcasting,

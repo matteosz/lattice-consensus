@@ -17,11 +17,11 @@ public class Process {
     private final Host host;
     private final int numHosts;
     private final Map<Integer, Set<Integer>> delivered = new HashMap<>();
+    private final Set<Integer> sent = new HashSet<>();
     private final Map<Integer, Packet> toSend = new HashMap<>();
-    private final Set<>
     private final AtomicInteger packetNumber = new AtomicInteger(0);
     private final boolean isTarget;
-    private final List<Event> events = new LinkedList<>();
+    private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
     public Process(Host host, int numHosts, boolean isTarget) {
         this.host = host;
@@ -37,72 +37,50 @@ public class Process {
         return host;
     }
 
-    public int getNumHosts() {
-        return numHosts;
-    }
-    /*
-    public void addMessageToProcess(Message mex) {
-        try {
-            toProcess.get(mex.getSenderId()).put(mex);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    public List<Packet> getWaitingPackets() {
-        List<Packet> tmp = new LinkedList<>();
-        toAck.drainTo(tmp);
-        return tmp;
-    }
-
-    public boolean alreadyReceived(Message m) {
-        return delivered.contains(m);
-    }
-
-    public void addPacketToConfirm(Packet p) {
-        try {
-            toAck.put(p);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    public Message getWaitingMessage() {
-        for (int i = 0; i < numHosts; i++) {
-            Message m = toProcess.get(i+1).poll();
-            if (m != null) {
-                return m;
-            }
-        }
-        return null;
-    }
-    */
-    public int getNextPacketId() {
-        return packetNumber.incrementAndGet();
-    }
-
-    public void sendMany(int sourceId, int numMessages) {
-    }
-
     public boolean isTarget() {
         return isTarget;
     }
 
+    public void deliver(Packet p) {
+        synchronized (delivered) {
+            delivered.get(p.getSenderId()).add(p.getPacketId());
+        }
+    }
+
     public boolean hasDelivered(Packet p) {
-
+        synchronized (delivered) {
+            Set<Integer> x = delivered.get(p.getSenderId());
+            if (x == null)
+                return false;
+            return x.contains(p.getPacketId());
+        }
     }
-    public boolean hasSent(Packet p) {
 
-    }
-
-    public void flagEvent(Packet p, boolean deliver) {
-
-        // attention to not flag a duplicate events, check before
+    public void flagEvent(Packet p, int id, boolean deliver) {
 
         if (deliver) {
-            //mark as delivered all messages in the packet
+            p.getMessages().forEach(m -> {
+                try {
+                    events.put(new Event('d', m.getMessageId(), id));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
         } else {
-            //mark as sent all messages in the packet
+
+            synchronized (sent) {
+                if (!sent.add(p.getPacketId())) {
+                    return;
+                }
+            }
+
+            p.getMessages().forEach(m -> {
+                try {
+                    events.put(new Event('b', m.getMessageId()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
@@ -123,7 +101,19 @@ public class Process {
 
     public String logAllEvents() {
         StringBuilder sb = new StringBuilder();
-        events.forEach(x -> sb.append(x.toString()));
+        events.forEach(e -> sb.append(e.toString()));
         return sb.toString();
+    }
+
+    public void run(int numMessages, int targetId) {
+
+        if (isTarget)
+            return;
+
+        List<List<Message>> packets = Compressor.compress(numMessages, host.getId());
+
+        packets.forEach(x ->
+                toSend.put(targetId, Packet.createPacket(x,packetNumber.incrementAndGet(), host.getId())));
+
     }
 }

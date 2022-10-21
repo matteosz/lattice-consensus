@@ -1,7 +1,6 @@
 package cs451.link;
 
-import cs451.interfaces.PackageListener;
-import cs451.message.Message;
+import cs451.interfaces.Listener;
 import cs451.message.Packet;
 import cs451.parser.Host;
 
@@ -21,7 +20,7 @@ public class FairLossLink extends Link {
     private DatagramSocket socket;
     private final BlockingQueue<DatagramPacket> packetsToSend = new LinkedBlockingQueue<>();
 
-    public FairLossLink(int id, List<Host> hosts, int port, PackageListener listener, int targetId) {
+    public FairLossLink(int id, List<Host> hosts, int port, Listener listener, int targetId) {
         super(listener, id, hosts, targetId);
 
         try {
@@ -73,12 +72,6 @@ public class FairLossLink extends Link {
             handleListener(packet);
         }
     }
-
-    @Override
-    public void send(Message m, int targetId) {}
-
-    @Override
-    public void sendMany(int targetId, int sourceId, int numMessages) {}
 
     public void closeSocket() {
         socket.close();

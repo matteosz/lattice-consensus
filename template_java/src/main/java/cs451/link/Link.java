@@ -1,9 +1,6 @@
 package cs451.link;
 
-import cs451.interfaces.LinkInterface;
-import cs451.interfaces.MessageListener;
-import cs451.interfaces.PackageListener;
-import cs451.message.Message;
+import cs451.interfaces.Listener;
 import cs451.message.Packet;
 import cs451.parser.Host;
 
@@ -11,30 +8,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class Link implements LinkInterface {
+public abstract class Link {
 
-    private MessageListener messageListener;
-    private PackageListener packageListener;
+    private Listener listener;
 
     private static final Map<Integer, Process> network = new HashMap<>();
 
     private final int id;
+    protected final int targetId;
 
     protected Link(int id, List<Host> hosts, int targetId) {
         this.id = id;
+        this.targetId = targetId;
         populateNetwork(hosts, targetId);
     }
 
-    protected Link(MessageListener listener, int id, List<Host> hosts, int targetId) {
+    protected Link(Listener listener, int id, List<Host> hosts, int targetId) {
         this(id, hosts, targetId);
-        messageListener = listener;
-        packageListener = null;
-    }
-
-    protected Link(PackageListener listener, int id, List<Host> hosts, int targetId) {
-        this(id, hosts, targetId);
-        messageListener = null;
-        packageListener = listener;
+        this.listener = listener;
     }
 
     private void populateNetwork(List<Host> hosts, int targetId) {
@@ -50,12 +41,8 @@ public abstract class Link implements LinkInterface {
         }
     }
 
-    protected void handleListener(Message message) {
-        messageListener.apply(message);
-    }
-
     protected void handleListener(Packet packet) {
-        packageListener.apply(packet);
+        listener.apply(packet);
     }
 
     protected int getId() {
