@@ -41,10 +41,6 @@ public class CommunicationService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //write/flush output file if necessary
-        System.out.println("Writing output.");
-        System.out.println(process.logAllEvents());
-        //pl.closeSocket();
     }
 
 }

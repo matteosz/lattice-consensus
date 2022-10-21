@@ -19,7 +19,7 @@ public class Event {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(mode);
+        StringBuilder sb = new StringBuilder("").append(mode);
         if (mode == 'b') {
             sb.append(" ").append(sequenceNr);
         } else if (mode == 'd') {

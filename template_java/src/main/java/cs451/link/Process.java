@@ -37,6 +37,10 @@ public class Process {
         return host;
     }
 
+    private int getId() {
+        return host.getId();
+    }
+
     public boolean isTarget() {
         return isTarget;
     }
@@ -96,6 +100,8 @@ public class Process {
     public void stopSending(Packet p) {
         synchronized (toSend) {
             toSend.remove(p.getPacketId());
+            System.out.println("Process " + getId() +
+                    ": Stopped sending packet because ack received");
         }
     }
 
@@ -112,8 +118,11 @@ public class Process {
 
         List<List<Message>> packets = Compressor.compress(numMessages, host.getId());
 
-        packets.forEach(x ->
-                toSend.put(targetId, Packet.createPacket(x,packetNumber.incrementAndGet(), host.getId())));
-
+        synchronized (toSend){
+            packets.forEach(x -> {
+                    toSend.put(targetId, Packet.createPacket(x,packetNumber.incrementAndGet(), host.getId()));
+                    System.out.println("Process " + getId() + ": Added packet");
+            });
+        }
     }
 }
