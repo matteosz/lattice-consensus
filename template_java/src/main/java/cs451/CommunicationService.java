@@ -2,7 +2,7 @@ package cs451;
 
 import cs451.link.Link;
 import cs451.link.PerfectLink;
-import cs451.link.Process;
+import cs451.process.Process;
 import cs451.parser.Host;
 import cs451.parser.Parser;
 

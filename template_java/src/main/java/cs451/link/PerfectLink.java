@@ -1,6 +1,7 @@
 package cs451.link;
 
 import cs451.message.Packet;
+import cs451.process.Process;
 
 public class PerfectLink extends Link {
 

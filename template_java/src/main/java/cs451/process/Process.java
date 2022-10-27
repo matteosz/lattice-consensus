@@ -1,4 +1,4 @@
-package cs451.link;
+package cs451.process;
 
 import cs451.helper.Event;
 import cs451.message.Compressor;
