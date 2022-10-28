@@ -17,6 +17,7 @@ public class FairLossLink extends Link {
 
     private DatagramSocket socket;
     private final BlockingQueue<DatagramPacket> datagramsToSend = new LinkedBlockingQueue<>();
+    private final BlockingQueue<DatagramPacket> datagramsToReceive = new LinkedBlockingQueue<>();
 
     public FairLossLink(int id, int port, Listener listener) {
 
@@ -28,9 +29,10 @@ public class FairLossLink extends Link {
             e.printStackTrace();
         }
 
-        Executor workers = Executors.newFixedThreadPool(2);
+        Executor workers = Executors.newFixedThreadPool(3);
         workers.execute(this::sendPacketsInQueue);
-        workers.execute(this::receive);
+        workers.execute(this::sendPacketsInReceiveQueue);
+        workers.execute(this::receivePackets);
     }
 
     public void enqueuePacket(Packet pck, int id) {
@@ -60,7 +62,7 @@ public class FairLossLink extends Link {
         }
     }
 
-    private void receive() {
+    private void sendPacketsInReceiveQueue() {
         for (;;) {
 
             byte[] buffer = new byte[Packet.MAX_PACKET_SIZE];
@@ -68,17 +70,29 @@ public class FairLossLink extends Link {
 
             try {
                 socket.receive(datagramPacket);
+                datagramsToReceive.put(datagramPacket);
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            Packet packet = Packet.getPacket(datagramPacket.getData());
-            handleListener(packet);
         }
     }
 
-    public void closeSocket() {
-        socket.close();
+    private void receivePackets() {
+        for (;;) {
+
+            try {
+                DatagramPacket datagramPacket = datagramsToReceive.take();
+                Packet packet = Packet.getPacket(datagramPacket.getData());
+                handleListener(packet);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
+
 }
 

@@ -36,10 +36,6 @@ public class StubbornLink extends Link {
 
     }
 
-    private void splitPackets() {
-
-    }
-
     private void processPacket(Process process) {
 
         List<Packet> packets = process.getPacketsToSend();
@@ -49,10 +45,6 @@ public class StubbornLink extends Link {
             process.flagEvent(p, Link.targetId, false);
         }
 
-    }
-
-    public void closeSocket() {
-        link.closeSocket();
     }
 
 }
