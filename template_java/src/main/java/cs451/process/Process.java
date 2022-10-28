@@ -8,6 +8,7 @@ import cs451.parser.Host;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -20,7 +21,7 @@ public class Process {
 
     private final Map<Integer, Set<Integer>> delivered = new TreeMap<>();
     private final Set<Integer> sent = new TreeSet<>();
-    private final Map<Integer, Packet> toSend = new TreeMap<>();
+    private final ConcurrentHashMap<Integer, Packet> toSend = new ConcurrentHashMap<>();
 
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
@@ -97,28 +98,19 @@ public class Process {
 
     public List<Packet> getPacketsToSend() {
 
-        synchronized (toSend) {
-            return toSend.entrySet().stream()
-                    .map(Map.Entry::getValue)
-                    .collect(Collectors.toList());
-        }
+        return toSend.entrySet().stream()
+                .sorted()    
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
 
     }
 
     public boolean isSending(Packet p) {
-
-        synchronized (toSend) {
-            return toSend.containsKey(p.getPacketId());
-        }
-
+        return toSend.containsKey(p.getPacketId());
     }
 
     public void stopSending(Packet p) {
-
-        synchronized (toSend) {
-            toSend.remove(p.getPacketId());
-        }
-
+        toSend.remove(p.getPacketId());
     }
 
     public String logAllEvents() {
@@ -130,18 +122,16 @@ public class Process {
         return sb.toString();
     }
 
-    public void run(int numMessages) {
+    public void run(int start, int numMessages) {
 
         if (isTarget) {
             return;
         }
 
-        List<List<Message>> packets = Compressor.compress(numMessages, host.getId());
+        List<List<Message>> packets = Compressor.compress(start, numMessages, host.getId());
 
-        synchronized (toSend){
-            packets.forEach(x ->
+        packets.forEach(x ->
                     toSend.put(packetNumber.incrementAndGet(),
                             Packet.createPacket(x,packetNumber.get(), host.getId())));
-        }
     }
 }

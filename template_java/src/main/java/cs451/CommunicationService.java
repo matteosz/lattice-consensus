@@ -13,6 +13,8 @@ import java.util.List;
 
 public class CommunicationService {
 
+    private static final int BATCH_SIZE = 100000;
+
     private static PerfectLink perfectLink;
     private static Parser parser;
     private static Process process;
@@ -28,10 +30,10 @@ public class CommunicationService {
 
         Link.populateNetwork(hosts, targetId);
 
-        process = perfectLink.getProcess(myId);
-        process.run(numMessages);
-
         perfectLink = new PerfectLink(myId, hosts.get(myId-1).getPort());
+        process = perfectLink.getProcess(myId);
+
+        process.run(0, numMessages);
 
     }
 

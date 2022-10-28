@@ -7,7 +7,7 @@ public class Compressor {
 
     public static final int MAX_COMPRESSION = 8;
 
-    public static List<List<Message>> compress(int nMessages, int senderId) {
+    public static List<List<Message>> compress(int start, int nMessages, int senderId) {
 
         List<List<Message>> packets = new LinkedList<>();
         int packetLen = 0, packetCount = 0;
