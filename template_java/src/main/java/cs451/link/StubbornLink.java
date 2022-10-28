@@ -5,18 +5,21 @@ import cs451.message.Packet;
 import cs451.process.Process;
 
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class StubbornLink extends Link {
 
     private final FairLossLink link;
+    private final ExecutorService worker = Executors.newFixedThreadPool(1);
 
     public StubbornLink(int id, int port, Listener listener) {
 
         super(listener, id);
         link = new FairLossLink(id, port, this::deliver);
 
-        Executors.newFixedThreadPool(1).execute(this::sendPackets);
+        worker.execute(this::sendPackets);
     }
 
     public void deliver(Packet pck) {
@@ -45,6 +48,11 @@ public class StubbornLink extends Link {
             process.flagEvent(p, Link.targetId, false);
         }
 
+    }
+
+    public void stopThreads() {
+        link.stopThreads();
+        worker.shutdownNow();
     }
 
 }

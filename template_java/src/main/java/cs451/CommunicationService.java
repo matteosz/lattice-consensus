@@ -37,12 +37,18 @@ public class CommunicationService {
 
     public static void log() {
 
+        interruptThreads();
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(parser.output()), 32768)) {
             bw.write(process.logAllEvents());
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+    }
+
+    private static void interruptThreads() {
+        perfectLink.stopThreads();
     }
 
     private CommunicationService() {}

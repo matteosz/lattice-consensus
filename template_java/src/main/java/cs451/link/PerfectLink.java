@@ -12,6 +12,10 @@ public class PerfectLink extends Link {
         link = new StubbornLink(id, port, this::deliver);
     }
 
+    public void stopThreads() {
+        link.stopThreads();
+    }
+
     private void deliver(Packet packet) {
 
         Process process = getProcess(getId());

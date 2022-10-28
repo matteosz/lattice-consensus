@@ -42,13 +42,20 @@ public class Process {
     }
 
     public void deliver(Packet p) {
-        delivered.get(p.getSenderId()).add(p.getPacketId());
+
+        synchronized (delivered) {
+            delivered.get(p.getSenderId()).add(p.getPacketId());
+        }
+
     }
 
     public boolean hasDelivered(Packet p) {
 
-        Set<Integer> x = delivered.get(p.getSenderId());
+        Set<Integer> x;
 
+        synchronized (delivered) {
+            x = delivered.get(p.getSenderId());
+        }
         if (x == null)
             return false;
 
@@ -90,18 +97,28 @@ public class Process {
 
     public List<Packet> getPacketsToSend() {
 
-        return toSend.entrySet().stream()
+        synchronized (toSend) {
+            return toSend.entrySet().stream()
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
+        }
 
     }
 
     public boolean isSending(Packet p) {
-        return toSend.containsKey(p.getPacketId());
+
+        synchronized (toSend) {
+            return toSend.containsKey(p.getPacketId());
+        }
+
     }
 
     public void stopSending(Packet p) {
-        toSend.remove(p.getPacketId());
+
+        synchronized (toSend) {
+            toSend.remove(p.getPacketId());
+        }
+
     }
 
     public String logAllEvents() {
@@ -120,10 +137,11 @@ public class Process {
         }
 
         List<List<Message>> packets = Compressor.compress(numMessages, host.getId());
-        
-        packets.forEach(x ->
+
+        synchronized (toSend){
+            packets.forEach(x ->
                     toSend.put(packetNumber.incrementAndGet(),
                             Packet.createPacket(x,packetNumber.get(), host.getId())));
         }
-
+    }
 }

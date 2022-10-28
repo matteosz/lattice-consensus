@@ -8,16 +8,15 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class FairLossLink extends Link {
 
     private DatagramSocket socket;
     private final BlockingQueue<DatagramPacket> datagramsToSend = new LinkedBlockingQueue<>();
     private final BlockingQueue<DatagramPacket> datagramsToReceive = new LinkedBlockingQueue<>();
+
+    private final ExecutorService workers = Executors.newFixedThreadPool(3);
 
     public FairLossLink(int id, int port, Listener listener) {
 
@@ -29,7 +28,6 @@ public class FairLossLink extends Link {
             e.printStackTrace();
         }
 
-        Executor workers = Executors.newFixedThreadPool(3);
         workers.execute(this::sendPacketsInQueue);
         workers.execute(this::sendPacketsInReceiveQueue);
         workers.execute(this::receivePackets);
@@ -92,6 +90,10 @@ public class FairLossLink extends Link {
             }
 
         }
+    }
+
+    public void stopThreads() {
+        workers.shutdownNow();
     }
 
 }
