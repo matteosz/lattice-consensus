@@ -70,7 +70,7 @@ def main(processes, messages, runscript, logsDir):
         for (logicalPID, procHandle) in procs:
             print("Process with logicalPID {} has PID {}".format(logicalPID, procHandle.pid))
 
-        time.sleep(5)
+        time.sleep(2)
 
     finally:
         if procs is not None:

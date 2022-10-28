@@ -18,9 +18,9 @@ public class Process {
     private final boolean isTarget;
     private final AtomicInteger packetNumber = new AtomicInteger(0);
 
-    private final Map<Integer, Set<Integer>> delivered = new HashMap<>();
-    private final Set<Integer> sent = new HashSet<>();
-    private final Map<Integer, Packet> toSend = new HashMap<>();
+    private final Map<Integer, Set<Integer>> delivered = new TreeMap<>();
+    private final Set<Integer> sent = new TreeSet<>();
+    private final Map<Integer, Packet> toSend = new TreeMap<>();
 
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 

@@ -36,6 +36,10 @@ public class StubbornLink extends Link {
 
     }
 
+    private void splitPackets() {
+
+    }
+
     private void processPacket(Process process) {
 
         List<Packet> packets = process.getPacketsToSend();
