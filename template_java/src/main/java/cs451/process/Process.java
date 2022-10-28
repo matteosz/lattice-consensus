@@ -99,7 +99,7 @@ public class Process {
     public List<Packet> getPacketsToSend() {
 
         return toSend.entrySet().stream()
-                .sorted()    
+                .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
 
