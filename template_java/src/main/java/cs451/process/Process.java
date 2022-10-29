@@ -1,7 +1,6 @@
 package cs451.process;
 
 import cs451.helper.Event;
-import cs451.message.Compressor;
 import cs451.message.Message;
 import cs451.message.Packet;
 import cs451.parser.Host;
@@ -10,19 +9,16 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class Process {
 
     private final Host host;
     private final boolean isTarget;
-    private final AtomicInteger packetNumber = new AtomicInteger(0);
+    private int packetNumber = 0;
 
-    private final Map<Integer, Set<Integer>> delivered = new TreeMap<>();
-    private final Set<Integer> sent = new TreeSet<>();
+    private final ConcurrentHashMap<Integer, Set<Integer>> delivered = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Packet> toSend = new ConcurrentHashMap<>();
-
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
     public Process(Host host, int numHosts, int targetId) {
@@ -44,19 +40,15 @@ public class Process {
 
     public void deliver(Packet p) {
 
-        synchronized (delivered) {
-            delivered.get(p.getSenderId()).add(p.getPacketId());
-        }
+        delivered.get(p.getSenderId()).add(p.getPacketId());
 
+        deliverEvent(p, p.getPacketId());
     }
 
     public boolean hasDelivered(Packet p) {
 
-        Set<Integer> x;
+        Set<Integer> x = delivered.get(p.getSenderId());
 
-        synchronized (delivered) {
-            x = delivered.get(p.getSenderId());
-        }
         if (x == null)
             return false;
 
@@ -64,42 +56,32 @@ public class Process {
 
     }
 
-    public void flagEvent(Packet p, int id, boolean deliver) {
+    public void sendEvent(Message m) {
 
-        if (deliver) {
-
-            p.getMessages().forEach(m -> {
-                try {
-                    events.put(new Event('d', m.getMessageId(), id));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    Thread.currentThread().interrupt();
-                }
-            });
-
-        } else {
-
-            synchronized (sent) {
-                if (!sent.add(p.getPacketId())) {
-                    return;
-                }
-            }
-
-            p.getMessages().forEach(m -> {
-                try {
-                    events.put(new Event('b', m.getMessageId()));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    Thread.currentThread().interrupt();
-                }
-            });
+        try {
+            events.put(new Event('b', m.getMessageId()));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
+
+    }
+
+    private void deliverEvent(Packet p, int id) {
+
+        p.getMessages().forEach(m -> {
+            try {
+                events.put(new Event('d', m.getMessageId(), id));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 
     public List<Packet> getPacketsToSend() {
 
         return toSend.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
 
@@ -122,16 +104,8 @@ public class Process {
         return sb.toString();
     }
 
-    public void run(int start, int numMessages) {
-
-        if (isTarget) {
-            return;
-        }
-
-        List<List<Message>> packets = Compressor.compress(start, numMessages, host.getId());
-
-        packets.forEach(x ->
-                    toSend.put(packetNumber.incrementAndGet(),
-                            Packet.createPacket(x,packetNumber.get(), host.getId())));
+    public void load(List<Message> messages) {
+        packetNumber++;
+        toSend.put(packetNumber, Packet.createPacket(messages,packetNumber, host.getId()));
     }
 }

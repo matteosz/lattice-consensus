@@ -5,15 +5,15 @@ import cs451.helper.Operations;
 import java.util.LinkedList;
 import java.util.List;
 
-import static cs451.message.Compressor.MAX_COMPRESSION;
-
 public class Packet {
 
+    public static final int MAX_COMPRESSION = 8;
     public static final int NUM_MEX_OS = 0, PCK_ID_OS = Integer.BYTES + NUM_MEX_OS,
                      SENDER_ID_OS = Integer.BYTES + PCK_ID_OS,
                      IS_ACK_OS = 1 + SENDER_ID_OS, MEX_OS = 1 + IS_ACK_OS;
     public static final int HEADER = MEX_OS;
     public static final int MAX_PACKET_SIZE = MAX_COMPRESSION*Message.MESSAGE_SIZE + HEADER;
+
 
     private final int senderId, numMessages, packetId;
     private final boolean isAck;

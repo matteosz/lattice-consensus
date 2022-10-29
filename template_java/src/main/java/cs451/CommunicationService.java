@@ -2,6 +2,8 @@ package cs451;
 
 import cs451.link.Link;
 import cs451.link.PerfectLink;
+import cs451.message.Message;
+import cs451.message.Packet;
 import cs451.process.Process;
 import cs451.parser.Host;
 import cs451.parser.Parser;
@@ -9,11 +11,10 @@ import cs451.parser.Parser;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 public class CommunicationService {
-
-    private static final int BATCH_SIZE = 100000;
 
     private static PerfectLink perfectLink;
     private static Parser parser;
@@ -31,9 +32,32 @@ public class CommunicationService {
         Link.populateNetwork(hosts, targetId);
 
         perfectLink = new PerfectLink(myId, hosts.get(myId-1).getPort());
+
         process = perfectLink.getProcess(myId);
 
-        process.run(0, numMessages);
+        if (process.isTarget()) {
+            return;
+        }
+
+        List<Message> packet = new LinkedList<>();
+
+        for (int i = 1; i <= numMessages; i++) {
+
+            Message m = Message.createMessage(targetId, i);
+
+            process.sendEvent(m);
+
+            packet.add(m);
+
+            if (packet.size() == Packet.MAX_COMPRESSION) {
+                process.load(packet);
+                packet = new LinkedList<>();
+            }
+            
+        }
+
+        if (packet.size() > 0)
+            process.load(packet);
 
     }
 

@@ -45,7 +45,6 @@ public class StubbornLink extends Link {
 
         for (Packet p : packets) {
             link.enqueuePacket(p, Link.targetId);
-            process.flagEvent(p, Link.targetId, false);
         }
 
     }
