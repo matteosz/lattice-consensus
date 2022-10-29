@@ -17,7 +17,7 @@ public class Process {
     private final boolean isTarget;
     private int packetNumber = 0;
 
-    private final ConcurrentHashMap<Integer, Set<Integer>> delivered = new ConcurrentHashMap<>();
+    private final HashMap<Integer, Set<Integer>> delivered = new HashMap<>();
     private final ConcurrentHashMap<Integer, Packet> toSend = new ConcurrentHashMap<>();
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
@@ -40,15 +40,18 @@ public class Process {
 
     public void deliver(Packet p) {
 
-        delivered.get(p.getSenderId()).add(p.getPacketId());
+        synchronized (delivered) {
+            delivered.get(p.getSenderId()).add(p.getPacketId());
+        }
 
-        deliverEvent(p, p.getPacketId());
+        deliverEvent(p, p.getSenderId());
     }
 
     public boolean hasDelivered(Packet p) {
-
-        Set<Integer> x = delivered.get(p.getSenderId());
-
+        Set<Integer> x;
+        synchronized (delivered) {
+            x = delivered.get(p.getSenderId());
+        }
         if (x == null)
             return false;
 
@@ -80,11 +83,9 @@ public class Process {
     }
 
     public List<Packet> getPacketsToSend() {
-
         return toSend.entrySet().stream()
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
-
     }
 
     public boolean isSending(Packet p) {

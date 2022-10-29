@@ -53,7 +53,7 @@ public class CommunicationService {
                 process.load(packet);
                 packet = new LinkedList<>();
             }
-            
+
         }
 
         if (packet.size() > 0)
