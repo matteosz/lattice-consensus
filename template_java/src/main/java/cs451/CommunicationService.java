@@ -68,7 +68,7 @@ public class CommunicationService {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(parser.output()), 32768)) {
             bw.write(process.logAllEvents());
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
 
         Thread.currentThread().interrupt();

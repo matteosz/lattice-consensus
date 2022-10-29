@@ -64,8 +64,8 @@ public class Process {
         try {
             events.put(new Event('b', m.getMessageId()));
         } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
+            // e.printStackTrace();
+            // Thread.currentThread().interrupt();
         }
 
     }
@@ -76,8 +76,8 @@ public class Process {
             try {
                 events.put(new Event('d', m.getMessageId(), id));
             } catch (InterruptedException e) {
-                e.printStackTrace();
-                Thread.currentThread().interrupt();
+                // e.printStackTrace();
+                // Thread.currentThread().interrupt();
             }
         });
     }
