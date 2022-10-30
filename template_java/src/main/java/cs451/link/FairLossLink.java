@@ -15,8 +15,8 @@ public class FairLossLink extends Link {
     private DatagramSocket socket;
     private final BlockingQueue<DatagramPacket> datagramsToSend = new LinkedBlockingQueue<>();
     private final BlockingQueue<DatagramPacket> datagramsToReceive = new LinkedBlockingQueue<>();
-
     private final ExecutorService workers = Executors.newFixedThreadPool(3);
+    private boolean running;
 
     public FairLossLink(int id, int port, Listener listener) {
 
@@ -28,6 +28,7 @@ public class FairLossLink extends Link {
             //e.printStackTrace();
         }
 
+        running = true;
         workers.execute(this::sendPacketsInQueue);
         workers.execute(this::sendPacketsInReceiveQueue);
         workers.execute(this::receivePackets);
@@ -47,7 +48,7 @@ public class FairLossLink extends Link {
     }
 
     private void sendPacketsInQueue() {
-        for (;;) {
+        while (running) {
 
             try {
                 socket.send(datagramsToSend.take());
@@ -61,7 +62,7 @@ public class FairLossLink extends Link {
     }
 
     private void sendPacketsInReceiveQueue() {
-        for (;;) {
+         while (running) {
 
             byte[] buffer = new byte[Packet.MAX_PACKET_SIZE];
             DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
@@ -80,7 +81,7 @@ public class FairLossLink extends Link {
     }
 
     private void receivePackets() {
-        for (;;) {
+        while (running) {
 
             try {
                 DatagramPacket datagramPacket = datagramsToReceive.take();
@@ -95,6 +96,7 @@ public class FairLossLink extends Link {
     }
 
     public void stopThreads() {
+        running = false;
         workers.shutdownNow();
     }
 

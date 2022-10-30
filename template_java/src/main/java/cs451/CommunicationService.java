@@ -70,7 +70,7 @@ public class CommunicationService {
             e.printStackTrace();
         }
 
-        //Thread.currentThread().interrupt();
+        Thread.currentThread().interrupt();
     }
 
     private static void interruptThreads() {

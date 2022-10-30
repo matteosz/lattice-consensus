@@ -77,7 +77,9 @@ public class Process {
 
         StringBuilder sb = new StringBuilder();
 
-        events.forEach(e -> sb.append(e.toString()));
+        synchronized (events) {
+            events.forEach(e -> sb.append(e.toString()));
+        }
 
         return sb.toString();
     }

@@ -12,6 +12,7 @@ public class StubbornLink extends Link {
 
     private final FairLossLink link;
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
+    private boolean running;
 
     public StubbornLink(int id, int port, Listener listener) {
 
@@ -19,6 +20,7 @@ public class StubbornLink extends Link {
         link = new FairLossLink(id, port, this::deliver);
 
         worker.execute(this::sendPackets);
+        running = true;
     }
 
     public void deliver(Packet pck) {
@@ -32,9 +34,9 @@ public class StubbornLink extends Link {
 
     private void sendPackets() {
 
-        for (;;) {
+        while (running) {
             try {
-                Thread.sleep(2);
+                Thread.sleep(2, 5);
             } catch (InterruptedException e) {
                 // e.printStackTrace();
             }
@@ -54,6 +56,7 @@ public class StubbornLink extends Link {
     }
 
     public void stopThreads() {
+        running = false;
         link.stopThreads();
         worker.shutdownNow();
     }
