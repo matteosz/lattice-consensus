@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 
 public class StubbornLink extends Link {
 
-    private final int THRESHOLD = 10;
+    private final int THRESHOLD = 20;
     private final FairLossLink link;
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
     private final int sleep;
@@ -21,14 +21,14 @@ public class StubbornLink extends Link {
         super(listener, id);
         link = new FairLossLink(id, port, this::deliver);
 
-        if (numHosts > 3 * THRESHOLD) {
-            sleep = 5;
+        if (numHosts > 2 * THRESHOLD) {
+            sleep = 6;
         } else if (numHosts > THRESHOLD){
-            sleep = 4;
+            sleep = 5;
         } else if (numHosts > THRESHOLD/2) {
-            sleep = 3;
+            sleep = 4;
         } else {
-            sleep = 2;
+            sleep = 3;
         }
 
         worker.execute(this::sendPackets);
