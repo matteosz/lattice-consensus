@@ -33,12 +33,12 @@ public class StubbornLink extends Link {
     private void sendPackets() {
 
         for (;;) {
-            processPacket(getProcess(getId()));
             try {
-                Thread.sleep(5);
+                Thread.sleep(2);
             } catch (InterruptedException e) {
                 // e.printStackTrace();
             }
+            processPacket(getProcess(getId()));
         }
 
     }
