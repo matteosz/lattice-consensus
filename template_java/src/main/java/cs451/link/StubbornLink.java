@@ -36,7 +36,7 @@ public class StubbornLink extends Link {
 
         while (running) {
             try {
-                Thread.sleep(4);
+                Thread.sleep(4,500000);
             } catch (InterruptedException e) {
                 // e.printStackTrace();
             }
