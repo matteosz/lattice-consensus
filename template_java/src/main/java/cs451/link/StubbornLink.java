@@ -35,7 +35,7 @@ public class StubbornLink extends Link {
         for (;;) {
             processPacket(getProcess(getId()));
             try {
-                Thread.sleep(2);
+                Thread.sleep(5);
             } catch (InterruptedException e) {
                 // e.printStackTrace();
             }
