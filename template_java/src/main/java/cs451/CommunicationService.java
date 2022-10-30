@@ -26,12 +26,13 @@ public class CommunicationService {
 
         List<Host> hosts = parser.hosts();
 
+        int numHosts = hosts.size();
         int myId = parser.myId(), targetId = parser.getConfig().getTarget();
         int numMessages = parser.getConfig().getMessages();
 
         Link.populateNetwork(hosts, targetId);
 
-        perfectLink = new PerfectLink(myId, hosts.get(myId-1).getPort());
+        perfectLink = new PerfectLink(myId, hosts.get(myId-1).getPort(), numHosts);
 
         process = perfectLink.getProcess(myId);
 

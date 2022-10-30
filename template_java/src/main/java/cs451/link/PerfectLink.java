@@ -7,9 +7,9 @@ public class PerfectLink extends Link {
 
     private final StubbornLink link;
 
-    public PerfectLink(int id, int port) {
+    public PerfectLink(int id, int port, int numHosts) {
         super(id);
-        link = new StubbornLink(id, port, this::deliver);
+        link = new StubbornLink(id, port, this::deliver, numHosts);
     }
 
     public void stopThreads() {
