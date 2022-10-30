@@ -64,13 +64,13 @@ public class CommunicationService {
 
         interruptThreads();
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(parser.output()), 32768)) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(parser.output()))) {
             bw.write(process.logAllEvents());
         } catch (IOException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
         }
 
-        Thread.currentThread().interrupt();
+        //Thread.currentThread().interrupt();
     }
 
     private static void interruptThreads() {
