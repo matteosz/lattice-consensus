@@ -6,9 +6,7 @@ import cs451.message.Packet;
 import cs451.parser.Host;
 
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 public class Process {
@@ -18,8 +16,8 @@ public class Process {
     private int packetNumber = 0;
 
     private final HashMap<Integer, Set<Integer>> delivered = new HashMap<>();
+    private final List<Event> events = new LinkedList<>();
     private final ConcurrentHashMap<Integer, Packet> toSend = new ConcurrentHashMap<>();
-    private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
     public Process(Host host, int numHosts, int targetId) {
         this.host = host;
@@ -40,46 +38,25 @@ public class Process {
 
     public void deliver(Packet p) {
 
-        synchronized (delivered) {
-            delivered.get(p.getSenderId()).add(p.getPacketId());
-        }
+        delivered.get(p.getSenderId()).add(p.getPacketId());
 
         deliverEvent(p, p.getSenderId());
     }
 
     public boolean hasDelivered(Packet p) {
-        Set<Integer> x;
-        synchronized (delivered) {
-            x = delivered.get(p.getSenderId());
-        }
+        Set<Integer> x = delivered.get(p.getSenderId());
         if (x == null)
             return false;
 
         return x.contains(p.getPacketId());
-
     }
 
     public void sendEvent(Message m) {
-
-        try {
-            events.put(new Event('b', m.getMessageId()));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-        }
-
+        events.add(new Event('b', m.getMessageId()));
     }
 
     private void deliverEvent(Packet p, int id) {
-
-        p.getMessages().forEach(m -> {
-            try {
-                events.put(new Event('d', m.getMessageId(), id));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                Thread.currentThread().interrupt();
-            }
-        });
+        p.getMessages().forEach(m -> events.add(new Event('d', m.getMessageId(), id)));
     }
 
     public List<Packet> getPacketsToSend() {

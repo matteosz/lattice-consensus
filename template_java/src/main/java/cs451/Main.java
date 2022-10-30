@@ -24,6 +24,5 @@ public class Main {
         while (true) {
             Thread.sleep(60 * 60 * 1000);
         }
-
     }
 }

@@ -58,7 +58,6 @@ public class CommunicationService {
 
         if (packet.size() > 0)
             process.load(packet);
-
     }
 
     public static void log() {
@@ -72,7 +71,6 @@ public class CommunicationService {
         }
 
         Thread.currentThread().interrupt();
-
     }
 
     private static void interruptThreads() {
