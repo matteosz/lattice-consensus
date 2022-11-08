@@ -14,10 +14,6 @@ public class ConfigParser {
         return config.populate(path);
     }
 
-    public String getPath() {
-        return path;
-    }
-
     public Config getConfig() {
         return config;
     }

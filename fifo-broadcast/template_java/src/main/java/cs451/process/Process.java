@@ -1,27 +1,26 @@
 package cs451.process;
 
-import cs451.helper.Event;
 import cs451.message.Message;
 import cs451.message.Packet;
 import cs451.parser.Host;
 
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 public class Process {
 
     private final Host host;
-    private final boolean isTarget;
-    private int packetNumber = 0;
 
     private final HashMap<Integer, Set<Integer>> delivered = new HashMap<>();
-    private final List<Event> events = new LinkedList<>();
-    private final ConcurrentHashMap<Integer, Packet> toSend = new ConcurrentHashMap<>();
+    private final StringBuilder events = new StringBuilder();
+    private final BlockingQueue<Packet> toSend = new LinkedBlockingQueue<>();
+    private final Set<Packet> acks = new HashSet<>();
 
-    public Process(Host host, int numHosts, int targetId) {
+    public Process(Host host, int numHosts) {
         this.host = host;
-        this.isTarget = targetId == host.getId();
 
         for (int i = 1; i <= numHosts; i++) {
             delivered.put(i, new HashSet<>());
@@ -30,10 +29,6 @@ public class Process {
 
     public Host getHost() {
         return host;
-    }
-
-    public boolean isTarget() {
-        return isTarget;
     }
 
     public void deliver(Packet p) {
@@ -52,21 +47,43 @@ public class Process {
     }
 
     public void sendEvent(Message m) {
-        events.add(new Event('b', m.getMessageId()));
+        synchronized (events) {
+            events.append("b " + m.getMessageId() + "\n");
+        }
     }
 
     private void deliverEvent(Packet p, int id) {
-        p.getMessages().forEach(m -> events.add(new Event('d', m.getMessageId(), id)));
+        synchronized (events) {
+            p.getMessages().forEach(m -> events.append("d " + m.getMessageId() + " " + id + "\n"));
+        }
     }
 
-    public List<Packet> getPacketsToSend() {
-        return toSend.entrySet().stream()
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+    public BlockingQueue<Packet> getPacketsToSend() {
+        return toSend;
     }
 
-    public boolean isSending(Packet p) {
-        return toSend.containsKey(p.getPacketId());
+    public Packet getNextPacket() {
+        Packet p = null;
+        try {
+           p = toSend.take();
+        } catch (InterruptedException e) {
+            /* e.printStackTrace();
+            Thread.currentThread().interrupt(); */
+        }
+        return p;
+    }
+
+    public void addResendPacket(Packet p) {
+        try {
+            toSend.put(p);
+        } catch (InterruptedException e) {
+            /* e.printStackTrace();
+            Thread.currentThread().interrupt(); */
+        }
+    }
+
+    public boolean hasAcked(Packet p) {
+        return acks.contains(p);
     }
 
     public void stopSending(Packet p) {
@@ -74,18 +91,18 @@ public class Process {
     }
 
     public String logAllEvents() {
-
-        StringBuilder sb = new StringBuilder();
-
         synchronized (events) {
-            events.forEach(e -> sb.append(e.toString()));
+            return events.toString();
         }
-
-        return sb.toString();
     }
 
-    public void load(List<Message> messages) {
-        packetNumber++;
-        toSend.put(packetNumber, Packet.createPacket(messages,packetNumber, host.getId()));
+    public void load(int packetNumber, List<Message> messages, int targetId) {
+
+        try {
+            toSend.put(Packet.createPacket(messages, packetNumber, host.getId(), targetId));
+        } catch (InterruptedException e) {
+            //e.printStackTrace();
+            //Thread.currentThread().interrupt();
+        }
     }
 }

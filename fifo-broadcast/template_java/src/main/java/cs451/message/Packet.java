@@ -4,6 +4,7 @@ import cs451.helper.Operations;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class Packet {
 
@@ -15,13 +16,13 @@ public class Packet {
     public static final int MAX_PACKET_SIZE = MAX_COMPRESSION*Message.MESSAGE_SIZE + HEADER;
 
 
-    private final int senderId, numMessages, packetId;
+    private final int senderId, numMessages, packetId, targetId;
     private final boolean isAck;
     private final List<Message> messagesPacked;
     private final byte[] data;
 
-    public static Packet createPacket(List<Message> messages, int packetNumber, int senderId) {
-        return new Packet(messages, packetNumber, senderId, false);
+    public static Packet createPacket(List<Message> messages, int packetNumber, int senderId, int targetId) {
+        return new Packet(messages, packetNumber, senderId, false, targetId);
     }
 
     public static Packet getPacket(byte[] data) {
@@ -31,10 +32,10 @@ public class Packet {
         int senderId = data[SENDER_ID_OS];
         boolean isAck = data[IS_ACK_OS] != 0;
 
-        return new Packet(data, numMessages, packetId, senderId, isAck);
+        return new Packet(data, numMessages, packetId, senderId, isAck, -1);
     }
 
-    private Packet(List<Message> messages, int packetId, int senderId, boolean isAck) {
+    private Packet(List<Message> messages, int packetId, int senderId, boolean isAck, int targetId) {
 
         int numMessages = messages.size();
 
@@ -57,28 +58,30 @@ public class Packet {
         this.isAck = isAck;
         this.data = data;
         this.messagesPacked = messages;
+        this.targetId = targetId;
     }
 
-    private Packet(byte[] data, int numMessages, int packetId, int senderId, boolean isAck) {
+    private Packet(byte[] data, int numMessages, int packetId, int senderId, boolean isAck, int targetId) {
         this.numMessages = numMessages;
         this.packetId = packetId;
         this.senderId = senderId;
         this.isAck = isAck;
         this.data = data;
         this.messagesPacked = getMessagesPacked();
+        this.targetId = targetId;
     }
 
     public byte[] getBytes() {
         return data;
     }
 
-    public Packet convertToAck(int newSenderId) {
+    public Packet convertToAck(int newSenderId, int newTargetId) {
 
         byte[] newData = data.clone();
         newData[SENDER_ID_OS] = (byte) newSenderId;
         newData[IS_ACK_OS] = 1;
 
-        return new Packet(newData, numMessages, packetId, newSenderId, true);
+        return new Packet(newData, numMessages, packetId, newSenderId, true, newTargetId);
     }
 
     public List<Message> getMessages() {
@@ -91,6 +94,10 @@ public class Packet {
 
     public int getPacketId() {
         return packetId;
+    }
+
+    public int getTargetId() {
+        return targetId;
     }
 
     public boolean isAck() {
@@ -111,4 +118,16 @@ public class Packet {
         return messagesPacked;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Packet packet = (Packet) o;
+        return senderId == packet.senderId && packetId == packet.packetId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(senderId, packetId);
+    }
 }

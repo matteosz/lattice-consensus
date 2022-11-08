@@ -1,5 +1,6 @@
 package cs451;
 
+import cs451.broadcast.FIFOBroadcast;
 import cs451.link.Link;
 import cs451.link.PerfectLink;
 import cs451.message.Message;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class CommunicationService {
 
-    private static PerfectLink perfectLink;
+    private static FIFOBroadcast broadcast;
     private static Parser parser;
     private static Process process;
 
@@ -27,38 +28,17 @@ public class CommunicationService {
         List<Host> hosts = parser.hosts();
 
         int numHosts = hosts.size();
-        int myId = parser.myId(), targetId = parser.getConfig().getTarget();
+        int myId = parser.myId();
         int numMessages = parser.getConfig().getMessages();
 
-        Link.populateNetwork(hosts, targetId);
+        Link.populateNetwork(hosts);
 
-        perfectLink = new PerfectLink(myId, hosts.get(myId-1).getPort(), numHosts);
+        PerfectLink pfLink = new PerfectLink(myId, hosts.get(myId-1).getPort(), numHosts);
+        process = pfLink.getProcess(myId);
 
-        process = perfectLink.getProcess(myId);
+        broadcast = new FIFOBroadcast(pfLink, numMessages);
 
-        if (process.isTarget()) {
-            return;
-        }
-
-        List<Message> packet = new LinkedList<>();
-
-        for (int i = 1; i <= numMessages; i++) {
-
-            Message m = Message.createMessage(targetId, i);
-
-            process.sendEvent(m);
-
-            packet.add(m);
-
-            if (packet.size() == Packet.MAX_COMPRESSION) {
-                process.load(packet);
-                packet = new LinkedList<>();
-            }
-
-        }
-
-        if (packet.size() > 0)
-            process.load(packet);
+        broadcast.start();
     }
 
     public static void log() {
@@ -75,7 +55,7 @@ public class CommunicationService {
     }
 
     private static void interruptThreads() {
-        perfectLink.stopThreads();
+        broadcast.stopThreads();
     }
 
     private CommunicationService() {}

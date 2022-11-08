@@ -12,20 +12,18 @@ import java.util.Map;
 public abstract class Link {
 
     private static final Map<Integer, Process> network = new HashMap<>();
-    protected static int targetId;
 
     private final int id;
     private Listener listener;
 
-    public static void populateNetwork(List<Host> hosts, int targetId) {
+    public static void populateNetwork(List<Host> hosts) {
 
         if (!network.isEmpty()) {
             return;
         }
 
-        Link.targetId = targetId;
         for (Host host : hosts) {
-            network.put(host.getId(), new Process(host, hosts.size(), targetId));
+            network.put(host.getId(), new Process(host, hosts.size()));
         }
     }
 

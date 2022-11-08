@@ -20,11 +20,12 @@ public class PerfectLink extends Link {
 
         Process process = getProcess(getId());
 
-        if (process.isTarget() && !process.hasDelivered(packet)) {
+        if (!process.hasDelivered(packet)) {
 
             process.deliver(packet);
 
-        } else if (!process.isTarget() && packet.isAck() &&  process.isSending(packet)){
+        }
+        if (process.isSending(packet)){
 
             process.stopSending(packet);
 

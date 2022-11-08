@@ -6,24 +6,22 @@ import java.io.IOException;
 
 public class Config {
 
-    private int target, messages;
+    private int messages;
 
     public boolean populate(String path) {
 
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
 
-            String[] params = br.readLine().split(" ");
+            String param = br.readLine();
             try {
-                messages = Integer.parseInt(params[0]);
-                target = Integer.parseInt(params[1]);
+                messages = Integer.parseInt(param);
+
                 if (messages <= 0) {
                     System.err.println("Number of messages must be positive");
-                }
-                if (target <= 0) {
-                    System.err.println("Id of the receiver must be a positive number");
+                    return false;
                 }
             } catch (NumberFormatException e) {
-                System.err.println("m and i must be numbers");
+                System.err.println("m must be a number");
                 return false;
             }
 
@@ -33,10 +31,6 @@ public class Config {
         }
 
         return true;
-    }
-
-    public int getTarget() {
-        return target;
     }
 
     public int getMessages() {

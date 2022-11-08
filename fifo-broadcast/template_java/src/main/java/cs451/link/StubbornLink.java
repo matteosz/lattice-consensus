@@ -5,6 +5,7 @@ import cs451.message.Packet;
 import cs451.process.Process;
 
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -40,7 +41,7 @@ public class StubbornLink extends Link {
     public void deliver(Packet pck) {
 
         if (!pck.isAck()) {
-            link.enqueuePacket(pck.convertToAck(getId()), pck.getSenderId());
+            link.enqueuePacket(pck.convertToAck(getId(), pck.getSenderId()), pck.getSenderId());
         }
 
         handleListener(pck);
@@ -60,13 +61,12 @@ public class StubbornLink extends Link {
     }
 
     private void processPacket(Process process) {
+        Packet p = process.getNextPacket();
+        if (process.hasAcked(p))
+            return;
 
-        List<Packet> packets = process.getPacketsToSend();
-
-        for (Packet p : packets) {
-            link.enqueuePacket(p, Link.targetId);
-        }
-
+        link.enqueuePacket(p, p.getTargetId());
+        process.addResendPacket(p);
     }
 
     public void stopThreads() {
