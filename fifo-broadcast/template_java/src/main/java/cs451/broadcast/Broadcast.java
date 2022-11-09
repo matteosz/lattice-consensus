@@ -7,6 +7,7 @@ public abstract class Broadcast {
 
     private final Listener listener;
     private final int numHosts, myId;
+
     protected Broadcast(Listener listener, int myId, int numHosts) {
         this.listener = listener;
         this.numHosts = numHosts;

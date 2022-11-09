@@ -40,6 +40,10 @@ public abstract class Link {
         this.listener = listener;
     }
 
+    public Process getMyProcess() {
+        return myProcess;
+    }
+
     protected void handleListener(Packet packet) {
         listener.apply(packet);
     }

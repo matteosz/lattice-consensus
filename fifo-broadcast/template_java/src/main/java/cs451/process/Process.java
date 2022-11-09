@@ -25,12 +25,8 @@ public class Process {
         return host;
     }
 
-    public void deliver(Packet p) {
-
-        if (!delivered.add(p))
-            return;
-
-        deliverEvent(p);
+    public boolean deliver(Packet p) {
+        return delivered.add(p);
     }
 
     public void sendEvent(Message m) {
@@ -39,9 +35,13 @@ public class Process {
         }
     }
 
-    private void deliverEvent(Packet p) {
+    public void deliverEvent(Packet p) {
+        p.getMessages().forEach(this::deliverEvent);
+    }
+
+    public void deliverEvent(Message m) {
         synchronized (events) {
-            p.getMessages().forEach(m -> events.append("d " + m.getMessageId() + " " + p.getSenderId() + "\n"));
+            events.append("d " + m.getMessageId() + " " + m.getSenderId() + "\n");
         }
     }
 

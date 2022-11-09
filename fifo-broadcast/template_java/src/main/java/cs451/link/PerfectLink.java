@@ -18,13 +18,11 @@ public class PerfectLink extends Link {
 
     private void deliver(Packet packet) {
 
-        if (!packet.isAck()) {
-            myProcess.deliver(packet);
+        if (!packet.isAck() && !myProcess.deliver(packet)) {
+            handleListener(packet);
         } else if (packet.isAck()){
             myProcess.ack(packet);
         }
-
-        handleListener(packet);
     }
 
     public void send(Packet packet) {

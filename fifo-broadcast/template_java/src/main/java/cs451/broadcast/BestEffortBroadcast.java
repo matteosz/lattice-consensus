@@ -27,4 +27,8 @@ public class BestEffortBroadcast extends Broadcast {
     public void stopThreads() {
         link.stopThreads();
     }
+
+    public Process getProcess() {
+        return link.getMyProcess();
+    }
 }
