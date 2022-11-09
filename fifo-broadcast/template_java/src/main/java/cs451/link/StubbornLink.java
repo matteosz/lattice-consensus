@@ -4,44 +4,28 @@ import cs451.interfaces.Listener;
 import cs451.message.Packet;
 import cs451.process.Process;
 
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class StubbornLink extends Link {
 
-    private final int BATCH = 10;
     private final FairLossLink link;
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
-    private final int sleep;
-    private boolean running;
+    private AtomicBoolean running = new AtomicBoolean(true);
 
-    public StubbornLink(int id, int port, Listener listener, int numHosts) {
+    public StubbornLink(Process process, int port, Listener listener) {
 
-        super(listener, id);
-        link = new FairLossLink(id, port, this::deliver);
-
-        if (numHosts > 2 * BATCH) {
-            sleep = 6;
-        } else if (numHosts > BATCH){
-            sleep = 5;
-        } else if (numHosts > BATCH/2) {
-            sleep = 4;
-        } else if (numHosts > 2) {
-            sleep = 2;
-        } else {
-            sleep = 1;
-        }
+        super(listener, process);
+        link = new FairLossLink(process, port, this::deliver);
 
         worker.execute(this::sendPackets);
-        running = true;
     }
 
     public void deliver(Packet pck) {
 
         if (!pck.isAck()) {
-            link.enqueuePacket(pck.convertToAck(getId(), pck.getSenderId()), pck.getSenderId());
+            link.enqueuePacket(pck.convertToAck());
         }
 
         handleListener(pck);
@@ -49,28 +33,20 @@ public class StubbornLink extends Link {
 
     private void sendPackets() {
 
-        while (running) {
-            try {
-                Thread.sleep(sleep);
-            } catch (InterruptedException e) {
-                // e.printStackTrace();
+        while (running.get()) {
+            Packet p = myProcess.getNextPacket();
+            if (myProcess.removeAck(p)) {
+                return;
             }
-            processPacket(getProcess(getId()));
+
+            link.enqueuePacket(p);
+            myProcess.addSendPacket(p);
         }
 
     }
 
-    private void processPacket(Process process) {
-        Packet p = process.getNextPacket();
-        if (process.hasAcked(p))
-            return;
-
-        link.enqueuePacket(p, p.getTargetId());
-        process.addResendPacket(p);
-    }
-
     public void stopThreads() {
-        running = false;
+        running.set(false);
         link.stopThreads();
         worker.shutdownNow();
     }

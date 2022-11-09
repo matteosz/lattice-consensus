@@ -3,12 +3,14 @@ package cs451.link;
 import cs451.interfaces.Listener;
 import cs451.message.Packet;
 import cs451.parser.Host;
+import cs451.process.Process;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FairLossLink extends Link {
 
@@ -16,11 +18,11 @@ public class FairLossLink extends Link {
     private final BlockingQueue<DatagramPacket> datagramsToSend = new LinkedBlockingQueue<>();
     private final BlockingQueue<DatagramPacket> datagramsToReceive = new LinkedBlockingQueue<>();
     private final ExecutorService workers = Executors.newFixedThreadPool(3);
-    private boolean running;
+    private AtomicBoolean running = new AtomicBoolean(true);
 
-    public FairLossLink(int id, int port, Listener listener) {
+    public FairLossLink(Process process, int port, Listener listener) {
 
-        super(listener, id);
+        super(listener, process);
 
         try {
             socket = new DatagramSocket(port);
@@ -28,41 +30,40 @@ public class FairLossLink extends Link {
             //e.printStackTrace();
         }
 
-        running = true;
         workers.execute(this::sendPacketsInQueue);
         workers.execute(this::sendPacketsInReceiveQueue);
         workers.execute(this::receivePackets);
     }
 
-    public void enqueuePacket(Packet pck, int id) {
+    public void enqueuePacket(Packet pck) {
 
         byte[] buffer = pck.getBytes();
-        Host host = getProcess(id).getHost();
+        Host host = getProcess(pck.getTargetId()).getHost();
 
         try {
             datagramsToSend.put(new DatagramPacket(buffer, buffer.length, host.getIpAsAddress(), host.getPort()));
         } catch (InterruptedException e) {
-            /* e.printStackTrace();
-            Thread.currentThread().interrupt(); */
+            // e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 
     private void sendPacketsInQueue() {
-        while (running) {
+        while (running.get()) {
 
             try {
                 socket.send(datagramsToSend.take());
             } catch (IOException e) {
                 //e.printStackTrace();
             } catch (InterruptedException e) {
-                /* e.printStackTrace();
-                Thread.currentThread().interrupt(); */
+                // e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
     }
 
     private void sendPacketsInReceiveQueue() {
-         while (running) {
+         while (running.get()) {
 
             byte[] buffer = new byte[Packet.MAX_PACKET_SIZE];
             DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
@@ -73,30 +74,30 @@ public class FairLossLink extends Link {
             } catch (IOException e) {
                 //e.printStackTrace();
             } catch (InterruptedException e) {
-                /* e.printStackTrace();
-                Thread.currentThread().interrupt(); */
+                // e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
 
         }
     }
 
     private void receivePackets() {
-        while (running) {
+        while (running.get()) {
 
             try {
                 DatagramPacket datagramPacket = datagramsToReceive.take();
-                Packet packet = Packet.getPacket(datagramPacket.getData());
+                Packet packet = Packet.getPacket(datagramPacket.getData(), myProcess.getHost().getId());
                 handleListener(packet);
             } catch (InterruptedException e) {
-                /* e.printStackTrace();
-                Thread.currentThread().interrupt(); */
+                //e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
 
         }
     }
 
     public void stopThreads() {
-        running = false;
+        running.set(false);
         workers.shutdownNow();
     }
 

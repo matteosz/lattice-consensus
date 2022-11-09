@@ -27,18 +27,17 @@ public class CommunicationService {
 
         List<Host> hosts = parser.hosts();
 
-        int numHosts = hosts.size();
-        int myId = parser.myId();
-        int numMessages = parser.getConfig().getMessages();
-
         Link.populateNetwork(hosts);
 
-        PerfectLink pfLink = new PerfectLink(myId, hosts.get(myId-1).getPort(), numHosts);
-        process = pfLink.getProcess(myId);
+        int myId = parser.myId();
+        process = Link.getProcess(myId);
 
-        broadcast = new FIFOBroadcast(pfLink, numMessages);
+        int numMessages = parser.getConfig().getMessages();
+        int numHosts = hosts.size();
 
-        broadcast.start();
+        broadcast = new FIFOBroadcast(process, hosts.get(myId-1).getPort(), myId, numHosts);
+
+        broadcast.start(numMessages);
     }
 
     public static void log() {
