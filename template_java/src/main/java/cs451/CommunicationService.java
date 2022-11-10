@@ -18,8 +18,7 @@ import java.util.List;
 
 public class CommunicationService {
 
-    //private static FIFOBroadcast broadcast;
-    private static BestEffortBroadcast broadcast;
+    private static FIFOBroadcast broadcast;
     private static Parser parser;
     private static Process process;
 
@@ -37,8 +36,7 @@ public class CommunicationService {
         int numMessages = parser.getConfig().getMessages();
         int numHosts = hosts.size();
 
-        //broadcast = new FIFOBroadcast(process, myId, numHosts);
-        broadcast = new BestEffortBroadcast(process, myId, numHosts, process::deliverEvent);
+        broadcast = new FIFOBroadcast(process, myId, numHosts);
 
         broadcast.start(numMessages);
     }

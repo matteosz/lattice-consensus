@@ -32,29 +32,4 @@ public class BestEffortBroadcast extends Broadcast {
         return link.getMyProcess();
     }
 
-    private void send(List<Message> messages, int packetNumber) {
-        Packet packet = Packet.createPacket(messages, packetNumber, getMyId());
-        broadcast(packet);
-    }
-
-    public void start(int numMessages) {
-        List<Message> packet = new LinkedList<>();
-        int packetNumber = 1;
-
-        for (int m = 1; m <= numMessages; m++) {
-            Message message = Message.createMessage(getMyId(), m);
-            packet.add(message);
-            getProcess().sendEvent(message);
-
-            if (packet.size() == Packet.MAX_COMPRESSION) {
-                send(packet, packetNumber++);
-                packet.clear();
-            }
-        }
-
-        if (packet.size() > 0) {
-            send(packet, packetNumber);
-        }
-
-    }
 }
