@@ -41,8 +41,8 @@ public class FIFOBroadcast extends Broadcast {
         try {
             pending.put(p);
         } catch (InterruptedException e) {
-            //e.printStackTrace();
-            Thread.currentThread().interrupt();
+            e.printStackTrace();
+            //Thread.currentThread().interrupt();
         }
     }
 
@@ -58,8 +58,8 @@ public class FIFOBroadcast extends Broadcast {
                     pending.put(p);
                 }
             } catch (InterruptedException e) {
-                //e.printStackTrace();
-                Thread.currentThread().interrupt();
+                e.printStackTrace();
+                //Thread.currentThread().interrupt();
             }
         }
     }
@@ -72,7 +72,6 @@ public class FIFOBroadcast extends Broadcast {
             Message message = Message.createMessage(getMyId(), m);
             packet.add(message);
             broadcast.getProcess().sendEvent(message);
-            //broadcast.getProcess().deliverEvent(message);
 
             if (packet.size() == Packet.MAX_COMPRESSION) {
                 broadcast(packet, packetNumber++);

@@ -53,8 +53,8 @@ public class Process {
         try {
            p = toSend.take();
         } catch (InterruptedException e) {
-            // e.printStackTrace();
-            Thread.currentThread().interrupt();
+            e.printStackTrace();
+            //Thread.currentThread().interrupt();
         }
         return p;
     }
@@ -63,8 +63,8 @@ public class Process {
         try {
             toSend.put(new Pair(p, target));
         } catch (InterruptedException e) {
-            // e.printStackTrace();
-            Thread.currentThread().interrupt();
+            e.printStackTrace();
+            //Thread.currentThread().interrupt();
         }
     }
 
@@ -72,8 +72,8 @@ public class Process {
         try {
             toSend.put(p);
         } catch (InterruptedException e) {
-            // e.printStackTrace();
-            Thread.currentThread().interrupt();
+            e.printStackTrace();
+            //Thread.currentThread().interrupt();
         }
     }
 

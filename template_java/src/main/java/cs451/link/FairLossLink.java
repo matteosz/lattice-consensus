@@ -27,7 +27,7 @@ public class FairLossLink extends Link {
         try {
             socket = new DatagramSocket(port);
         } catch (SocketException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
         }
 
         workers.execute(this::sendPacketsInQueue);
@@ -43,8 +43,8 @@ public class FairLossLink extends Link {
         try {
             datagramsToSend.put(new DatagramPacket(buffer, buffer.length, host.getIpAsAddress(), host.getPort()));
         } catch (InterruptedException e) {
-            // e.printStackTrace();
-            Thread.currentThread().interrupt();
+            e.printStackTrace();
+            //Thread.currentThread().interrupt();
         }
     }
 
@@ -54,10 +54,10 @@ public class FairLossLink extends Link {
             try {
                 socket.send(datagramsToSend.take());
             } catch (IOException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             } catch (InterruptedException e) {
-                // e.printStackTrace();
-                Thread.currentThread().interrupt();
+                e.printStackTrace();
+                //Thread.currentThread().interrupt();
             }
         }
     }
@@ -72,10 +72,10 @@ public class FairLossLink extends Link {
                 socket.receive(datagramPacket);
                 datagramsToReceive.put(datagramPacket);
             } catch (IOException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             } catch (InterruptedException e) {
-                // e.printStackTrace();
-                Thread.currentThread().interrupt();
+                e.printStackTrace();
+                //Thread.currentThread().interrupt();
             }
 
         }
@@ -89,8 +89,8 @@ public class FairLossLink extends Link {
                 Packet packet = Packet.getPacket(datagramPacket.getData());
                 handleListener(packet);
             } catch (InterruptedException e) {
-                //e.printStackTrace();
-                Thread.currentThread().interrupt();
+                e.printStackTrace();
+                //Thread.currentThread().interrupt();
             }
 
         }
