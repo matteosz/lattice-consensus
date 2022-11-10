@@ -14,6 +14,7 @@ public class UniformReliableBroadcast extends Broadcast {
     private final ConcurrentHashMap<Packet, Integer> ack = new ConcurrentHashMap<>();
     private final Set<Packet> delivered = ConcurrentHashMap.newKeySet();
     private final Set<Packet> pending = ConcurrentHashMap.newKeySet();
+
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
     private final AtomicBoolean running = new AtomicBoolean(true);
 
@@ -38,7 +39,7 @@ public class UniformReliableBroadcast extends Broadcast {
     }
 
     private boolean canDeliver(Packet packet) {
-        return ack.getOrDefault(packet, 0) >= getNumHosts() / 2;
+        return ack.getOrDefault(packet, 0) > getNumHosts() / 2;
     }
 
     private void processPending() {

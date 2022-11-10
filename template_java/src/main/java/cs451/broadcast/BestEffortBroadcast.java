@@ -20,7 +20,12 @@ public class BestEffortBroadcast extends Broadcast {
 
     public void broadcast(Packet packet) {
         for (int i = 1; i <= getNumHosts(); i++) {
-            link.send(packet, i);
+            if (i != getMyId()) {
+                link.send(packet, i);
+            } else {
+                handleListener(packet);
+            }
+
         }
     }
 
