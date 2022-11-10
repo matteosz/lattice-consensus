@@ -54,7 +54,7 @@ public class Process {
            p = toSend.take();
         } catch (InterruptedException e) {
             e.printStackTrace();
-            //Thread.currentThread().interrupt();
+            Thread.currentThread().interrupt();
         }
         return p;
     }
@@ -64,7 +64,7 @@ public class Process {
             toSend.put(new Pair(p, target));
         } catch (InterruptedException e) {
             e.printStackTrace();
-            //Thread.currentThread().interrupt();
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -73,7 +73,7 @@ public class Process {
             toSend.put(p);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            //Thread.currentThread().interrupt();
+            Thread.currentThread().interrupt();
         }
     }
 

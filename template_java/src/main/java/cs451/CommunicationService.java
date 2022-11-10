@@ -1,5 +1,6 @@
 package cs451;
 
+import cs451.broadcast.BestEffortBroadcast;
 import cs451.broadcast.FIFOBroadcast;
 import cs451.link.Link;
 import cs451.link.PerfectLink;
@@ -17,7 +18,8 @@ import java.util.List;
 
 public class CommunicationService {
 
-    private static FIFOBroadcast broadcast;
+    //private static FIFOBroadcast broadcast;
+    private static BestEffortBroadcast broadcast;
     private static Parser parser;
     private static Process process;
 
@@ -35,7 +37,8 @@ public class CommunicationService {
         int numMessages = parser.getConfig().getMessages();
         int numHosts = hosts.size();
 
-        broadcast = new FIFOBroadcast(process, myId, numHosts);
+        //broadcast = new FIFOBroadcast(process, myId, numHosts);
+        broadcast = new BestEffortBroadcast(process, myId, numHosts, process::deliverEvent);
 
         broadcast.start(numMessages);
     }

@@ -42,7 +42,7 @@ public class StubbornLink extends Link {
                     Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                    //Thread.currentThread().interrupt();
+                    Thread.currentThread().interrupt();
                 }
                 continue;
             }

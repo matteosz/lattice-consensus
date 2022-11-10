@@ -1,7 +1,5 @@
 package cs451.message;
 
-//import cs451.helper.Operations;
-
 import java.util.Objects;
 
 public class Message {

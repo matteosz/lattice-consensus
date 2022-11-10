@@ -42,7 +42,7 @@ public class FIFOBroadcast extends Broadcast {
             pending.put(p);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            //Thread.currentThread().interrupt();
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -59,7 +59,7 @@ public class FIFOBroadcast extends Broadcast {
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                //Thread.currentThread().interrupt();
+                Thread.currentThread().interrupt();
             }
         }
     }
