@@ -20,18 +20,20 @@ public class FIFOBroadcast extends Broadcast {
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
     private final AtomicBoolean running = new AtomicBoolean(true);
 
-    public FIFOBroadcast(Process process, int port, int id, int numHosts) {
+    public FIFOBroadcast(Process process, int id, int numHosts) {
         super(id, numHosts);
-        broadcast = new UniformReliableBroadcast(process, port, id, numHosts, this::deliver);
+        broadcast = new UniformReliableBroadcast(process, id, numHosts, this::deliver);
+
         this.next = new int[numHosts];
         for (int i = 0; i < numHosts; i++) {
             next[i] = 1;
         }
+
         worker.execute(this::processPending);
     }
 
-    private void broadcast(List<Message> messages, int packetNumber, int sourceId, int targetId) {
-        Packet packet = Packet.createPacket(messages, packetNumber, sourceId, targetId);
+    private void broadcast(List<Message> messages, int packetNumber) {
+        Packet packet = Packet.createPacket(messages, packetNumber, getMyId());
         broadcast.broadcast(packet);
     }
 
@@ -62,12 +64,6 @@ public class FIFOBroadcast extends Broadcast {
         }
     }
 
-    private void sendAll(List<Message> packet, int packetNumber) {
-        for (int target = 1; target <= getNumHosts(); target++) {
-            broadcast(packet, packetNumber, getMyId(), target);
-        }
-    }
-
     public void start(int numMessages) {
         List<Message> packet = new LinkedList<>();
         int packetNumber = 1;
@@ -79,13 +75,13 @@ public class FIFOBroadcast extends Broadcast {
             //broadcast.getProcess().deliverEvent(message);
 
             if (packet.size() == Packet.MAX_COMPRESSION) {
-                sendAll(packet, packetNumber++);
+                broadcast(packet, packetNumber++);
                 packet.clear();
             }
         }
 
         if (packet.size() > 0) {
-            sendAll(packet, packetNumber);
+            broadcast(packet, packetNumber);
         }
 
     }

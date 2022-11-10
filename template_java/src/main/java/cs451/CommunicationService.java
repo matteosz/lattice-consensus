@@ -35,7 +35,7 @@ public class CommunicationService {
         int numMessages = parser.getConfig().getMessages();
         int numHosts = hosts.size();
 
-        broadcast = new FIFOBroadcast(process, hosts.get(myId-1).getPort(), myId, numHosts);
+        broadcast = new FIFOBroadcast(process, myId, numHosts);
 
         broadcast.start(numMessages);
     }
@@ -50,7 +50,6 @@ public class CommunicationService {
             e.printStackTrace();
         }
 
-        Thread.currentThread().interrupt();
     }
 
     private static void interruptThreads() {

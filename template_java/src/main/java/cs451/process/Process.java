@@ -1,5 +1,6 @@
 package cs451.process;
 
+import cs451.helper.Pair;
 import cs451.message.Message;
 import cs451.message.Packet;
 import cs451.parser.Host;
@@ -12,9 +13,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Process {
 
     private final Host host;
+
     private final Set<Packet> delivered = new HashSet<>();
-    private final BlockingQueue<Packet> toSend = new LinkedBlockingQueue<>();
-    private final Set<Packet> ack = new ConcurrentHashMap<>().newKeySet();
+    private final BlockingQueue<Pair> toSend = new LinkedBlockingQueue<>();
+    private final Set<Pair> ack = ConcurrentHashMap.newKeySet();
+
     private final StringBuilder events = new StringBuilder();
 
     public Process(Host host) {
@@ -45,8 +48,8 @@ public class Process {
         }
     }
 
-    public Packet getNextPacket() {
-        Packet p = null;
+    public Pair getNextPacket() {
+        Pair p = null;
         try {
            p = toSend.take();
         } catch (InterruptedException e) {
@@ -56,7 +59,16 @@ public class Process {
         return p;
     }
 
-    public void addSendPacket(Packet p) {
+    public void addSendPacket(Packet p, int target) {
+        try {
+            toSend.put(new Pair(p, target));
+        } catch (InterruptedException e) {
+            // e.printStackTrace();
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public void addResendPacket(Pair p) {
         try {
             toSend.put(p);
         } catch (InterruptedException e) {
@@ -65,11 +77,11 @@ public class Process {
         }
     }
 
-    public void ack(Packet p) {
+    public void ack(Pair p) {
         ack.add(p);
     }
 
-    public boolean removeAck(Packet p) {
+    public boolean removeAck(Pair p) {
         return ack.remove(p);
     }
 

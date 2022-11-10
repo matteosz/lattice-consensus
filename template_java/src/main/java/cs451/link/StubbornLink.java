@@ -1,5 +1,6 @@
 package cs451.link;
 
+import cs451.helper.Pair;
 import cs451.interfaces.Listener;
 import cs451.message.Packet;
 import cs451.process.Process;
@@ -25,7 +26,7 @@ public class StubbornLink extends Link {
     public void deliver(Packet pck) {
 
         if (!pck.isAck()) {
-            link.enqueuePacket(pck.convertToAck());
+            link.enqueuePacket(pck.convertToAck(myProcess.getHost().getId()), pck.getSenderId());
         }
 
         handleListener(pck);
@@ -34,13 +35,24 @@ public class StubbornLink extends Link {
     private void sendPackets() {
 
         while (running.get()) {
-            Packet p = myProcess.getNextPacket();
+            Pair p = myProcess.getNextPacket();
+
+            if (p == null) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    //e.printStackTrace();
+                    Thread.currentThread().interrupt();
+                }
+                continue;
+            }
+
             if (myProcess.removeAck(p)) {
                 return;
             }
 
-            link.enqueuePacket(p);
-            myProcess.addSendPacket(p);
+            link.enqueuePacket(p.getPacket(), p.getTarget());
+            myProcess.addResendPacket(p);
         }
 
     }

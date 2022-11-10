@@ -17,9 +17,9 @@ public class UniformReliableBroadcast extends Broadcast {
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
     private final AtomicBoolean running = new AtomicBoolean(true);
 
-    public UniformReliableBroadcast(Process process, int port, int id, int numHosts, Listener listener) {
+    public UniformReliableBroadcast(Process process, int id, int numHosts, Listener listener) {
         super(listener, id, numHosts);
-        broadcast = new BestEffortBroadcast(process, port, id, numHosts, this::deliver);
+        broadcast = new BestEffortBroadcast(process, id, numHosts, this::deliver);
 
         worker.execute(this::processPending);
     }

@@ -1,11 +1,9 @@
 package cs451.link;
 
+import cs451.helper.Pair;
 import cs451.interfaces.Listener;
-import cs451.message.Message;
 import cs451.message.Packet;
 import cs451.process.Process;
-
-import java.util.List;
 
 public class PerfectLink extends Link {
 
@@ -21,12 +19,12 @@ public class PerfectLink extends Link {
         if (!packet.isAck() && !myProcess.deliver(packet)) {
             handleListener(packet);
         } else if (packet.isAck()){
-            myProcess.ack(packet);
+            myProcess.ack(new Pair(packet, packet.getSenderId()));
         }
     }
 
-    public void send(Packet packet) {
-        myProcess.addSendPacket(packet);
+    public void send(Packet packet, int target) {
+        myProcess.addSendPacket(packet, target);
     }
 
     public void stopThreads() {

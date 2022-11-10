@@ -35,10 +35,10 @@ public class FairLossLink extends Link {
         workers.execute(this::receivePackets);
     }
 
-    public void enqueuePacket(Packet pck) {
+    public void enqueuePacket(Packet pck, int target) {
 
         byte[] buffer = pck.getBytes();
-        Host host = getProcess(pck.getTargetId()).getHost();
+        Host host = getProcess(target).getHost();
 
         try {
             datagramsToSend.put(new DatagramPacket(buffer, buffer.length, host.getIpAsAddress(), host.getPort()));
@@ -86,7 +86,7 @@ public class FairLossLink extends Link {
 
             try {
                 DatagramPacket datagramPacket = datagramsToReceive.take();
-                Packet packet = Packet.getPacket(datagramPacket.getData(), myProcess.getHost().getId());
+                Packet packet = Packet.getPacket(datagramPacket.getData());
                 handleListener(packet);
             } catch (InterruptedException e) {
                 //e.printStackTrace();

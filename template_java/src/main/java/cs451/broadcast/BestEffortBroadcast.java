@@ -9,16 +9,14 @@ public class BestEffortBroadcast extends Broadcast {
 
     private final PerfectLink link;
 
-    public BestEffortBroadcast(Process process, int port, int myId, int numHosts, Listener listener) {
+    public BestEffortBroadcast(Process process, int myId, int numHosts, Listener listener) {
         super(listener, numHosts, myId);
-        this.link = new PerfectLink(process, port, listener);
+        this.link = new PerfectLink(process, process.getHost().getPort(), listener);
     }
 
     public void broadcast(Packet packet) {
         for (int i = 1; i <= getNumHosts(); i++) {
-            if (i != getMyId()) {
-                link.send(packet);
-            }
+            link.send(packet, i);
         }
     }
 
