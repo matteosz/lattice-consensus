@@ -11,61 +11,48 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class UniformReliableBroadcast extends Broadcast {
 
     private final BestEffortBroadcast broadcast;
-    private final ConcurrentHashMap<Packet, Set<Integer>> ack = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Packet, Objects> delivered = new ConcurrentHashMap<>();
-    private final BlockingQueue<Packet> pending = new LinkedBlockingQueue<>();
+    private final ConcurrentHashMap<Packet, Integer> ack = new ConcurrentHashMap<>();
+    private final Set<Packet> delivered = new ConcurrentHashMap<>().newKeySet();
+    private final Set<Packet> pending = new ConcurrentHashMap<>().newKeySet();
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     public UniformReliableBroadcast(Process process, int port, int id, int numHosts, Listener listener) {
         super(listener, id, numHosts);
         broadcast = new BestEffortBroadcast(process, port, id, numHosts, this::deliver);
+
         worker.execute(this::processPending);
     }
 
     public void broadcast(Packet packet) {
-        try {
-            pending.put(packet);
-        } catch (InterruptedException e) {
-            //e.printStackTrace();
-            Thread.currentThread().interrupt();
-        }
-
+        pending.add(packet);
         broadcast.broadcast(packet);
     }
 
     private void deliver(Packet packet) {
-        ack.computeIfAbsent(packet, k -> new HashSet<>());
-        ack.get(packet).add(getMyId());
+        ack.put(packet, ack.getOrDefault(packet, 0) + 1);
 
-        if (pending.stream().filter(p -> p.equals(packet)).findAny().isEmpty()) {
-            try {
-                pending.put(packet);
-            } catch (InterruptedException e) {
-                //e.printStackTrace();
-                Thread.currentThread().interrupt();
-            }
+        if (pending.add(packet)) {
             broadcast.broadcast(packet);
         }
     }
 
     private boolean canDeliver(Packet packet) {
-        return ack.getOrDefault(packet, new HashSet<>()).size() > getNumHosts() / 2;
+        return ack.getOrDefault(packet, 0) > getNumHosts() / 2;
     }
 
     private void processPending() {
         while (running.get()) {
-            try {
-                Packet packet = pending.take();
-                if (canDeliver(packet) && !delivered.containsKey(packet)) {
-                    delivered.put(packet, null);
+
+            Iterator<Packet> value = pending.iterator();
+            while (value.hasNext()) {
+
+                Packet packet = value.next();
+                if (canDeliver(packet) && delivered.add(packet)) {
+                    value.remove();
                     handleListener(packet);
-                } else {
-                    pending.put(packet);
                 }
-            } catch (InterruptedException e) {
-                //e.printStackTrace();
-                Thread.currentThread().interrupt();
+
             }
 
         }

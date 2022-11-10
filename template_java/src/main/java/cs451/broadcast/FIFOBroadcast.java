@@ -62,6 +62,12 @@ public class FIFOBroadcast extends Broadcast {
         }
     }
 
+    private void sendAll(List<Message> packet, int packetNumber) {
+        for (int target = 1; target <= getNumHosts(); target++) {
+            broadcast(packet, packetNumber, getMyId(), target);
+        }
+    }
+
     public void start(int numMessages) {
         List<Message> packet = new LinkedList<>();
         int packetNumber = 1;
@@ -70,10 +76,11 @@ public class FIFOBroadcast extends Broadcast {
             Message message = Message.createMessage(getMyId(), m);
             packet.add(message);
             broadcast.getProcess().sendEvent(message);
-            broadcast.getProcess().deliverEvent(message);
+            //broadcast.getProcess().deliverEvent(message);
 
             if (packet.size() == Packet.MAX_COMPRESSION) {
                 sendAll(packet, packetNumber++);
+                packet.clear();
             }
         }
 
@@ -81,15 +88,6 @@ public class FIFOBroadcast extends Broadcast {
             sendAll(packet, packetNumber);
         }
 
-    }
-
-    private void sendAll(List<Message> packet, int packetNumber) {
-        for (int target = 1; target <= getNumHosts(); target++) {
-            if (target != getMyId()) {
-                broadcast(packet, packetNumber, getMyId(), target);
-            }
-        }
-        packet.clear();
     }
 
     public void stopThreads() {

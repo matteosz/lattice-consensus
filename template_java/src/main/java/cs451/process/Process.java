@@ -14,7 +14,7 @@ public class Process {
     private final Host host;
     private final Set<Packet> delivered = new HashSet<>();
     private final BlockingQueue<Packet> toSend = new LinkedBlockingQueue<>();
-    private final ConcurrentHashMap<Packet, Byte> ack = new ConcurrentHashMap<>();
+    private final Set<Packet> ack = new ConcurrentHashMap<>().newKeySet();
     private final StringBuilder events = new StringBuilder();
 
     public Process(Host host) {
@@ -66,15 +66,11 @@ public class Process {
     }
 
     public void ack(Packet p) {
-        ack.put(p, null);
+        ack.add(p);
     }
 
     public boolean removeAck(Packet p) {
-        if (!ack.containsKey(p))
-            return false;
-
-        ack.remove(p);
-        return true;
+        return ack.remove(p);
     }
 
     public String logAllEvents() {

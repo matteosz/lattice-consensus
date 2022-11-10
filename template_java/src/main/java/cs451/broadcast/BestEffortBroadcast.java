@@ -11,17 +11,15 @@ public class BestEffortBroadcast extends Broadcast {
 
     public BestEffortBroadcast(Process process, int port, int myId, int numHosts, Listener listener) {
         super(listener, numHosts, myId);
-        this.link = new PerfectLink(process, port, this::deliver);
-    }
-
-    private void deliver(Packet p) {
-        handleListener(p);
+        this.link = new PerfectLink(process, port, listener);
     }
 
     public void broadcast(Packet packet) {
-        for (int i = 1; i <= getNumHosts(); i++)
-            if (i != getMyId())
+        for (int i = 1; i <= getNumHosts(); i++) {
+            if (i != getMyId()) {
                 link.send(packet);
+            }
+        }
     }
 
     public void stopThreads() {
