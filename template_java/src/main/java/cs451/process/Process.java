@@ -44,7 +44,7 @@ public class Process {
 
     public void deliverEvent(Message m) {
         synchronized (events) {
-            events.append("d " + m.getMessageId() + " " + m.getSenderId() + "\n");
+            events.append("d " + m.getSenderId() + " " + m.getMessageId() + "\n");
         }
     }
 
