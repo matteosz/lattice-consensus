@@ -19,6 +19,10 @@ public class Main {
 
         initSignalHandlers();
 
+        long pid = ProcessHandle.current().pid();
+        System.out.println("My PID: " + pid + "\n");
+        System.out.println("From a new terminal type `kill -SIGINT " + pid + "` or `kill -SIGTERM " + pid + "` to stop processing packets\n");
+
         CommunicationService.start(parser);
 
         while (true) {
