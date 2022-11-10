@@ -9,9 +9,9 @@ public class PerfectLink extends Link {
 
     private final StubbornLink link;
 
-    public PerfectLink(Process process, int port, Listener listener) {
+    public PerfectLink(Process process, Listener listener) {
         super(listener, process);
-        link = new StubbornLink(process, port, this::deliver);
+        link = new StubbornLink(process, this::deliver);
     }
 
     private void deliver(Packet packet) {

@@ -15,10 +15,10 @@ public class StubbornLink extends Link {
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
     private AtomicBoolean running = new AtomicBoolean(true);
 
-    public StubbornLink(Process process, int port, Listener listener) {
+    public StubbornLink(Process process, Listener listener) {
 
         super(listener, process);
-        link = new FairLossLink(process, port, this::deliver);
+        link = new FairLossLink(process, this::deliver);
 
         worker.execute(this::sendPackets);
     }

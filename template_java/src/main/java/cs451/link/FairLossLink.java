@@ -20,14 +20,15 @@ public class FairLossLink extends Link {
     private final ExecutorService workers = Executors.newFixedThreadPool(3);
     private AtomicBoolean running = new AtomicBoolean(true);
 
-    public FairLossLink(Process process, int port, Listener listener) {
+    public FairLossLink(Process process, Listener listener) {
 
         super(listener, process);
 
         try {
-            socket = new DatagramSocket(port);
+            socket = new DatagramSocket(process.getHost().getPort());
         } catch (SocketException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
 
         workers.execute(this::sendPacketsInQueue);
