@@ -16,7 +16,7 @@ public class PerfectLink extends Link {
 
     private void deliver(Packet packet) {
 
-        if (!packet.isAck() && !myProcess.deliver(packet)) {
+        if (!packet.isAck() && myProcess.deliver(packet)) {
             handleListener(packet);
         } else if (packet.isAck()){
             myProcess.ack(new Pair(packet, packet.getSenderId()));
