@@ -15,7 +15,7 @@ def generatePerfectLinksConfig(directory, processes, messages):
         for i in range(1, processes + 1):
             hosts.write("{} localhost {}\n".format(i, PROCESSES_BASE_IP+i))
     with open(configfile, 'w') as config:
-        config.write("{} 1\n".format(messages))
+        config.write("{}\n".format(messages))
     return (hostsfile, configfile)
 
 def startProcesses(processes, runscript, hostsFilePath, configFilePath, outputDir):
