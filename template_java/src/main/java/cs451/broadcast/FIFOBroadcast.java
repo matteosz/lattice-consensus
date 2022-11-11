@@ -35,7 +35,7 @@ public class FIFOBroadcast extends Broadcast {
     }
 
     private void broadcast(List<Message> messages, int packetNumber) {
-        Packet packet = new Packet(messages, packetNumber, getMyId());
+        Packet packet = new Packet(messages, packetNumber, getMyId(), getMyId());
         broadcast.broadcast(packet);
     }
 
