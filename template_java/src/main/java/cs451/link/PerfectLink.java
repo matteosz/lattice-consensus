@@ -1,6 +1,6 @@
 package cs451.link;
 
-import cs451.helper.Pair;
+import cs451.helper.GenericPair;
 import cs451.callbacks.Callback;
 import cs451.message.Packet;
 import cs451.process.Process;
@@ -19,7 +19,7 @@ public class PerfectLink extends Link {
         if (!packet.isAck() && getMyProcess().deliver(packet)) {
             callback(packet);
         } else if (packet.isAck()){
-            getMyProcess().ack(new Pair(packet.backFromAck(getId()), packet.getSenderId()));
+            getMyProcess().ack(new GenericPair<>(packet.backFromAck(getId()), (byte) packet.getSenderId()));
         }
     }
 

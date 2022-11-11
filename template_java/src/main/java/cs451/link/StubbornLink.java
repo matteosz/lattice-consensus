@@ -1,6 +1,6 @@
 package cs451.link;
 
-import cs451.helper.Pair;
+import cs451.helper.GenericPair;
 import cs451.callbacks.Callback;
 import cs451.message.Packet;
 import cs451.process.Process;
@@ -35,13 +35,13 @@ public class StubbornLink extends Link {
     private void sendPackets() {
 
         while (running.get()) {
-            Pair p = getMyProcess().getNextPacket();
+            GenericPair<Packet, Byte> p = getMyProcess().getNextPacket();
 
             if (p == null || getMyProcess().removeAck(p)) {
                 continue;
             }
 
-            link.enqueuePacket(p.getPacket(), p.getTarget());
+            link.enqueuePacket(p.getT(), p.getU());
             getMyProcess().addResendPacket(p);
         }
 

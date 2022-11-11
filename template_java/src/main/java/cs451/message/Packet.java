@@ -10,13 +10,14 @@ public class Packet {
 
     public static final int MAX_COMPRESSION = 8;
     public static final int NUM_MEX_OS = 0, PCK_ID_OS = Integer.BYTES + NUM_MEX_OS,
-                     SENDER_ID_OS = Integer.BYTES + PCK_ID_OS,
-                     IS_ACK_OS = 1 + SENDER_ID_OS, MEX_OS = 1 + IS_ACK_OS;
+                     FIRST_SENDER_ID_OS = Integer.BYTES + PCK_ID_OS,
+                     LAST_SENDER_ID_OS = 1 + FIRST_SENDER_ID_OS,
+                     IS_ACK_OS = 1 + LAST_SENDER_ID_OS, MEX_OS = 1 + IS_ACK_OS;
     public static final int HEADER = MEX_OS;
     public static final int MAX_PACKET_SIZE = MAX_COMPRESSION*Message.MESSAGE_SIZE + HEADER;
 
     private final int numMessages, packetId;
-    private int senderId;
+    private int originId, senderId;
     private boolean isAck;
     private final byte[] data;
 
@@ -24,25 +25,27 @@ public class Packet {
 
         int numMessages = Operations.fromByteToInteger(data, NUM_MEX_OS);
         int packetId = Operations.fromByteToInteger(data, PCK_ID_OS);
-        int senderId = data[SENDER_ID_OS];
+        int firstSenderId = data[FIRST_SENDER_ID_OS];
+        int lastSenderId = data[LAST_SENDER_ID_OS];
         boolean isAck = data[IS_ACK_OS] != 0;
 
-        return new Packet(data, numMessages, packetId, senderId, isAck);
+        return new Packet(data, numMessages, packetId, firstSenderId, lastSenderId, isAck);
     }
 
-    private Packet(byte[] data, int numMessages, int packetId, int senderId, boolean isAck) {
+    private Packet(byte[] data, int numMessages, int packetId, int originId, int senderId, boolean isAck) {
         this.numMessages = numMessages;
         this.packetId = packetId;
+        this.originId = originId;
         this.senderId = senderId;
         this.isAck = isAck;
         this.data = data;
     }
 
-    public Packet(List<Message> messages, int packetId, int senderId) {
-        this(messages, packetId, senderId, false);
+    public Packet(List<Message> messages, int packetId, int originId, int senderId) {
+        this(messages, packetId, originId, senderId, false);
     }
 
-    private Packet(List<Message> messages, int packetId, int senderId, boolean isAck) {
+    private Packet(List<Message> messages, int packetId, int originId, int senderId, boolean isAck) {
 
         int numMessages = messages.size();
 
@@ -50,7 +53,8 @@ public class Packet {
 
         Operations.fromIntegerToByte(numMessages, data, NUM_MEX_OS);
         Operations.fromIntegerToByte(packetId, data, PCK_ID_OS);
-        data[SENDER_ID_OS] = (byte) senderId;
+        data[FIRST_SENDER_ID_OS] = (byte) originId;
+        data[LAST_SENDER_ID_OS] = (byte) senderId;
         data[IS_ACK_OS] = (byte) (isAck ? 1 : 0);
 
         int ix = MEX_OS;
@@ -61,6 +65,7 @@ public class Packet {
 
         this.numMessages = numMessages;
         this.packetId = packetId;
+        this.originId = originId;
         this.senderId = senderId;
         this.isAck = isAck;
         this.data = data;
@@ -70,13 +75,20 @@ public class Packet {
         return data;
     }
 
-    public Packet convertToAck(int newSenderId) {
+    public Packet setSenderId(int newLastSenderId) {
+        byte[] newData = data.clone();
+        newData[LAST_SENDER_ID_OS] = (byte) newLastSenderId;
+
+        return new Packet(newData, numMessages, packetId, originId, newLastSenderId, false);
+    }
+
+    public Packet convertToAck(int newLastSenderId) {
 
         byte[] newData = data.clone();
-        newData[SENDER_ID_OS] = (byte) newSenderId;
+        newData[LAST_SENDER_ID_OS] = (byte) newLastSenderId;
         newData[IS_ACK_OS] = 1;
 
-        return new Packet(newData, numMessages, packetId, newSenderId, true);
+        return new Packet(newData, numMessages, packetId, originId, newLastSenderId, true);
     }
 
     public Packet backFromAck(int oldSenderId) {
@@ -97,12 +109,16 @@ public class Packet {
         return messagesPacked;
     }
 
+    public int getPacketId() {
+        return packetId;
+    }
+
     public int getSenderId() {
         return senderId;
     }
 
-    public int getPacketId() {
-        return packetId;
+    public int getOriginId() {
+        return originId;
     }
 
     public boolean isAck() {
@@ -114,11 +130,11 @@ public class Packet {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Packet packet = (Packet) o;
-        return senderId == packet.senderId && packetId == packet.packetId;
+        return packetId == packet.packetId && originId == packet.originId && senderId == packet.senderId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(senderId, packetId);
+        return Objects.hash(packetId, originId, senderId);
     }
 }
