@@ -15,8 +15,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FIFOBroadcast extends Broadcast {
 
     private UniformReliableBroadcast broadcast;
+
     private final BlockingQueue<Packet> pending = new LinkedBlockingQueue<>();
     private final int[] next;
+
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
     private final AtomicBoolean running = new AtomicBoolean(true);
 
@@ -66,7 +68,7 @@ public class FIFOBroadcast extends Broadcast {
 
     public void start(int numMessages) {
         List<Message> packet = new LinkedList<>();
-        int packetNumber = 1;
+        int packetNumber = 0;
 
         for (int m = 1; m <= numMessages; m++) {
             Message message = new Message(getMyId(), m);

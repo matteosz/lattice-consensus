@@ -20,7 +20,7 @@ public class BestEffortBroadcast extends Broadcast {
             if (i != getMyId()) {
                 link.send(packet, i);
             } else {
-                getProcess().deliverEvent(packet);
+                callback(packet);
             }
 
         }

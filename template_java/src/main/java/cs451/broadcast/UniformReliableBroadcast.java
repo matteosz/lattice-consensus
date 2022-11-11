@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class UniformReliableBroadcast extends Broadcast {
 
     private final BestEffortBroadcast broadcast;
+
     private final ConcurrentHashMap<Packet, Integer> ack = new ConcurrentHashMap<>();
     private final Set<Packet> delivered = ConcurrentHashMap.newKeySet();
     private final Set<Packet> pending = ConcurrentHashMap.newKeySet();
