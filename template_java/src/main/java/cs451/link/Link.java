@@ -1,6 +1,6 @@
 package cs451.link;
 
-import cs451.interfaces.Listener;
+import cs451.callbacks.Callback;
 import cs451.message.Packet;
 import cs451.parser.Host;
 import cs451.process.Process;
@@ -12,9 +12,8 @@ import java.util.Map;
 public abstract class Link {
 
     private static final Map<Integer, Process> network = new HashMap<>();
-
-    protected final Process myProcess;
-    private Listener listener;
+    public static final int MEMORY_LIMITER = 1 << 9;
+    public static final int TIMEOUT_LIMIT = 1000;
 
     public static void populateNetwork(List<Host> hosts) {
 
@@ -31,21 +30,26 @@ public abstract class Link {
         return network.get(id);
     }
 
-    protected Link(Process process) {
+    private final Process myProcess;
+    private final Callback callback;
+
+    protected Link(Callback callback, Process process) {
         this.myProcess = process;
+        this.callback = callback;
     }
 
-    protected Link(Listener listener, Process process) {
-        this(process);
-        this.listener = listener;
-    }
-
-    public Process getMyProcess() {
+    protected Process getMyProcess() {
         return myProcess;
     }
+    protected int getMyProcessId() {
+        return myProcess.getHost().getId();
+    }
+    protected void callback(Packet packet) {
+        callback.apply(packet);
+    }
 
-    protected void handleListener(Packet packet) {
-        listener.apply(packet);
+    public int getId() {
+        return getMyProcessId();
     }
 
 }

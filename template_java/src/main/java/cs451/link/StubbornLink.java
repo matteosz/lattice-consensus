@@ -1,7 +1,7 @@
 package cs451.link;
 
 import cs451.helper.Pair;
-import cs451.interfaces.Listener;
+import cs451.callbacks.Callback;
 import cs451.message.Packet;
 import cs451.process.Process;
 
@@ -12,47 +12,43 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class StubbornLink extends Link {
 
     private final FairLossLink link;
+
     private final ExecutorService worker = Executors.newFixedThreadPool(1);
     private AtomicBoolean running = new AtomicBoolean(true);
 
-    public StubbornLink(Process process, Listener listener) {
-
-        super(listener, process);
+    public StubbornLink(Process process, Callback callback) {
+        super(callback, process);
         link = new FairLossLink(process, this::deliver);
 
         worker.execute(this::sendPackets);
     }
 
-    public void deliver(Packet pck) {
+    private void deliver(Packet pck) {
 
         if (!pck.isAck()) {
-            link.enqueuePacket(pck.convertToAck(myProcess.getHost().getId()), pck.getSenderId());
+            link.enqueuePacket(pck.convertToAck(getMyProcessId()), pck.getSenderId());
+        } else {
+            //getProcess(pck.getSenderId()).notify(pck);
         }
 
-        handleListener(pck);
+        callback(pck);
     }
 
     private void sendPackets() {
 
         while (running.get()) {
-            Pair p = myProcess.getNextPacket();
+            Pair p = getMyProcess().getNextPacket();
 
             if (p == null) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    Thread.currentThread().interrupt();
-                }
                 continue;
             }
 
-            if (myProcess.removeAck(p)) {
+            if (getMyProcess().removeAck(p)) {
                 return;
             }
 
             link.enqueuePacket(p.getPacket(), p.getTarget());
-            myProcess.addResendPacket(p);
+            getMyProcess().addResendPacket(p);
         }
 
     }

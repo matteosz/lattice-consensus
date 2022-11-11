@@ -15,14 +15,9 @@ public class Packet {
     public static final int HEADER = MEX_OS;
     public static final int MAX_PACKET_SIZE = MAX_COMPRESSION*Message.MESSAGE_SIZE + HEADER;
 
-
     private final int senderId, numMessages, packetId;
     private final boolean isAck;
     private final byte[] data;
-
-    public static Packet createPacket(List<Message> messages, int packetNumber, int senderId) {
-        return new Packet(messages, packetNumber, senderId, false);
-    }
 
     public static Packet getPacket(byte[] data) {
 
@@ -32,6 +27,18 @@ public class Packet {
         boolean isAck = data[IS_ACK_OS] != 0;
 
         return new Packet(data, numMessages, packetId, senderId, isAck);
+    }
+
+    private Packet(byte[] data, int numMessages, int packetId, int senderId, boolean isAck) {
+        this.numMessages = numMessages;
+        this.packetId = packetId;
+        this.senderId = senderId;
+        this.isAck = isAck;
+        this.data = data;
+    }
+
+    public Packet(List<Message> messages, int packetId, int senderId) {
+        this(messages, packetId, senderId, false);
     }
 
     private Packet(List<Message> messages, int packetId, int senderId, boolean isAck) {
@@ -51,14 +58,6 @@ public class Packet {
             ix += Message.MESSAGE_SIZE;
         }
 
-        this.numMessages = numMessages;
-        this.packetId = packetId;
-        this.senderId = senderId;
-        this.isAck = isAck;
-        this.data = data;
-    }
-
-    private Packet(byte[] data, int numMessages, int packetId, int senderId, boolean isAck) {
         this.numMessages = numMessages;
         this.packetId = packetId;
         this.senderId = senderId;
@@ -86,7 +85,7 @@ public class Packet {
         for (int i = 0; i < numMessages; i++) {
             int mexId = Operations.fromByteToInteger(data, ix);
             ix += Message.MESSAGE_SIZE;
-            messagesPacked.add(Message.createMessage(senderId, mexId));
+            messagesPacked.add(new Message(senderId, mexId));
         }
 
         return messagesPacked;

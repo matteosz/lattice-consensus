@@ -9,11 +9,7 @@ public class Message {
     private final int senderId;
     private final int messageId;
 
-    public static Message createMessage(int senderId, int messageId) {
-        return new Message(senderId, messageId);
-    }
-
-    private Message(int senderId, int messageId) {
+    public Message(int senderId, int messageId) {
         this.senderId = senderId;
         this.messageId = messageId;
     }

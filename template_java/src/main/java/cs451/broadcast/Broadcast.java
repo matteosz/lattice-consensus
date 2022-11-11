@@ -1,11 +1,11 @@
 package cs451.broadcast;
 
-import cs451.interfaces.Listener;
+import cs451.callbacks.Callback;
 import cs451.message.Packet;
 
 public abstract class Broadcast {
 
-    private Listener listener;
+    private Callback callback;
     private final int numHosts, myId;
 
     protected Broadcast(int myId, int numHosts) {
@@ -13,9 +13,9 @@ public abstract class Broadcast {
         this.myId = myId;
     }
 
-    protected Broadcast(Listener listener, int myId, int numHosts) {
+    protected Broadcast(Callback callback, int myId, int numHosts) {
         this(myId, numHosts);
-        this.listener = listener;
+        this.callback = callback;
     }
 
 
@@ -27,8 +27,8 @@ public abstract class Broadcast {
         return myId;
     }
 
-    protected void handleListener(Packet packet) {
-        listener.apply(packet);
+    protected void callback(Packet packet) {
+        callback.apply(packet);
     }
 
 }

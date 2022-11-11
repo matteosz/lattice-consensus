@@ -1,6 +1,6 @@
 package cs451.link;
 
-import cs451.interfaces.Listener;
+import cs451.callbacks.Callback;
 import cs451.message.Packet;
 import cs451.parser.Host;
 import cs451.process.Process;
@@ -9,20 +9,26 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.util.concurrent.*;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FairLossLink extends Link {
 
     private DatagramSocket socket;
+
     private final BlockingQueue<DatagramPacket> datagramsToSend = new LinkedBlockingQueue<>();
     private final BlockingQueue<DatagramPacket> datagramsToReceive = new LinkedBlockingQueue<>();
+
     private final ExecutorService workers = Executors.newFixedThreadPool(3);
     private AtomicBoolean running = new AtomicBoolean(true);
 
-    public FairLossLink(Process process, Listener listener) {
+    public FairLossLink(Process process, Callback callback) {
 
-        super(listener, process);
+        super(callback, process);
 
         try {
             socket = new DatagramSocket(process.getHost().getPort());
@@ -40,9 +46,10 @@ public class FairLossLink extends Link {
 
         byte[] buffer = pck.getBytes();
         Host host = getProcess(target).getHost();
+        DatagramPacket dataPacket = new DatagramPacket(buffer, buffer.length, host.getIpAsAddress(), host.getPort());
 
         try {
-            datagramsToSend.put(new DatagramPacket(buffer, buffer.length, host.getIpAsAddress(), host.getPort()));
+            datagramsToSend.put(dataPacket);
         } catch (InterruptedException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();
@@ -88,7 +95,7 @@ public class FairLossLink extends Link {
             try {
                 DatagramPacket datagramPacket = datagramsToReceive.take();
                 Packet packet = Packet.getPacket(datagramPacket.getData());
-                handleListener(packet);
+                callback(packet);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 Thread.currentThread().interrupt();

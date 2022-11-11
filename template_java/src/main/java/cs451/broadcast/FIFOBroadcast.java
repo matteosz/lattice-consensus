@@ -33,7 +33,7 @@ public class FIFOBroadcast extends Broadcast {
     }
 
     private void broadcast(List<Message> messages, int packetNumber) {
-        Packet packet = Packet.createPacket(messages, packetNumber, getMyId());
+        Packet packet = new Packet(messages, packetNumber, getMyId());
         broadcast.broadcast(packet);
     }
 
@@ -69,7 +69,7 @@ public class FIFOBroadcast extends Broadcast {
         int packetNumber = 1;
 
         for (int m = 1; m <= numMessages; m++) {
-            Message message = Message.createMessage(getMyId(), m);
+            Message message = new Message(getMyId(), m);
             packet.add(message);
             broadcast.getProcess().sendEvent(message);
 

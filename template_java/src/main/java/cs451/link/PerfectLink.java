@@ -1,7 +1,7 @@
 package cs451.link;
 
 import cs451.helper.Pair;
-import cs451.interfaces.Listener;
+import cs451.callbacks.Callback;
 import cs451.message.Packet;
 import cs451.process.Process;
 
@@ -9,22 +9,22 @@ public class PerfectLink extends Link {
 
     private final StubbornLink link;
 
-    public PerfectLink(Process process, Listener listener) {
-        super(listener, process);
+    public PerfectLink(Process process, Callback callback) {
+        super(callback, process);
         link = new StubbornLink(process, this::deliver);
     }
 
     private void deliver(Packet packet) {
 
-        if (!packet.isAck() && myProcess.deliver(packet)) {
-            handleListener(packet);
+        if (!packet.isAck() && getMyProcess().deliver(packet)) {
+            callback(packet);
         } else if (packet.isAck()){
-            myProcess.ack(new Pair(packet, packet.getSenderId()));
+            getMyProcess().ack(new Pair(packet, packet.getSenderId()));
         }
     }
 
     public void send(Packet packet, int target) {
-        myProcess.addSendPacket(packet, target);
+        getMyProcess().addSendPacket(packet, target);
     }
 
     public void stopThreads() {

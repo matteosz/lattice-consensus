@@ -1,21 +1,18 @@
 package cs451.broadcast;
 
-import cs451.interfaces.Listener;
+import cs451.callbacks.Callback;
+import cs451.link.Link;
 import cs451.link.PerfectLink;
-import cs451.message.Message;
 import cs451.process.Process;
 import cs451.message.Packet;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public class BestEffortBroadcast extends Broadcast {
 
     private final PerfectLink link;
 
-    public BestEffortBroadcast(Process process, int myId, int numHosts, Listener listener) {
-        super(listener, myId, numHosts);
-        this.link = new PerfectLink(process, listener);
+    public BestEffortBroadcast(Process process, int myId, int numHosts, Callback callback) {
+        super(callback, myId, numHosts);
+        this.link = new PerfectLink(process, callback);
     }
 
     public void broadcast(Packet packet) {
@@ -34,7 +31,7 @@ public class BestEffortBroadcast extends Broadcast {
     }
 
     public Process getProcess() {
-        return link.getMyProcess();
+        return Link.getProcess(link.getId());
     }
 
 }
