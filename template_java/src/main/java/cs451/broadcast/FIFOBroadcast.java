@@ -68,7 +68,7 @@ public class FIFOBroadcast extends Broadcast {
 
     public void start(int numMessages) {
         List<Message> packet = new LinkedList<>();
-        int packetNumber = 0;
+        int packetNumber = 1;
 
         for (int m = 1; m <= numMessages; m++) {
             Message message = new Message(getMyId(), m);
