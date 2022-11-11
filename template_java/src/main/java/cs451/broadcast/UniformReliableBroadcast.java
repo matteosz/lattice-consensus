@@ -39,7 +39,7 @@ public class UniformReliableBroadcast extends Broadcast {
 
         ack.get(packetInfo).add((byte) packet.getSenderId());
 
-        if (pending.containsKey(packetInfo)) {
+        if (!pending.containsKey(packetInfo)) {
             pending.put(packetInfo, packet);
             broadcast.broadcast(packet.setSenderId(getMyId()));
         }
