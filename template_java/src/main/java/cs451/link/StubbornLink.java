@@ -27,8 +27,6 @@ public class StubbornLink extends Link {
 
         if (!pck.isAck()) {
             link.enqueuePacket(pck.convertToAck(getMyProcessId()), pck.getSenderId());
-        } else {
-            //getProcess(pck.getSenderId()).notify(pck);
         }
 
         callback(pck);
@@ -39,12 +37,8 @@ public class StubbornLink extends Link {
         while (running.get()) {
             Pair p = getMyProcess().getNextPacket();
 
-            if (p == null) {
+            if (p == null || getMyProcess().removeAck(p)) {
                 continue;
-            }
-
-            if (getMyProcess().removeAck(p)) {
-                return;
             }
 
             link.enqueuePacket(p.getPacket(), p.getTarget());

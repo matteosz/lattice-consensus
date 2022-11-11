@@ -85,6 +85,10 @@ public class Process {
         return ack.remove(p);
     }
 
+    public boolean hasAcked(Pair p) {
+        return ack.contains(p);
+    }
+
     public String logAllEvents() {
         synchronized (events) {
             return events.toString();

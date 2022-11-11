@@ -15,8 +15,9 @@ public class Packet {
     public static final int HEADER = MEX_OS;
     public static final int MAX_PACKET_SIZE = MAX_COMPRESSION*Message.MESSAGE_SIZE + HEADER;
 
-    private final int senderId, numMessages, packetId;
-    private final boolean isAck;
+    private final int numMessages, packetId;
+    private int senderId;
+    private boolean isAck;
     private final byte[] data;
 
     public static Packet getPacket(byte[] data) {
@@ -76,6 +77,11 @@ public class Packet {
         newData[IS_ACK_OS] = 1;
 
         return new Packet(newData, numMessages, packetId, newSenderId, true);
+    }
+
+    public Packet backFromAck(int oldSenderId) {
+        this.senderId = oldSenderId;
+        return this;
     }
 
     public List<Message> getMessages() {

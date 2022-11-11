@@ -19,7 +19,7 @@ public class PerfectLink extends Link {
         if (!packet.isAck() && getMyProcess().deliver(packet)) {
             callback(packet);
         } else if (packet.isAck()){
-            getMyProcess().ack(new Pair(packet, packet.getSenderId()));
+            getMyProcess().ack(new Pair(packet.backFromAck(getId()), packet.getSenderId()));
         }
     }
 
