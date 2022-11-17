@@ -11,7 +11,7 @@ public class Host {
     private static final String IP_START_REGEX = "/";
 
     private int id;
-    private String ip;
+    private InetAddress ip;
     private int port = -1;
 
     public boolean populate(String idString, String ipString, String portString) {
@@ -20,9 +20,9 @@ public class Host {
 
             String ipTest = InetAddress.getByName(ipString).toString();
             if (ipTest.startsWith(IP_START_REGEX)) {
-                ip = ipTest.substring(1);
+                ip = InetAddress.getByName(ipTest.substring(1));
             } else {
-                ip = InetAddress.getByName(ipTest.split(IP_START_REGEX)[0]).getHostAddress();
+                ip = InetAddress.getByName(ipTest.split(IP_START_REGEX)[0]);
             }
 
             port = Integer.parseInt(portString);
@@ -53,16 +53,11 @@ public class Host {
     }
 
     public String getIp() {
-        return ip;
+        return ip.getHostAddress();
     }
 
     public InetAddress getIpAsAddress() {
-        try {
-            return InetAddress.getByName(ip);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return ip;
     }
 
     public int getPort() {

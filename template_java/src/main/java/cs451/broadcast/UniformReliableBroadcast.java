@@ -1,79 +1,80 @@
 package cs451.broadcast;
 
-import cs451.callbacks.Callback;
-import cs451.helper.GenericPair;
+import cs451.callbacks.PacketCallback;
+import cs451.link.Link;
 import cs451.message.Packet;
-import cs451.process.Process;
+import cs451.parser.Host;
 
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UniformReliableBroadcast extends Broadcast {
 
     private final BestEffortBroadcast broadcast;
 
-    private final ConcurrentHashMap<GenericPair<Byte, Integer>, Set<Byte>> ack = new ConcurrentHashMap<>();
-    private final Set<GenericPair<Byte, Integer>> delivered = ConcurrentHashMap.newKeySet();
-    private final Map<GenericPair<Byte, Integer>, Packet> pending = new ConcurrentHashMap<>();
+    private final Map<Byte, Set<Integer>> delivered = new HashMap<>();
+    private final Map<Byte, Map<Byte, Set<Integer>>> acked = new HashMap<>();
 
-    private final ExecutorService worker = Executors.newFixedThreadPool(1);
-    private final AtomicBoolean running = new AtomicBoolean(true);
+    public UniformReliableBroadcast(Host host, int numHosts, PacketCallback packetCallback) {
+        super(packetCallback, host.getId(), numHosts);
+        broadcast = new BestEffortBroadcast(host, numHosts, this::deliver);
 
-    public UniformReliableBroadcast(Process process, int id, int numHosts, Callback callback) {
-        super(callback, id, numHosts);
-        broadcast = new BestEffortBroadcast(process, id, numHosts, this::deliver);
+        for (int h = 0; h < numHosts; h++) {
+            delivered.put((byte) h, new HashSet<>());
+            if (h != getMyId() - 1) {
+                acked.put((byte) h, Link.getProcess(h+1).getDelivered());
+            } else {
+                Map<Byte, Set<Integer>> localAck = new HashMap<>();
+                for (int l = 0; l < numHosts; l++) {
+                    if (l != getMyId() - 1) {
+                        localAck.put((byte) l, new HashSet<>());
+                    }
+                }
+                acked.put((byte) h, localAck);
+            }
+        }
+    }
 
-        worker.execute(this::processPending);
+    public void load(int numMessages) {
+        broadcast.load(numMessages);
     }
 
     public void broadcast(Packet packet) {
-        pending.put(new GenericPair<>((byte) packet.getOriginId(), packet.getPacketId()), packet);
         broadcast.broadcast(packet);
     }
 
     private void deliver(Packet packet) {
-        GenericPair<Byte, Integer> packetInfo = new GenericPair<>((byte) packet.getOriginId(), packet.getPacketId());
-        if (!ack.containsKey(packetInfo))
-            ack.put(packetInfo, new HashSet<>());
+        int senderId = packet.getOriginId(), packetId = packet.getPacketId();
+        if (!delivered.get((byte) (senderId - 1)).contains(packetId)) {
 
-        ack.get(packetInfo).add((byte) packet.getSenderId());
+            if (!hasBroadcast(packet)) {
 
-        if (!pending.containsKey(packetInfo)) {
-            pending.put(packetInfo, packet);
-            broadcast.broadcast(packet.setSenderId(getMyId()));
-        }
-    }
+                acked.get((byte) (getMyId() - 1)).get((byte) (senderId - 1)).add(packetId);
+                broadcast(packet);
 
-    private boolean canDeliver(GenericPair<Byte, Integer> packetInfo) {
-        return ack.getOrDefault(packetInfo, new HashSet<>()).size() > getNumHosts() / 2;
-    }
+            } else if (canDeliver(packet)) {
 
-    private void processPending() {
-        while (running.get()) {
-
-            Iterator<GenericPair<Byte, Integer>> value = pending.keySet().iterator();
-            while (value.hasNext()) {
-
-                GenericPair<Byte, Integer> packetInfo = value.next();
-                if (canDeliver(packetInfo) && delivered.add(packetInfo)) {
-                    Packet packet = pending.get(packetInfo);
-                    value.remove();
-                    callback(packet);
-                }
+                delivered.get((byte) (senderId - 1)).add(packetId);
+                callback(packet);
 
             }
-
         }
     }
 
-    public Process getProcess() {
-        return broadcast.getProcess();
+    private boolean hasBroadcast(Packet packet) {
+        if (packet.getOriginId() == getMyId())
+            return true;
+
+        return acked.get((byte) (getMyId() - 1)).get((byte) (packet.getOriginId() - 1))
+                .contains(packet.getPacketId());
+    }
+
+    public boolean canDeliver(Packet packet) {
+        return acked.values().stream()
+                .filter(x -> x.get((byte) (packet.getOriginId() - 1)).contains(packet.getPacketId()))
+                .count() > getNumHosts() / 2;
     }
 
     public void stopThreads() {
-        running.set(false);
         broadcast.stopThreads();
-        worker.shutdownNow();
     }
 }

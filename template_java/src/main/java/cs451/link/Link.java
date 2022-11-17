@@ -1,6 +1,6 @@
 package cs451.link;
 
-import cs451.callbacks.Callback;
+import cs451.callbacks.PacketCallback;
 import cs451.message.Packet;
 import cs451.parser.Host;
 import cs451.process.Process;
@@ -11,45 +11,30 @@ import java.util.Map;
 
 public abstract class Link {
 
-    private static final Map<Integer, Process> network = new HashMap<>();
-    public static final int MEMORY_LIMITER = 1 << 9;
-    public static final int TIMEOUT_LIMIT = 1000;
+    private static Map<Integer, Process> network = new HashMap<>();
 
-    public static void populateNetwork(List<Host> hosts) {
-
-        if (!network.isEmpty()) {
-            return;
-        }
-
+    public static void populateNetwork(List<Host> hosts, int id) {
         for (Host host : hosts) {
-            network.put(host.getId(), new Process(host));
+            if (host.getId() != id) {
+                network.put(host.getId(), new Process(host, hosts.size()));
+            }
         }
     }
-
     public static Process getProcess(int id) {
         return network.get(id);
     }
-
-    private final Process myProcess;
-    private final Callback callback;
-
-    protected Link(Callback callback, Process process) {
-        this.myProcess = process;
-        this.callback = callback;
+    public static Map<Integer, Process> getNetwork() {
+        return network;
     }
 
-    protected Process getMyProcess() {
-        return myProcess;
+    private final PacketCallback packetCallback;
+
+    protected Link(PacketCallback packetCallback) {
+        this.packetCallback = packetCallback;
     }
-    protected int getMyProcessId() {
-        return myProcess.getHost().getId();
-    }
+
     protected void callback(Packet packet) {
-        callback.apply(packet);
-    }
-
-    public int getId() {
-        return getMyProcessId();
+        packetCallback.apply(packet);
     }
 
 }

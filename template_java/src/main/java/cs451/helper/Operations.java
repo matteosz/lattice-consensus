@@ -2,25 +2,26 @@ package cs451.helper;
 
 public class Operations {
 
-    public static void fromIntegerToByte(int x, byte[] array, int offset) {
-        int shift = Integer.BYTES*8;
+    public static final int MASK = 0Xff;
+    public static final int BYTES = Integer.BYTES;
+    public static final int BITS = BYTES * 8;
 
-        for (int i = 0; i < Integer.BYTES; i++) {
-            shift -= 8;
-            array[i+offset] = (byte) (x >> shift);
+    public static void fromIntegerToByte(int x, byte[] array, int offset) {
+
+        for (int i = 0; i < BYTES; i++) {
+            array[offset + i] = (byte) (x >> BITS - 8 * (i + 1));
         }
 
     }
 
     public static int fromByteToInteger(byte[] array, int offset) {
-        int x = 0;
+        int finalInt = 0;
 
-        for (int i = 0; i < Integer.BYTES; i++) {
-            x = x << 8;
-            x = x | (int) array[i+offset] & 0xFF;
+        for (int i = 0; i < BYTES; i++) {
+            finalInt = (finalInt << BYTES) | (int) array[offset + i] & MASK;
         }
 
-        return x;
+        return finalInt;
     }
 
     private Operations() {}

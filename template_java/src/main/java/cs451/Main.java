@@ -5,7 +5,7 @@ import cs451.parser.Parser;
 public class Main {
 
     private static void handleSignal() {
-        CommunicationService.log();
+        CommunicationService.logAndTerminate();
     }
 
     private static void initSignalHandlers() {

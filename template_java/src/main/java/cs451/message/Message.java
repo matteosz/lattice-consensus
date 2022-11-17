@@ -1,16 +1,15 @@
 package cs451.message;
 
-import java.util.Objects;
-
 public class Message {
 
     public static final int MESSAGE_SIZE = Integer.BYTES;
 
-    private final int senderId;
+    private final byte lastSender, firstSender;
     private final int messageId;
 
-    public Message(int senderId, int messageId) {
-        this.senderId = senderId;
+    public Message(int lastSender, int firstSender, int messageId) {
+        this.lastSender = (byte) lastSender;
+        this.firstSender = (byte) firstSender;
         this.messageId = messageId;
     }
 
@@ -18,20 +17,12 @@ public class Message {
         return messageId;
     }
 
-    public int getSenderId() {
-        return senderId;
+    public int getFirstSender() {
+        return firstSender;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Message message = (Message) o;
-        return senderId == message.senderId && messageId == message.messageId;
+    public int getLastSender() {
+        return lastSender;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(senderId, messageId);
-    }
 }
