@@ -53,6 +53,9 @@ public class FIFOBroadcast extends Broadcast {
 
                 if (p.getPacketId() == next[getMyId()]) {
                     next[getMyId()]++;
+                    if (p.getOriginId() == getMyId()) {
+                        broadcastCallback.apply(p);
+                    }
                     callback(p);
                 } else {
                     pending.put(p);

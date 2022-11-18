@@ -33,7 +33,6 @@ public class FairLossLink extends Link {
         }
 
         workers = Executors.newFixedThreadPool(2);
-
         workers.execute(this::sendPacketsInQueue);
         workers.execute(this::receivePackets);
     }
@@ -88,23 +87,6 @@ public class FairLossLink extends Link {
 
          }
     }
-
-    /*
-    private void receivePackets() {
-        while (running.get()) {
-
-            try {
-                DatagramPacket datagramPacket = datagramsToReceive.take();
-                Packet packet = new Packet(datagramPacket.getData());
-                callback(packet);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                Thread.currentThread().interrupt();
-            }
-
-        }
-    }
-    */
 
     public void stopThreads() {
         workers.shutdownNow();

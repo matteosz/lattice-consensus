@@ -7,7 +7,7 @@ import subprocess
 
 PROCESSES_BASE_IP = 11000
 
-def generatePerfectLinksConfig(directory, processes, messages):
+def generateFIFOConfig(directory, processes, messages):
     hostsfile = os.path.join(directory, 'hosts')
     configfile = os.path.join(directory, 'config')
 
@@ -61,7 +61,7 @@ def main(processes, messages, runscript, logsDir):
         raise ValueError('Directory `{}` does not exist'.format(logsDir))
 
 
-    hostsFile, configFile = generatePerfectLinksConfig(logsDir, processes=processes, messages=messages)
+    hostsFile, configFile = generateFIFOConfig(logsDir, processes=processes, messages=messages)
 
     try:
         # Start the processes and get their PIDs
@@ -70,7 +70,7 @@ def main(processes, messages, runscript, logsDir):
         for (logicalPID, procHandle) in procs:
             print("Process with logicalPID {} has PID {}".format(logicalPID, procHandle.pid))
 
-        time.sleep(7)
+        time.sleep(10)
 
     finally:
         if procs is not None:

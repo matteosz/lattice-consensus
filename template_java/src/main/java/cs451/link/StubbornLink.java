@@ -19,7 +19,6 @@ public class StubbornLink extends Link {
         link = new FairLossLink(host, this::deliver);
 
         worker = Executors.newFixedThreadPool(1);
-
         worker.execute(this::sendPackets);
     }
 
@@ -39,37 +38,28 @@ public class StubbornLink extends Link {
         for (;;) {
 
             for (Process process : getNetwork().values()) {
-
                 for (TimedPacket timedPacket : process.nextPacketsToAck()) {
 
                     if (!process.hasAcked(timedPacket.getPacket())) {
-
                         if (timedPacket.timeoutExpired()) {
 
                             process.expBackOff();
                             timedPacket.update();
 
                             link.enqueuePacket(timedPacket.getPacket(), process.getId());
-
                         }
-
                         process.addPacketToAck(timedPacket);
                     }
                 }
-
                 if (!process.hasSpace()) {
                     continue;
                 }
-
                 Packet packet = process.getNextPacket();
-
                 if (packet != null) {
                     process.addPacketToAck(new TimedPacket(process, packet));
                     link.enqueuePacket(packet, process.getId());
                 }
-
             }
-
         }
 
     }

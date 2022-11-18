@@ -4,25 +4,20 @@ public class Message {
 
     public static final int MESSAGE_SIZE = Integer.BYTES;
 
-    private final byte lastSender, firstSender;
-    private final int messageId;
+    private final byte sender;
+    private final int message;
 
-    public Message(int lastSender, int firstSender, int messageId) {
-        this.lastSender = (byte) lastSender;
-        this.firstSender = (byte) firstSender;
-        this.messageId = messageId;
+    public Message(byte sender, int message) {
+        this.sender = sender;
+        this.message = message;
     }
 
-    public int getMessageId() {
-        return messageId;
+    public int getMessage() {
+        return message;
     }
 
-    public int getFirstSender() {
-        return firstSender;
-    }
-
-    public int getLastSender() {
-        return lastSender;
+    public int getOrigin() {
+        return sender + 1;
     }
 
 }

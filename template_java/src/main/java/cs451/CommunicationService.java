@@ -21,23 +21,20 @@ public class CommunicationService {
     public static void start(Parser parser) {
 
         List<Host> hosts = parser.hosts();
-        int myId = parser.myId(),
-                numMessages = parser.getConfig().getMessages(),
-                numHosts = hosts.size();
+        int myId = parser.myId(), numMessages = parser.getConfig().getMessages();
 
         Host myHost = hosts.get(myId - 1);
 
-        Link.populateNetwork(hosts, myId);
         Process.setMyHost(myId);
+        Link.populateNetwork(hosts);
 
         try {
             writer = new BufferedWriter(new FileWriter(parser.output()), 32768);
         } catch (IOException e) {
             e.printStackTrace();
-            return;
         }
 
-        broadcast = new FIFOBroadcast(myHost, numHosts, CommunicationService::broadcast, CommunicationService::deliver);
+        broadcast = new FIFOBroadcast(myHost, hosts.size(), CommunicationService::broadcast, CommunicationService::deliver);
 
         broadcast.load(numMessages);
     }
@@ -51,7 +48,6 @@ public class CommunicationService {
         }
 
         interruptThreads();
-
     }
 
     private static void deliver(Packet packet) {
@@ -64,7 +60,7 @@ public class CommunicationService {
     private static void deliverMessage(Message m) {
         synchronized (writer) {
             try {
-                writer.write(String.format("d %d %d\n", m.getFirstSender(), m.getMessageId()));
+                writer.write(String.format("d %d %d\n", m.getOrigin(), m.getMessage()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -73,7 +69,7 @@ public class CommunicationService {
     private static void broadcastMessage(Message m) {
         synchronized (writer) {
             try {
-                writer.write(String.format("b %d\n", m.getMessageId()));
+                writer.write(String.format("b %d\n", m.getMessage()));
             } catch (IOException e) {
                 e.printStackTrace();
             }

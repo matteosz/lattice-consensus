@@ -13,9 +13,9 @@ public abstract class Link {
 
     private static Map<Integer, Process> network = new HashMap<>();
 
-    public static void populateNetwork(List<Host> hosts, int id) {
+    public static void populateNetwork(List<Host> hosts) {
         for (Host host : hosts) {
-            if (host.getId() != id) {
+            if (host.getId() != Process.getMyHost()) {
                 network.put(host.getId(), new Process(host, hosts.size()));
             }
         }

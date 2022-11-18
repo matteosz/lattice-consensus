@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-dir_path = "../example/output/"
+dir_path = "../logs/"
 files = os.listdir(dir_path)
 new_files = []
 

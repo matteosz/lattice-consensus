@@ -20,33 +20,36 @@ public class Process {
     private static final int BASE_TIMEOUT = 512;
     private static final int MAX_TIMEOUT = 16384;
     private static final int BATCH = 4096;
-    private static int myHost;
+    private static byte myHost;
     private static final Random random = new Random();
 
     private final Host host;
     private final AtomicInteger timeout = new AtomicInteger(BASE_TIMEOUT);
     private final int batchSize, numHosts;
-    private int totalMessages, sentMessages = 0, next = myHost;
-    private int packetNumber = 0;
+    private int totalMessages, sentMessages = 0, packetNumber = 0, next;
 
     private final Map<Byte, ConcurrentSkipListSet<Packet>> toSend = new HashMap<>();
     private final Map<Byte, Set<Integer>> acked = new HashMap<>();
     private final Map<Byte, Set<Integer>> delivered = new HashMap<>();
     private final BlockingQueue<TimedPacket> toAck = new LinkedBlockingQueue<>();
 
+    public static int getMyHost() {
+        return myHost + 1;
+    }
     public static void setMyHost(int id) {
-        myHost = id;
+        myHost = (byte) (id - 1);
     }
 
     public Process(Host host, int numHosts) {
         this.host = host;
         this.numHosts = numHosts;
-        this.batchSize = BATCH / numHosts;
+        this.batchSize = numHosts <= 1 ? BATCH : BATCH / numHosts;
+        this.next = myHost + 1;
 
-        for (int i = 0; i < numHosts; i++) {
-            toSend.put((byte) i, new ConcurrentSkipListSet<>(Comparator.comparingInt(Packet::getPacketId)));
-            acked.put((byte) i, ConcurrentHashMap.newKeySet());
-            delivered.put((byte) i, ConcurrentHashMap.newKeySet());
+        for (byte i = 0; i < numHosts; i++) {
+            toSend.put(i, new ConcurrentSkipListSet<>(Comparator.comparingInt(Packet::getPacketId)));
+            acked.put(i, ConcurrentHashMap.newKeySet());
+            delivered.put(i, ConcurrentHashMap.newKeySet());
         }
     }
 
@@ -77,15 +80,15 @@ public class Process {
     public Packet getNextPacket() {
 
         for (int h = 0; h < numHosts; h++) {
-            int curr = next;
+            byte curr = (byte) (next - 1);
             next = Math.max(1, (next + 1) % (numHosts + 1));
 
             if (curr == myHost) {
                 loadLocalMessages();
             }
 
-            if (!toSend.get((byte) (curr-1)).isEmpty()) {
-                return toSend.get((byte) (curr-1)).pollFirst();
+            if (!toSend.get(curr).isEmpty()) {
+                return toSend.get(curr).pollFirst();
             }
         }
 
@@ -95,10 +98,10 @@ public class Process {
 
         List<Message> messages = new LinkedList<>();
         while (sentMessages < totalMessages && messages.size() < MAX_COMPRESSION) {
-            messages.add(new Message(myHost, myHost, ++sentMessages));
+            messages.add(new Message(myHost, ++sentMessages));
         }
         if (!messages.isEmpty()) {
-            toSend.get((byte) (myHost - 1)).add(new Packet(messages, ++packetNumber, myHost, myHost));
+            toSend.get(myHost).add(new Packet(messages, ++packetNumber, myHost, myHost));
         }
     }
 
@@ -118,18 +121,18 @@ public class Process {
 
     public void ack(Packet packet) {
         notify(packet.getEmissionTime());
-        acked.get((byte) (packet.getOriginId() - 1)).add(packet.getPacketId());
+        acked.get(packet.getBOriginId()).add(packet.getPacketId());
     }
     public boolean hasAcked(Packet packet) {
-        return acked.get((byte) (packet.getOriginId() - 1)).contains(packet.getPacketId());
+        return acked.get(packet.getBOriginId()).contains(packet.getPacketId());
     }
 
     public void addPacket(Packet packet) {
-        toSend.get((byte) (packet.getOriginId() - 1)).add(packet);
+        toSend.get(packet.getBOriginId()).add(packet);
     }
 
     public boolean deliver(Packet packet) {
-        return delivered.get((byte) (packet.getOriginId() - 1)).add(packet.getPacketId());
+        return delivered.get(packet.getBOriginId()).add(packet.getPacketId());
     }
 
     public Map<Byte, Set<Integer>> getDelivered() {
