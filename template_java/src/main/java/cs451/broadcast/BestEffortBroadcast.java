@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class BestEffortBroadcast extends Broadcast {
 
     private final PerfectLink link;
-    private final BlockingQueue<Packet> delivered = new LinkedBlockingQueue<>(4096);
+    private final BlockingQueue<Packet> linkDelivered = new LinkedBlockingQueue<>(4096);
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     public BestEffortBroadcast(Host host, int numHosts, PacketCallback packetCallback) {
@@ -22,7 +22,7 @@ public class BestEffortBroadcast extends Broadcast {
 
     private void deliver(Packet packet) {
         try {
-            delivered.put(packet);
+            linkDelivered.put(packet);
         } catch (InterruptedException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();
@@ -33,7 +33,7 @@ public class BestEffortBroadcast extends Broadcast {
 
         while (running.get()) {
             try {
-                Packet packet = delivered.take();
+                Packet packet = linkDelivered.take();
                 callback(packet);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -50,7 +50,6 @@ public class BestEffortBroadcast extends Broadcast {
                 link.load(numMessages, i);
             }
         }
-
         startDelivering();
     }
 

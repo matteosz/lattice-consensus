@@ -26,11 +26,10 @@ public class StubbornLink extends Link {
 
         if (!packet.isAck()) {
             link.enqueuePacket(packet.convertToAck(link.getId()), packet.getLastSenderId());
-            callback(packet);
         } else {
-            getProcess(packet.getLastSenderId()).ack(packet);
+            getProcess(packet.getLastSenderId()).notify(packet.getEmissionTime());
         }
-
+        callback(packet);
     }
 
     private void sendPackets() {

@@ -13,11 +13,10 @@ public class FIFOBroadcast extends Broadcast {
 
     private UniformReliableBroadcast broadcast;
 
-    private final BlockingQueue<Packet> pending = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Packet> pending = new LinkedBlockingQueue<>(4096);
     private final int[] next;
     private PacketCallback broadcastCallback;
-
-    private final ExecutorService worker = Executors.newFixedThreadPool(1);
+    private final ExecutorService worker;
 
     public FIFOBroadcast(Host host, int numHosts, PacketCallback broadcastCallback, PacketCallback deliverCallback) {
         super(deliverCallback, host.getId(), numHosts);
@@ -30,6 +29,7 @@ public class FIFOBroadcast extends Broadcast {
             next[i] = 1;
         }
 
+        worker = Executors.newFixedThreadPool(1);
         worker.execute(this::processPending);
     }
 

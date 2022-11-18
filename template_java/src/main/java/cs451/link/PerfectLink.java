@@ -15,7 +15,9 @@ public class PerfectLink extends Link {
 
     private void deliver(Packet packet) {
 
-        if (getProcess(packet.getLastSenderId()).deliver(packet)) {
+        if ((!packet.isAck() && !getProcess(packet.getLastSenderId()).hasDelivered(packet)) ||
+                (packet.isAck() && getProcess(packet.getLastSenderId()).ack(packet))) {
+            getProcess(packet.getLastSenderId()).deliver(packet);
             callback(packet);
         }
 

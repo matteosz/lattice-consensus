@@ -11,25 +11,45 @@ public class UniformReliableBroadcast extends Broadcast {
 
     private final BestEffortBroadcast broadcast;
 
-    private final Map<Byte, Set<Integer>> delivered = new HashMap<>();
-    private final Map<Byte, Map<Byte, Set<Integer>>> acked = new HashMap<>();
+    private final Map<Byte, Set<Integer>> urbDelivered = new HashMap<>();
+    private final Map<Byte, Map<Byte, Set<Integer>>> bebDelivered = new HashMap<>();
 
     public UniformReliableBroadcast(Host host, int numHosts, PacketCallback packetCallback) {
         super(packetCallback, host.getId(), numHosts);
         broadcast = new BestEffortBroadcast(host, numHosts, this::deliver);
 
-        for (int h = 0; h < numHosts; h++) {
-            delivered.put((byte) h, new HashSet<>());
-            if (h != getMyId() - 1) {
-                acked.put((byte) h, Link.getProcess(h+1).getDelivered());
+        for (byte h = 0; h < numHosts; h++) {
+
+            urbDelivered.put(h, new HashSet<>());
+
+            if (h != (byte) (getMyId() - 1)) {
+                bebDelivered.put(h, Link.getProcess(h+1).getDelivered());
             } else {
                 Map<Byte, Set<Integer>> localAck = new HashMap<>();
-                for (int l = 0; l < numHosts; l++) {
-                    if (l != getMyId() - 1) {
-                        localAck.put((byte) l, new HashSet<>());
-                    }
+                for (byte l = 0; l < numHosts; l++) {
+                    localAck.put(l, new HashSet<>());
                 }
-                acked.put((byte) h, localAck);
+                bebDelivered.put(h, localAck);
+            }
+        }
+    }
+
+    private void deliver(Packet packet) {
+        byte senderId = packet.getBOriginId();
+        int packetId = packet.getPacketId();
+
+        if (!urbDelivered.get(senderId).contains(packetId)) {
+
+            if (!hasBroadcast(packetId, senderId)) {
+
+                bebDelivered.get((byte) (getMyId() - 1)).get(senderId).add(packetId);
+                broadcast(packet);
+
+            } else if (canDeliver(packetId, senderId)) {
+
+                urbDelivered.get(senderId).add(packetId);
+                callback(packet);
+
             }
         }
     }
@@ -42,36 +62,24 @@ public class UniformReliableBroadcast extends Broadcast {
         broadcast.broadcast(packet);
     }
 
-    private void deliver(Packet packet) {
-        int senderId = packet.getOriginId(), packetId = packet.getPacketId();
-        if (!delivered.get((byte) (senderId - 1)).contains(packetId)) {
-
-            if (!hasBroadcast(packet)) {
-
-                acked.get((byte) (getMyId() - 1)).get((byte) (senderId - 1)).add(packetId);
-                broadcast(packet);
-
-            } else if (canDeliver(packet)) {
-
-                delivered.get((byte) (senderId - 1)).add(packetId);
-                callback(packet);
-
-            }
-        }
-    }
-
-    private boolean hasBroadcast(Packet packet) {
-        if (packet.getOriginId() == getMyId())
+    private boolean hasBroadcast(int packetId, byte senderId) {
+        if (senderId == (byte) (getMyId() - 1)) {
             return true;
+        }
 
-        return acked.get((byte) (getMyId() - 1)).get((byte) (packet.getOriginId() - 1))
-                .contains(packet.getPacketId());
+        return bebDelivered.get((byte) (getMyId() - 1)).get(senderId)
+                .contains(packetId);
     }
 
-    public boolean canDeliver(Packet packet) {
-        return acked.values().stream()
-                .filter(x -> x.get((byte) (packet.getOriginId() - 1)).contains(packet.getPacketId()))
-                .count() > getNumHosts() / 2;
+    public boolean canDeliver(int packetId, byte senderId) {
+        int offset = 0;
+        if (senderId == (byte) (getMyId() - 1)) {
+            offset = 1;
+        }
+
+        return bebDelivered.values().stream()
+                .filter(x -> x.get(senderId).contains(packetId))
+                .count() + offset > getNumHosts() / 2;
     }
 
     public void stopThreads() {

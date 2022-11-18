@@ -66,7 +66,7 @@ public class Process {
     public void expBackOff() {
         timeout.set(Math.min(2 * timeout.get(), MAX_TIMEOUT) + random.nextInt(BASE_TIMEOUT / 2));
     }
-    private void notify(int lastTime) {
+    public void notify(int lastTime) {
         timeout.set((lastTime + BASE_TIMEOUT) / 2 + random.nextInt(BASE_TIMEOUT / 2));
     }
 
@@ -119,9 +119,11 @@ public class Process {
         }
     }
 
-    public void ack(Packet packet) {
-        notify(packet.getEmissionTime());
-        acked.get(packet.getBOriginId()).add(packet.getPacketId());
+    public boolean ack(Packet packet) {
+        if (acked.get(packet.getBOriginId()).contains(packet.getPacketId())) {
+            return false;
+        }
+        return acked.get(packet.getBOriginId()).add(packet.getPacketId());
     }
     public boolean hasAcked(Packet packet) {
         return acked.get(packet.getBOriginId()).contains(packet.getPacketId());
@@ -131,8 +133,12 @@ public class Process {
         toSend.get(packet.getBOriginId()).add(packet);
     }
 
-    public boolean deliver(Packet packet) {
-        return delivered.get(packet.getBOriginId()).add(packet.getPacketId());
+    public boolean hasDelivered(Packet packet) {
+        return delivered.get(packet.getBOriginId()).contains(packet.getPacketId());
+    }
+
+    public void deliver(Packet packet) {
+        delivered.get(packet.getBOriginId()).add(packet.getPacketId());
     }
 
     public Map<Byte, Set<Integer>> getDelivered() {
