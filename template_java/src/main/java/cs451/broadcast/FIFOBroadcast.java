@@ -4,19 +4,15 @@ import cs451.callbacks.PacketCallback;
 import cs451.message.Packet;
 import cs451.parser.Host;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.*;
 
 public class FIFOBroadcast extends Broadcast {
 
     private UniformReliableBroadcast broadcast;
 
-    private final BlockingQueue<Packet> pending = new LinkedBlockingQueue<>(4096);
-    private final int[] next;
+    private final Map<Byte, Set<Packet>> fifoDelivered = new HashMap<>();
+    private final Map<Byte, Integer> fifoOrder = new HashMap<>();
     private PacketCallback broadcastCallback;
-    private final ExecutorService worker;
 
     public FIFOBroadcast(Host host, int numHosts, PacketCallback broadcastCallback, PacketCallback deliverCallback) {
         super(deliverCallback, host.getId(), numHosts);
@@ -24,51 +20,47 @@ public class FIFOBroadcast extends Broadcast {
 
         this.broadcast = new UniformReliableBroadcast(host, numHosts, this::deliver);
 
-        this.next = new int[numHosts + 1];
-        for (int i = 1; i <= numHosts; i++) {
-            next[i] = 1;
+        for (byte h = 0; h < numHosts; h++) {
+            fifoDelivered.put(h, new TreeSet<>(Comparator.comparingInt(Packet::getPacketId)));
+            fifoOrder.put(h, 0);
         }
-
-        worker = Executors.newFixedThreadPool(1);
-        worker.execute(this::processPending);
-    }
+     }
 
     public void load(int numMessages) {
         broadcast.load(numMessages);
     }
 
     private void deliver(Packet packet) {
-        try {
-            pending.put(packet);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-        }
-    }
+        byte senderId = packet.getBOriginId();
+        int packetId = packet.getPacketId();
 
-    private void processPending() {
-        for (;;) {
-            try {
-                Packet p = pending.take();
+        fifoDelivered.get(senderId).add(packet);
 
-                if (p.getPacketId() == next[getMyId()]) {
-                    next[getMyId()]++;
-                    if (p.getOriginId() == getMyId()) {
-                        broadcastCallback.apply(p);
-                    }
-                    callback(p);
-                } else {
-                    pending.put(p);
+        int lsn = fifoOrder.get(senderId);
+        Iterator<Packet> iterator = fifoDelivered.get(senderId).iterator();
+
+        while (iterator.hasNext()) {
+
+            Packet p = iterator.next();
+            if (p.getPacketId() == lsn + 1) {
+
+                if (senderId == (byte) (getMyId() - 1)) {
+                    broadcastCallback.apply(p);
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                Thread.currentThread().interrupt();
+                callback(p);
+
+                iterator.remove();
+                lsn++;
+            } else {
+                fifoOrder.put(senderId, lsn);
+                break;
             }
+
         }
+
     }
 
     public void stopThreads() {
-        worker.shutdownNow();
         broadcast.stopThreads();
     }
 

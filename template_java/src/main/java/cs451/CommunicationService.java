@@ -40,14 +40,15 @@ public class CommunicationService {
     }
 
     public static void logAndTerminate() {
-
-        try {
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         interruptThreads();
+
+        synchronized (writer) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void deliver(Packet packet) {

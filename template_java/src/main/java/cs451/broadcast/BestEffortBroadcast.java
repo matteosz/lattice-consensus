@@ -55,9 +55,12 @@ public class BestEffortBroadcast extends Broadcast {
 
     public void broadcast(Packet packet) {
         for (int i = 1; i <= getNumHosts(); i++) {
-            if (getMyId() == packet.getLastSenderId()) {
+            if (i == packet.getLastSenderId() && packet.getLastSenderId() != getMyId()) {
+                continue;
+            }
+            if (i == getMyId()) {
                 callback(packet);
-            } else if (i != packet.getLastSenderId()) {
+            } else {
                 link.send(packet, i);
             }
         }

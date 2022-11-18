@@ -19,7 +19,7 @@ public class FairLossLink extends Link {
     private DatagramSocket socket;
     private final Host myHost;
     private final BlockingQueue<DatagramPacket> datagramsToSend = new LinkedBlockingQueue<>();
-    private final ExecutorService workers;
+    private ExecutorService workers;
 
     public FairLossLink(Host myHost, PacketCallback packetCallback) {
         super(packetCallback);
@@ -29,7 +29,7 @@ public class FairLossLink extends Link {
             socket = new DatagramSocket(myHost.getPort());
         } catch (SocketException e) {
             e.printStackTrace();
-            Thread.currentThread().interrupt();
+            return;
         }
 
         workers = Executors.newFixedThreadPool(2);
