@@ -1,22 +1,24 @@
 package cs451.parser;
 
+import cs451.utilities.Utilities;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static cs451.helper.Constants.PORT_MAX;
-import static cs451.helper.Constants.PORT_MIN;
+import static cs451.utilities.Utilities.PORT_MAX;
+import static cs451.utilities.Utilities.PORT_MIN;
 
 public class Host {
 
     private static final String IP_START_REGEX = "/";
 
-    private int id;
+    private byte id;
     private InetAddress ip;
     private int port = -1;
 
     public boolean populate(String idString, String ipString, String portString) {
         try {
-            id = Integer.parseInt(idString);
+            id = Utilities.fromIntegerToByte(Integer.parseInt(idString));
 
             String ipTest = InetAddress.getByName(ipString).toString();
             if (ipTest.startsWith(IP_START_REGEX)) {
@@ -48,7 +50,7 @@ public class Host {
         return true;
     }
 
-    public int getId() {
+    public byte getId() {
         return id;
     }
 

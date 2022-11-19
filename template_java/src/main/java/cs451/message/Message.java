@@ -2,22 +2,33 @@ package cs451.message;
 
 public class Message {
 
-    public static final int MESSAGE_SIZE = Integer.BYTES;
+    public static final int MESSAGE_SIZE = 1 + Integer.BYTES;
+    public static final int MESSAGE_LIMIT = Integer.MAX_VALUE;
 
-    private final byte sender;
-    private final int message;
+    private final byte origin, sender;
+    private final int payload;
 
-    public Message(byte sender, int message) {
-        this.sender = sender;
-        this.message = message;
+    public Message(byte origin, int payload) {
+        this.origin = origin;
+        this.sender = origin;
+        this.payload = payload;
     }
 
-    public int getMessage() {
-        return message;
+    public Message(byte origin, byte sender, int payload) {
+        this.origin = origin;
+        this.sender = origin;
+        this.payload = payload;
     }
 
-    public int getOrigin() {
-        return sender + 1;
+    public int getPayload() {
+        return payload;
     }
 
+    public byte getOrigin() {
+        return origin;
+    }
+
+    public byte getSender() {
+        return sender;
+    }
 }

@@ -1,0 +1,4 @@
+My PID: 3239
+
+From a new terminal type `kill -SIGINT 3239` or `kill -SIGTERM 3239` to stop processing packets
+

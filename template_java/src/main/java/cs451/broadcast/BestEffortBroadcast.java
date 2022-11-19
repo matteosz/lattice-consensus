@@ -1,69 +1,76 @@
 package cs451.broadcast;
 
-import cs451.callbacks.PacketCallback;
-import cs451.link.PerfectLink;
-import cs451.message.Packet;
-import cs451.parser.Host;
+import cs451.channel.PerfectLink;
+import cs451.message.Message;
 
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
+import static cs451.process.Process.getMyHost;
 
 public class BestEffortBroadcast extends Broadcast {
 
     private final PerfectLink link;
-    private final BlockingQueue<Packet> linkDelivered = new LinkedBlockingQueue<>(4096);
-    private final AtomicBoolean running = new AtomicBoolean(true);
+    private final BlockingQueue<Message> linkDelivered;
+    private final int numHosts;
+    private final AtomicBoolean running;
 
-    public BestEffortBroadcast(Host host, int numHosts, PacketCallback packetCallback) {
-        super(packetCallback, host.getId(), numHosts);
-        this.link = new PerfectLink(host, this::deliver);
+    public BestEffortBroadcast(int port, int numHosts, Consumer<Message> packetCallback) throws SocketException {
+        super(packetCallback);
+
+        this.numHosts = numHosts;
+        this.running = new AtomicBoolean(true);
+        this.linkDelivered = new LinkedBlockingQueue<>();
+
+        this.link = new PerfectLink(port, this::bebDeliver);
     }
 
-    private void deliver(Packet packet) {
+    private void bebDeliver(Message message) {
         try {
-            linkDelivered.put(packet);
+            linkDelivered.put(message);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             Thread.currentThread().interrupt();
         }
     }
 
-    private void startDelivering() {
+    public void load(int numMessages) {
+
+        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+            if (h != getMyHost()) {
+                link.load(numMessages, h);
+            }
+        }
 
         while (running.get()) {
             try {
-                Packet packet = linkDelivered.take();
-                callback(packet);
+                callback(linkDelivered.take());
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 Thread.currentThread().interrupt();
             }
         }
-
     }
 
-    public void load(int numMessages) {
+    public void bebBroadcast(Message message) {
 
-        for (int i = 1; i <= getNumHosts(); i++) {
-            if (i != getMyId()) {
-                link.load(numMessages, i);
-            }
-        }
-        startDelivering();
-    }
-
-    public void broadcast(Packet packet) {
-        for (int i = 1; i <= getNumHosts(); i++) {
-            if (i == packet.getLastSenderId() && packet.getLastSenderId() != getMyId()) {
+        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+            if (h == message.getSender() && h != getMyHost()) {
                 continue;
             }
-            if (i == getMyId()) {
-                callback(packet);
+            if (h == getMyHost()) {
+                callback(message);
             } else {
-                link.send(packet, i);
+                link.send(message, h);
             }
         }
+    }
+
+    public int getNumHosts() {
+        return numHosts;
     }
 
     public void stopThreads() {

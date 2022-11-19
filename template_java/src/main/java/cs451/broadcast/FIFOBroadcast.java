@@ -1,28 +1,34 @@
 package cs451.broadcast;
 
-import cs451.callbacks.PacketCallback;
-import cs451.message.Packet;
-import cs451.parser.Host;
+import cs451.message.Compressor;
+import cs451.message.Message;
 
-import java.util.*;
+import java.net.SocketException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
-public class FIFOBroadcast extends Broadcast {
+import static cs451.process.Process.getMyHost;
 
-    private UniformReliableBroadcast broadcast;
+public class FIFOBroadcast {
 
-    private final Map<Byte, Set<Packet>> fifoDelivered = new HashMap<>();
-    private final Map<Byte, Integer> fifoOrder = new HashMap<>();
-    private PacketCallback broadcastCallback;
+    private final UniformReliableBroadcast broadcast;
+    private final Consumer<Integer> broadcastCallback;
+    private final BiConsumer<Byte, Integer> deliverCallback;
+    private final Map<Byte, Compressor> fifoDelivered;
 
-    public FIFOBroadcast(Host host, int numHosts, PacketCallback broadcastCallback, PacketCallback deliverCallback) {
-        super(deliverCallback, host.getId(), numHosts);
+    public FIFOBroadcast(int port, int numHosts, Consumer<Integer> broadcastCallback, BiConsumer<Byte, Integer> deliverCallback) throws SocketException {
         this.broadcastCallback = broadcastCallback;
+        this.deliverCallback = deliverCallback;
+        this.fifoDelivered = new HashMap<>();
+        this.broadcast = new UniformReliableBroadcast(port, numHosts, this::fifoDeliver);
 
-        this.broadcast = new UniformReliableBroadcast(host, numHosts, this::deliver);
-
-        for (byte h = 0; h < numHosts; h++) {
-            fifoDelivered.put(h, new TreeSet<>(Comparator.comparingInt(Packet::getPacketId)));
-            fifoOrder.put(h, 0);
+        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+            Compressor compressed = new Compressor();
+            // Use 0 as anchor for first message incoming (it will start from 1)
+            compressed.add(0);
+            fifoDelivered.put(h, compressed);
         }
      }
 
@@ -30,34 +36,21 @@ public class FIFOBroadcast extends Broadcast {
         broadcast.load(numMessages);
     }
 
-    private void deliver(Packet packet) {
-        byte senderId = packet.getBOriginId();
-        int packetId = packet.getPacketId();
+    private void fifoDeliver(Message message) {
+        byte originId = message.getOrigin();
+        Compressor compressedFromOrigin = fifoDelivered.get(originId);
 
-        fifoDelivered.get(senderId).add(packet);
+        int lastDelivered = compressedFromOrigin.getHeadLast();
+        compressedFromOrigin.add(message.getPayload());
+        int lastToDeliver = compressedFromOrigin.getHeadLast();
 
-        int lsn = fifoOrder.get(senderId);
-        Iterator<Packet> iterator = fifoDelivered.get(senderId).iterator();
-
-        while (iterator.hasNext()) {
-
-            Packet p = iterator.next();
-            if (p.getPacketId() == lsn + 1) {
-
-                if (senderId == (byte) (getMyId() - 1)) {
-                    broadcastCallback.apply(p);
-                }
-                callback(p);
-
-                iterator.remove();
-                lsn++;
-            } else {
-                fifoOrder.put(senderId, lsn);
-                break;
+        int prev = lastDelivered + 1;
+        while (prev <= lastToDeliver) {
+            if (originId == getMyHost()) {
+                broadcastCallback.accept(prev);
             }
-
+            deliverCallback.accept(originId, prev++);
         }
-
     }
 
     public void stopThreads() {

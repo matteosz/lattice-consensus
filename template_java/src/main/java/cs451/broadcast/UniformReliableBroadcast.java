@@ -1,85 +1,73 @@
 package cs451.broadcast;
 
-import cs451.callbacks.PacketCallback;
-import cs451.link.Link;
-import cs451.message.Packet;
-import cs451.parser.Host;
+import cs451.message.Compressor;
+import cs451.message.Message;
 
-import java.util.*;
+import java.net.SocketException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+
+import static cs451.channel.Link.getProcess;
+import static cs451.message.Message.MESSAGE_LIMIT;
+import static cs451.process.Process.getMyHost;
 
 public class UniformReliableBroadcast extends Broadcast {
 
     private final BestEffortBroadcast broadcast;
+    private final Map<Byte, Compressor> urbDelivered;
+    private final Map<Byte, Map<Byte, Compressor>> bebDelivered;
 
-    private final Map<Byte, Set<Integer>> urbDelivered = new HashMap<>();
-    private final Map<Byte, Map<Byte, Set<Integer>>> bebDelivered = new HashMap<>();
+    public UniformReliableBroadcast(int port, int numHosts, Consumer<Message> callback) throws SocketException {
+        super(callback);
+        this.urbDelivered = new HashMap<>();
+        this.bebDelivered = new HashMap<>();
 
-    public UniformReliableBroadcast(Host host, int numHosts, PacketCallback packetCallback) {
-        super(packetCallback, host.getId(), numHosts);
-        broadcast = new BestEffortBroadcast(host, numHosts, this::deliver);
+        broadcast = new BestEffortBroadcast(port, numHosts, this::urbDeliver);
 
-        for (byte h = 0; h < numHosts; h++) {
-
-            urbDelivered.put(h, new HashSet<>());
-
-            if (h != (byte) (getMyId() - 1)) {
-                bebDelivered.put(h, Link.getProcess(h+1).getDelivered());
+        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+            urbDelivered.put(h, new Compressor());
+            if (h != getMyHost()) {
+                bebDelivered.put(h, getProcess(h).getDelivered());
             } else {
-                Map<Byte, Set<Integer>> localAck = new HashMap<>();
-                for (byte l = 0; l < numHosts; l++) {
-                    localAck.put(l, new HashSet<>());
+                Map<Byte, Compressor> localAck = new HashMap<>();
+                for (byte l = 0; l >= 0 && l < numHosts; l++) {
+                    Compressor compressed = new Compressor();
+                    if (l == getMyHost()) {
+                        compressed.setHead(1, MESSAGE_LIMIT);
+                    }
+                    localAck.put(l, compressed);
                 }
                 bebDelivered.put(h, localAck);
             }
         }
     }
 
-    private void deliver(Packet packet) {
-        byte senderId = packet.getBOriginId();
-        int packetId = packet.getPacketId();
+    private void urbDeliver(Message message) {
+        int messageId = message.getPayload();
+        byte originId = message.getOrigin();
 
-        if (!urbDelivered.get(senderId).contains(packetId)) {
+        if (urbDelivered.get(originId).contains(messageId)) {
+            return;
+        }
 
-            if (!hasBroadcast(packetId, senderId)) {
+        if (bebDelivered.get(getMyHost()).get(originId).add(messageId)) {
 
-                bebDelivered.get((byte) (getMyId() - 1)).get(senderId).add(packetId);
-                broadcast(packet);
+            broadcast.bebBroadcast(message);
 
-            } else if (canDeliver(packetId, senderId)) {
+        } else if (bebDelivered.values()
+                .stream()
+                .filter(x -> x.get(originId).contains(messageId))
+                .count() > broadcast.getNumHosts() / 2) {
 
-                urbDelivered.get(senderId).add(packetId);
-                callback(packet);
+            urbDelivered.get(originId).add(messageId);
+            callback(message);
 
-            }
         }
     }
 
     public void load(int numMessages) {
         broadcast.load(numMessages);
-    }
-
-    public void broadcast(Packet packet) {
-        broadcast.broadcast(packet);
-    }
-
-    private boolean hasBroadcast(int packetId, byte senderId) {
-        if (senderId == (byte) (getMyId() - 1)) {
-            return true;
-        }
-
-        return bebDelivered.get((byte) (getMyId() - 1)).get(senderId)
-                .contains(packetId);
-    }
-
-    public boolean canDeliver(int packetId, byte senderId) {
-        int offset = 0;
-        if (senderId == (byte) (getMyId() - 1)) {
-            offset = 1;
-        }
-
-        return bebDelivered.values().stream()
-                .filter(x -> x.get(senderId).contains(packetId))
-                .count() + offset > getNumHosts() / 2;
     }
 
     public void stopThreads() {

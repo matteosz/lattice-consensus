@@ -1,6 +1,7 @@
 package cs451;
 
 import cs451.parser.Parser;
+import cs451.service.CommunicationService;
 
 public class Main {
 

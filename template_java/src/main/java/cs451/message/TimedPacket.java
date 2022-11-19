@@ -1,16 +1,12 @@
 package cs451.message;
 
-import cs451.process.Process;
-
 public class TimedPacket {
     private final Packet packet;
-    private final Process process;
     private int timestamp, timeout;
 
-    public TimedPacket(Process process, Packet packet) {
+    public TimedPacket(int timeout, Packet packet) {
         this.packet = packet;
-        this.process = process;
-        this.timeout = process.getTimeout();
+        this.timeout = timeout;
         this.timestamp = (int) System.currentTimeMillis();
     }
 
@@ -19,16 +15,13 @@ public class TimedPacket {
     }
 
     public boolean timeoutExpired() {
-        if (System.currentTimeMillis() - timestamp >= timeout) {
-            return true;
-        }
-        return false;
+        return (int) System.currentTimeMillis() >= timeout + timestamp;
     }
 
-    public void update() {
-        this.packet.updateTimestamp();
-        this.timestamp = (int) System.currentTimeMillis();
-        this.timeout = this.process.getTimeout();
+    public void update(int timeout) {
+        packet.updateTimestamp();
+        timestamp = (int) System.currentTimeMillis();
+        this.timeout = timeout;
     }
 
 }

@@ -1,35 +1,19 @@
 package cs451.broadcast;
 
-import cs451.callbacks.PacketCallback;
-import cs451.message.Packet;
+import cs451.message.Message;
+
+import java.util.function.Consumer;
 
 public abstract class Broadcast {
 
-    private final PacketCallback packetCallback;
-    private final int numHosts, myId;
+    private final Consumer<Message> packetCallback;
 
-    protected Broadcast(PacketCallback packetCallback, int myId, int numHosts) {
-        this.numHosts = numHosts;
-        this.myId = myId;
+    protected Broadcast(Consumer<Message> packetCallback) {
         this.packetCallback = packetCallback;
     }
 
-    protected Broadcast(int myId, int numHosts) {
-        this.numHosts = numHosts;
-        this.myId = myId;
-        this.packetCallback = null;
-    }
-
-    public int getNumHosts() {
-        return numHosts;
-    }
-
-    public int getMyId() {
-        return myId;
-    }
-
-    protected void callback(Packet packet) {
-        packetCallback.apply(packet);
+    protected void callback(Message message) {
+        packetCallback.accept(message);
     }
 
 }

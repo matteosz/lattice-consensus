@@ -58,7 +58,7 @@ public class HostsParser {
     private boolean checkIdRange() {
         int num = hosts.size();
         for (Host host : hosts) {
-            if (host.getId() < 1 || host.getId() > num) {
+            if (host.getId() < 0 || host.getId() >= num) {
                 System.err.println("Id of a host is not in the right range!");
                 return false;
             }
@@ -76,11 +76,9 @@ public class HostsParser {
     }
 
     class HostsComparator implements Comparator<Host> {
-
         public int compare(Host a, Host b) {
-            return a.getId() - b.getId();
+            return Byte.compare(a.getId(), b.getId());
         }
-
     }
 
 }

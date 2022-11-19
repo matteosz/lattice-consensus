@@ -1,8 +1,8 @@
 package cs451.parser;
 
-import cs451.helper.Constants;
-
 import java.util.List;
+
+import static cs451.utilities.Utilities.*;
 
 public class Parser {
 
@@ -24,15 +24,15 @@ public class Parser {
         configParser = new ConfigParser();
 
         int argsNum = args.length;
-        if (argsNum != Constants.ARG_LIMIT_CONFIG) {
+        if (argsNum != ARG_LIMIT_CONFIG) {
             help();
         }
 
-        if (!idParser.populate(args[Constants.ID_KEY], args[Constants.ID_VALUE])) {
+        if (!idParser.populate(args[ID_KEY], args[ID_VALUE])) {
             help();
         }
 
-        if (!hostsParser.populate(args[Constants.HOSTS_KEY], args[Constants.HOSTS_VALUE])) {
+        if (!hostsParser.populate(args[HOSTS_KEY], args[HOSTS_VALUE])) {
             help();
         }
 
@@ -40,11 +40,11 @@ public class Parser {
             help();
         }
 
-        if (!outputParser.populate(args[Constants.OUTPUT_KEY], args[Constants.OUTPUT_VALUE])) {
+        if (!outputParser.populate(args[OUTPUT_KEY], args[OUTPUT_VALUE])) {
             help();
         }
 
-        if (!configParser.populate(args[Constants.CONFIG_VALUE])) {
+        if (!configParser.populate(args[CONFIG_VALUE])) {
             help();
         }
     }
