@@ -91,7 +91,6 @@ public class Compressor {
                     }
                     return true;
                 }
-
             }
             prev.next = new Node(value, value, null);
             return true;

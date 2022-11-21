@@ -26,7 +26,7 @@ public class FIFOBroadcast {
 
         for (byte h = 0; h >= 0 && h < numHosts; h++) {
             Compressor compressed = new Compressor();
-            // Use 0 as anchor for first message incoming (it will start from 1)
+            // Use 0 as anchor for next messages
             compressed.add(0);
             fifoDelivered.put(h, compressed);
         }
@@ -38,11 +38,12 @@ public class FIFOBroadcast {
 
     private void fifoDeliver(Message message) {
         byte originId = message.getOrigin();
+        int lastDelivered, lastToDeliver;
         Compressor compressedFromOrigin = fifoDelivered.get(originId);
 
-        int lastDelivered = compressedFromOrigin.getHeadLast();
+        lastDelivered = compressedFromOrigin.getHeadLast();
         compressedFromOrigin.add(message.getPayload());
-        int lastToDeliver = compressedFromOrigin.getHeadLast();
+        lastToDeliver = compressedFromOrigin.getHeadLast();
 
         int prev = lastDelivered + 1;
         while (prev <= lastToDeliver) {

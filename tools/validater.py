@@ -11,6 +11,4 @@ for f in files:
 
 
 to_run = ["python3", "validate_fifo.py", "--proc_num", str(len(new_files))] + new_files
-
-print(to_run)
 subprocess.run(to_run)

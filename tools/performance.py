@@ -56,7 +56,7 @@ def startProcesses(processes, runscript, hostsFilePath, configFilePath, outputDi
 
     return procs
 
-def main(processes, messages, runscript, logsDir):
+def main(processes, messages, runscript, logsDir, t):
     if not os.path.isdir(logsDir):
         raise ValueError('Directory `{}` does not exist'.format(logsDir))
 
@@ -70,7 +70,7 @@ def main(processes, messages, runscript, logsDir):
         for (logicalPID, procHandle) in procs:
             print("Process with logicalPID {} has PID {}".format(logicalPID, procHandle.pid))
 
-        time.sleep(60)
+        time.sleep(t)
 
     finally:
         if procs is not None:
@@ -114,7 +114,15 @@ if __name__ == "__main__":
         dest="messages",
         help="Maximum number (because it can crash) of messages that each process can broadcast",
     )
+    parser.add_argument(
+        "-t",
+        "--time",
+        required=True,
+        type=int,
+        dest="time",
+        help="time",
+    )
 
     results = parser.parse_args()
 
-    main(results.processes, results.messages, results.runscript, results.logsDir)
+    main(results.processes, results.messages, results.runscript, results.logsDir, results.time)

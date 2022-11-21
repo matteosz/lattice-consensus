@@ -21,11 +21,7 @@ public class PerfectLink {
 
     private void perfectDeliver(Packet packet) {
         Process sender = getProcess(packet.getSenderId());
-        int packetId = packet.getPacketId();
-
-        if ((packet.isAck() && !sender.hasAcked(packetId)) ||
-                (!packet.isAck() && !sender.hasDelivered(packetId))) {
-            sender.deliverPacket(packet);
+        if (sender.deliverPacket(packet)) {
             packet.applyToMessages(m -> callback(m, sender));
         }
     }

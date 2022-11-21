@@ -4,18 +4,15 @@ import java.io.File;
 
 public class OutputParser {
 
-    private static final String OUTPUT_KEY = "--output";
-
     private String path;
 
     public boolean populate(String key, String value) {
 
-        if (!key.equals(OUTPUT_KEY)) {
+        if (!key.equals("--output")) {
             return false;
         }
 
-        File file = new File(value);
-        path = file.getPath();
+        path = new File(value).getPath();
         return true;
     }
 

@@ -1,4 +1,0 @@
-My PID: 3303
-
-From a new terminal type `kill -SIGINT 3303` or `kill -SIGTERM 3303` to stop processing packets
-

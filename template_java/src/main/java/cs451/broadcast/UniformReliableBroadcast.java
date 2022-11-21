@@ -17,11 +17,13 @@ public class UniformReliableBroadcast extends Broadcast {
     private final BestEffortBroadcast broadcast;
     private final Map<Byte, Compressor> urbDelivered;
     private final Map<Byte, Map<Byte, Compressor>> bebDelivered;
+    private final int majority;
 
     public UniformReliableBroadcast(int port, int numHosts, Consumer<Message> callback) throws SocketException {
         super(callback);
         this.urbDelivered = new HashMap<>();
         this.bebDelivered = new HashMap<>();
+        this.majority = numHosts / 2 + 1;
 
         broadcast = new BestEffortBroadcast(port, numHosts, this::urbDeliver);
 
@@ -46,8 +48,9 @@ public class UniformReliableBroadcast extends Broadcast {
     private void urbDeliver(Message message) {
         int messageId = message.getPayload();
         byte originId = message.getOrigin();
+        Compressor fromOrigin = urbDelivered.get(originId);
 
-        if (urbDelivered.get(originId).contains(messageId)) {
+        if (fromOrigin.contains(messageId)) {
             return;
         }
 
@@ -55,15 +58,25 @@ public class UniformReliableBroadcast extends Broadcast {
 
             broadcast.bebBroadcast(message);
 
-        } else if (bebDelivered.values()
-                .stream()
-                .filter(x -> x.get(originId).contains(messageId))
-                .count() > broadcast.getNumHosts() / 2) {
+        } else if (canDeliver(originId, messageId)) {
 
-            urbDelivered.get(originId).add(messageId);
+            fromOrigin.add(messageId);
             callback(message);
 
         }
+    }
+
+    private boolean canDeliver(byte originId, int messageId) {
+        int ack  = 0;
+        for (Map<Byte, Compressor> entry : bebDelivered.values()) {
+            if (entry.get(originId).contains(messageId)) {
+                ack++;
+                if (ack == majority) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public void load(int numMessages) {

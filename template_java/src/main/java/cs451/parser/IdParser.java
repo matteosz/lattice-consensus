@@ -1,31 +1,31 @@
 package cs451.parser;
 
+import static cs451.utilities.Utilities.fromIntegerToByte;
+
 public class IdParser {
 
-    private static final String ID_KEY = "--id";
-
-    private int id;
+    private byte id;
 
     public boolean populate(String key, String value) {
 
-        if (!key.equals(ID_KEY)) {
+        if (!key.equals("--id")) {
             return false;
         }
 
         try {
-            id = Integer.parseInt(value);
-            if (id <= 0) {
-                System.err.println("Id must be a positive number!");
+            int id = Integer.parseInt(value);
+            if (id <= 0 || id > 128) {
+                return false;
             }
+            this.id = fromIntegerToByte(id);
         } catch (NumberFormatException e) {
-            System.err.println("Id must be a number!");
             return false;
         }
 
         return true;
     }
 
-    public int getId() {
+    public byte getId() {
         return id;
     }
 

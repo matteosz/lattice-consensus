@@ -3,33 +3,27 @@ package cs451.parser;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HostsParser {
 
-    private static final String HOSTS_KEY = "--hosts";
-    private static final String SPACES_REGEX = "\\s+";
-    private List<Host> hosts = new ArrayList<>();
+    private final Map<Byte, Host> hosts = new HashMap<>();
 
     public boolean populate(String key, String filename) {
 
-        if (!key.equals(HOSTS_KEY)) {
+        if (!key.equals("--hosts")) {
             return false;
         }
 
         try(BufferedReader br = new BufferedReader(new FileReader(filename))) {
-            int lineNum = 1;
-            for(String line; (line = br.readLine()) != null; lineNum++) {
+            for(String line; (line = br.readLine()) != null; ) {
                 if (line.isBlank()) {
                     continue;
                 }
 
-                String[] splits = line.split(SPACES_REGEX);
+                String[] splits = line.split("\\s+");
                 if (splits.length != 3) {
-                    System.err.println("Problem with the line " + lineNum + " in the hosts file!");
                     return false;
                 }
 
@@ -38,28 +32,23 @@ public class HostsParser {
                     return false;
                 }
 
-                hosts.add(newHost);
+                hosts.put(newHost.getId(), newHost);
             }
         } catch (IOException e) {
-            System.err.println("Problem with the hosts file!");
             return false;
         }
 
         if (!checkIdRange()) {
-            System.err.println("Hosts ids are not within the range!");
             return false;
         }
 
-        // sort by id
-        Collections.sort(hosts, new HostsComparator());
         return true;
     }
 
     private boolean checkIdRange() {
         int num = hosts.size();
-        for (Host host : hosts) {
-            if (host.getId() < 0 || host.getId() >= num) {
-                System.err.println("Id of a host is not in the right range!");
+        for (Host host : hosts.values()) {
+            if (host.getId() >= num) {
                 return false;
             }
         }
@@ -67,18 +56,11 @@ public class HostsParser {
         return true;
     }
 
-    public boolean inRange(int id) {
-        return id <= hosts.size();
+    public boolean inRange(byte id) {
+        return id < hosts.size();
     }
 
-    public List<Host> getHosts() {
+    public Map<Byte, Host> getHosts() {
         return hosts;
     }
-
-    class HostsComparator implements Comparator<Host> {
-        public int compare(Host a, Host b) {
-            return Byte.compare(a.getId(), b.getId());
-        }
-    }
-
 }

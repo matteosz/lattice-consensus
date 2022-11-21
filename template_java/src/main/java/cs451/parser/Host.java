@@ -1,12 +1,9 @@
 package cs451.parser;
 
-import cs451.utilities.Utilities;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static cs451.utilities.Utilities.PORT_MAX;
-import static cs451.utilities.Utilities.PORT_MIN;
+import static cs451.utilities.Utilities.fromIntegerToByte;
 
 public class Host {
 
@@ -18,7 +15,12 @@ public class Host {
 
     public boolean populate(String idString, String ipString, String portString) {
         try {
-            id = Utilities.fromIntegerToByte(Integer.parseInt(idString));
+            int id = Integer.parseInt(idString);
+
+            if (id <= 0 || id > 128) {
+                return false;
+            }
+            this.id = fromIntegerToByte(id);
 
             String ipTest = InetAddress.getByName(ipString).toString();
             if (ipTest.startsWith(IP_START_REGEX)) {
@@ -28,23 +30,11 @@ public class Host {
             }
 
             port = Integer.parseInt(portString);
-            if (port <= 0) {
-                System.err.println("Port in the hosts file must be a positive number!");
+            if (port < 11000 || port > 11999) {
                 return false;
             }
-            if (port < PORT_MIN || port > PORT_MAX) {
-                System.err.println("Port in the hosts file must be in the correct interval");
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            if (port == -1) {
-                System.err.println("Id in the hosts file must be a number!");
-            } else {
-                System.err.println("Port in the hosts file must be a number!");
-            }
+        } catch (NumberFormatException | UnknownHostException e) {
             return false;
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
         }
 
         return true;
@@ -52,10 +42,6 @@ public class Host {
 
     public byte getId() {
         return id;
-    }
-
-    public String getIp() {
-        return ip.getHostAddress();
     }
 
     public InetAddress getIpAsAddress() {

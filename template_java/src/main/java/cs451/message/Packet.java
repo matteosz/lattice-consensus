@@ -19,9 +19,11 @@ public class Packet {
                      MEX_OS = Integer.BYTES + TIMESTAMP_OS;
     public static final int MAX_PACKET_SIZE = MAX_COMPRESSION * MESSAGE_SIZE + MEX_OS;
 
-    private int packetId, timestamp;
-    private boolean isAck;
-    private byte senderId, numMessages;
+    private final int packetId;
+    private int timestamp;
+    private final boolean isAck;
+    private byte senderId;
+    private final byte numMessages;
     private final byte[] data;
 
     public Packet(byte[] data) {

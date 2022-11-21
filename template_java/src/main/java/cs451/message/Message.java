@@ -16,7 +16,7 @@ public class Message {
 
     public Message(byte origin, byte sender, int payload) {
         this.origin = origin;
-        this.sender = origin;
+        this.sender = sender;
         this.payload = payload;
     }
 

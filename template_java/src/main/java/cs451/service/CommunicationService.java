@@ -3,62 +3,57 @@ package cs451.service;
 import cs451.broadcast.FIFOBroadcast;
 import cs451.channel.Link;
 import cs451.process.Process;
-import cs451.utilities.Utilities;
 import cs451.parser.Host;
 import cs451.parser.Parser;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.SocketException;
-import java.util.List;
+import java.util.Map;
 
 public class CommunicationService {
 
     private static FIFOBroadcast broadcast;
-    private static StringBuilder sb = new StringBuilder();
-    private static String output;
+    private static BufferedWriter writer;
 
     public static void start(Parser parser) {
 
-        List<Host> hosts = parser.hosts();
-        int myId = parser.myId(), numMessages = parser.getConfig().getMessages(),
-                port = hosts.get(myId - 1).getPort();
+        Map<Byte, Host> hosts = parser.hosts();
+        byte myId = parser.myId();
+        int numMessages = parser.messages(), port = hosts.get(myId).getPort();
 
-        output = parser.output();
-        Process.setMyHost(Utilities.fromIntegerToByte(myId));
+        Process.setMyHost(myId);
         Link.populateNetwork(hosts);
 
         try {
-
+            // Write on fly: this saves memory while having the same throughput of writing at the end
+            writer = new BufferedWriter(new FileWriter(parser.output()), 32768);
             broadcast = new FIFOBroadcast(port, hosts.size(), CommunicationService::broadcast, CommunicationService::deliver);
             broadcast.load(numMessages);
 
-        } catch (SocketException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (IOException ignored) {}
     }
 
     public static void logAndTerminate() {
         interruptThreads();
-        synchronized (sb) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(output), 32768)) {
-                writer.write(sb.toString());
-            } catch(IOException e){
-                e.printStackTrace();
-            }
-        }
+        try {
+            writer.close();
+        } catch(IOException ignored) {}
     }
 
     private static void deliver(byte originId, int id) {
-        synchronized (sb) {
-            sb.append(String.format("d %d %d\n", originId + 1, id));
+        synchronized (writer) {
+            try {
+                writer.write(String.format("d %d %d\n", originId + 1, id));
+            } catch (IOException ignored) {}
         }
     }
 
     private static void broadcast(int id) {
-        synchronized (sb) {
-            sb.append(String.format("b %d\n", id));
+        synchronized (writer) {
+            try {
+                writer.write(String.format("b %d\n", id));
+            } catch (IOException ignored) {}
         }
     }
 

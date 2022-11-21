@@ -66,13 +66,16 @@ if __name__ == "__main__":
     if len(results.output) != results.proc_num:
         print("Not as many output files as number of processes")
         exit(1)
-
+        
+    error = False
     for o in results.output:
-        print("Checking {}".format(o))
-        if checkProcess(o):
-            print("Validation OK")
-        else:
-            print("Validation failed!")
+        if not checkProcess(o):
+            error = True
+            
+    if error is True:
+        print("Validate Error")
+    else:
+        print("Validated!")
 
 
 

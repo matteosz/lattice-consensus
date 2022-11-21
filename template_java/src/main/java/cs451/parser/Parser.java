@@ -1,38 +1,33 @@
 package cs451.parser;
 
-import java.util.List;
-
-import static cs451.utilities.Utilities.*;
+import java.util.Map;
 
 public class Parser {
-
-    private String[] args;
     private IdParser idParser;
     private HostsParser hostsParser;
     private OutputParser outputParser;
     private ConfigParser configParser;
 
     public Parser(String[] args) {
-        this.args = args;
+        parse(args);
     }
 
-    public void parse() {
+    public void parse(String[] args) {
 
         idParser = new IdParser();
         hostsParser = new HostsParser();
         outputParser = new OutputParser();
         configParser = new ConfigParser();
 
-        int argsNum = args.length;
-        if (argsNum != ARG_LIMIT_CONFIG) {
+        if (args.length != 7) {
             help();
         }
 
-        if (!idParser.populate(args[ID_KEY], args[ID_VALUE])) {
+        if (!idParser.populate(args[0], args[1])) {
             help();
         }
 
-        if (!hostsParser.populate(args[HOSTS_KEY], args[HOSTS_VALUE])) {
+        if (!hostsParser.populate(args[2], args[3])) {
             help();
         }
 
@@ -40,25 +35,24 @@ public class Parser {
             help();
         }
 
-        if (!outputParser.populate(args[OUTPUT_KEY], args[OUTPUT_VALUE])) {
+        if (!outputParser.populate(args[4], args[5])) {
             help();
         }
 
-        if (!configParser.populate(args[CONFIG_VALUE])) {
+        if (!configParser.populate(args[6])) {
             help();
         }
     }
 
     private void help() {
-        System.err.println("Usage: ./run.sh --id ID --hosts HOSTS --output OUTPUT CONFIG");
         System.exit(1);
     }
 
-    public int myId() {
+    public byte myId() {
         return idParser.getId();
     }
 
-    public List<Host> hosts() {
+    public Map<Byte, Host> hosts() {
         return hostsParser.getHosts();
     }
 
@@ -66,7 +60,7 @@ public class Parser {
         return outputParser.getPath();
     }
 
-    public Config getConfig() {
-        return configParser.getConfig();
+    public int messages() {
+        return configParser.getMessages();
     }
 }

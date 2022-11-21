@@ -1,6 +1,6 @@
 package cs451.message;
 
-public class TimedPacket {
+public class TimedPacket implements Comparable<TimedPacket> {
     private final Packet packet;
     private int timestamp, timeout;
 
@@ -24,4 +24,9 @@ public class TimedPacket {
         this.timeout = timeout;
     }
 
+    @Override
+    public int compareTo(TimedPacket o) {
+        int time = (int) System.currentTimeMillis();
+        return Integer.compare(time - this.timestamp, time - o.timestamp);
+    }
 }

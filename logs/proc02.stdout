@@ -1,4 +1,0 @@
-My PID: 4113
-
-From a new terminal type `kill -SIGINT 4113` or `kill -SIGTERM 4113` to stop processing packets
-

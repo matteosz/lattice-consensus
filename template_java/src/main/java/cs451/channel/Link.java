@@ -1,11 +1,12 @@
 package cs451.channel;
 
+import static cs451.process.Process.getMyHost;
+
 import cs451.message.Packet;
 import cs451.parser.Host;
 import cs451.process.Process;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -13,11 +14,11 @@ public abstract class Link {
 
     private static Map<Byte, Process> network = new HashMap<>();
 
-    public static void populateNetwork(List<Host> hosts) {
+    public static void populateNetwork(Map<Byte, Host> hosts) {
         int numHosts = hosts.size();
-        for (byte h = 0; h >= 0 && h < numHosts; h++) {
-            if (h != Process.getMyHost()) {
-                network.put(h, new Process(hosts.get(h), numHosts));
+        for (Map.Entry<Byte, Host> entry : hosts.entrySet()) {
+            if (entry.getKey() != getMyHost()) {
+                network.put(entry.getKey(), new Process(entry.getValue(), numHosts));
             }
         }
     }

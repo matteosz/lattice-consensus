@@ -71,7 +71,7 @@ public class FairLossLink extends Link {
          while (running.get()) {
 
             byte[] buffer = new byte[MAX_PACKET_SIZE];
-            DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
+            DatagramPacket datagramPacket = new DatagramPacket(buffer, MAX_PACKET_SIZE);
 
             try {
                 socket.receive(datagramPacket);
