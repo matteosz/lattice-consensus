@@ -10,20 +10,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static cs451.process.Process.getMyHost;
+import static cs451.utilities.Parameters.BROADCAST_BATCH;
+import static cs451.utilities.Parameters.NUM_HOSTS;
 
 public class BestEffortBroadcast extends Broadcast {
 
     private final PerfectLink link;
     private final BlockingQueue<Message> linkDelivered;
-    private final int numHosts;
     private final AtomicBoolean running;
 
-    public BestEffortBroadcast(int port, int numHosts, Consumer<Message> packetCallback) throws SocketException {
+    public BestEffortBroadcast(int port, Consumer<Message> packetCallback) throws SocketException {
         super(packetCallback);
 
-        this.numHosts = numHosts;
         this.running = new AtomicBoolean(true);
-        this.linkDelivered = new LinkedBlockingQueue<>();
+        this.linkDelivered = new LinkedBlockingQueue<>(BROADCAST_BATCH);
 
         this.link = new PerfectLink(port, this::bebDeliver);
     }
@@ -39,7 +39,7 @@ public class BestEffortBroadcast extends Broadcast {
 
     public void load(int numMessages) {
 
-        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+        for (byte h = 0; h >= 0 && h < NUM_HOSTS; h++) {
             if (h != getMyHost()) {
                 link.load(numMessages, h);
             }
@@ -57,7 +57,7 @@ public class BestEffortBroadcast extends Broadcast {
 
     public void bebBroadcast(Message message) {
 
-        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+        for (byte h = 0; h >= 0 && h < NUM_HOSTS; h++) {
             if (h == message.getSender() && h != getMyHost()) {
                 continue;
             }
@@ -67,10 +67,6 @@ public class BestEffortBroadcast extends Broadcast {
                 link.send(message, h);
             }
         }
-    }
-
-    public int getNumHosts() {
-        return numHosts;
     }
 
     public void stopThreads() {

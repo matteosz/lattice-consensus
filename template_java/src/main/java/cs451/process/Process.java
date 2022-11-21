@@ -7,8 +7,6 @@ import cs451.message.TimedPacket;
 import cs451.parser.Host;
 
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,7 +18,7 @@ import static cs451.message.Packet.MAX_COMPRESSION;
 public class Process {
 
     private static byte myHost;
-    private static final Random random = new Random();
+    //private static final Random random = new Random();
 
     private final Host host;
     private final AtomicInteger timeout;
@@ -69,10 +67,10 @@ public class Process {
         return timeout.get();
     }
     public void expBackOff() {
-        timeout.set(Math.min(2 * timeout.get(), MAX_TIMEOUT)+ random.nextInt(MAX_RANDOM));
+        timeout.set(Math.min(2 * timeout.get(), MAX_TIMEOUT));// random.nextInt(THRESHOLD_TIMEOUT));
     }
     public void notify(int lastTime) {
-        timeout.set(lastTime);
+        timeout.set(lastTime+THRESHOLD_TIMEOUT);
     }
 
     public void load(int numMessages) {

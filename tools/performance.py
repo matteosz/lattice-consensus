@@ -67,8 +67,8 @@ def main(processes, messages, runscript, logsDir, t):
         # Start the processes and get their PIDs
         procs = startProcesses(processes, runscript, hostsFile, configFile, logsDir)
 
-        for (logicalPID, procHandle) in procs:
-            print("Process with logicalPID {} has PID {}".format(logicalPID, procHandle.pid))
+        #for (logicalPID, procHandle) in procs:
+            #print("Process with logicalPID {} has PID {}".format(logicalPID, procHandle.pid))
 
         time.sleep(t)
 

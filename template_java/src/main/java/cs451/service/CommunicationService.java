@@ -6,6 +6,7 @@ import cs451.process.Process;
 import cs451.parser.Host;
 import cs451.parser.Parser;
 
+import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,13 +23,14 @@ public class CommunicationService {
         byte myId = parser.myId();
         int numMessages = parser.messages(), port = hosts.get(myId).getPort();
 
+        Parameters.setParams(hosts.size());
         Process.setMyHost(myId);
         Link.populateNetwork(hosts);
 
         try {
             // Write on fly: this saves memory while having the same throughput of writing at the end
             writer = new BufferedWriter(new FileWriter(parser.output()), 32768);
-            broadcast = new FIFOBroadcast(port, hosts.size(), CommunicationService::broadcast, CommunicationService::deliver);
+            broadcast = new FIFOBroadcast(port, CommunicationService::broadcast, CommunicationService::deliver);
             broadcast.load(numMessages);
 
         } catch (IOException ignored) {}

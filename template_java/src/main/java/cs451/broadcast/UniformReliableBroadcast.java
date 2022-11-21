@@ -11,29 +11,29 @@ import java.util.function.Consumer;
 import static cs451.channel.Link.getProcess;
 import static cs451.message.Message.MESSAGE_LIMIT;
 import static cs451.process.Process.getMyHost;
+import static cs451.utilities.Parameters.MAJORITY;
+import static cs451.utilities.Parameters.NUM_HOSTS;
 
 public class UniformReliableBroadcast extends Broadcast {
 
     private final BestEffortBroadcast broadcast;
     private final Map<Byte, Compressor> urbDelivered;
     private final Map<Byte, Map<Byte, Compressor>> bebDelivered;
-    private final int majority;
 
-    public UniformReliableBroadcast(int port, int numHosts, Consumer<Message> callback) throws SocketException {
+    public UniformReliableBroadcast(int port, Consumer<Message> callback) throws SocketException {
         super(callback);
         this.urbDelivered = new HashMap<>();
         this.bebDelivered = new HashMap<>();
-        this.majority = numHosts / 2 + 1;
 
-        broadcast = new BestEffortBroadcast(port, numHosts, this::urbDeliver);
+        broadcast = new BestEffortBroadcast(port, this::urbDeliver);
 
-        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+        for (byte h = 0; h >= 0 && h < NUM_HOSTS; h++) {
             urbDelivered.put(h, new Compressor());
             if (h != getMyHost()) {
                 bebDelivered.put(h, getProcess(h).getDelivered());
             } else {
                 Map<Byte, Compressor> localAck = new HashMap<>();
-                for (byte l = 0; l >= 0 && l < numHosts; l++) {
+                for (byte l = 0; l >= 0 && l < NUM_HOSTS; l++) {
                     Compressor compressed = new Compressor();
                     if (l == getMyHost()) {
                         compressed.setHead(1, MESSAGE_LIMIT);
@@ -71,7 +71,7 @@ public class UniformReliableBroadcast extends Broadcast {
         for (Map<Byte, Compressor> entry : bebDelivered.values()) {
             if (entry.get(originId).contains(messageId)) {
                 ack++;
-                if (ack == majority) {
+                if (ack == MAJORITY) {
                     return true;
                 }
             }
