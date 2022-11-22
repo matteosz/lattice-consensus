@@ -1,6 +1,5 @@
 package cs451.process;
 
-import cs451.channel.Link;
 import cs451.message.Compressor;
 import cs451.message.Message;
 import cs451.message.Packet;
@@ -10,24 +9,22 @@ import cs451.parser.Host;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static cs451.utilities.Parameters.*;
-import static cs451.utilities.Utilities.fromByteToInteger;
-import static cs451.utilities.Utilities.fromIntegerToByte;
 import static cs451.message.Packet.MAX_COMPRESSION;
 
 public class Process {
 
     private static byte myHost;
     private final Host host;
-    private final AtomicLong timeout;
-    private int packetNumber, next;
+    private final AtomicInteger timeout;
+    private int packetNumber;
+    private byte next;
 
     private final Map<Byte, Compressor> toSend, messagesDelivered;
     private final PriorityBlockingQueue<TimedPacket> toAck;
     private final Compressor packetsAcked, packetsDelivered;
-    private final Queue<Long> lastTimes;
+    private final Queue<Integer> lastTimes;
 
     public static byte getMyHost() {
         return myHost;
@@ -39,10 +36,10 @@ public class Process {
     public Process(Host host) {
         this.host = host;
         packetNumber = 0;
-        next = fromByteToInteger(myHost);
+        next = myHost;
 
         lastTimes = new LinkedList<>();
-        timeout = new AtomicLong(BASE_TIMEOUT);
+        timeout = new AtomicInteger(BASE_TIMEOUT);
         toSend = new HashMap<>();
         toAck = new PriorityBlockingQueue<>();
         packetsAcked = new Compressor();
@@ -65,20 +62,20 @@ public class Process {
         return host.getId();
     }
 
-    private void addTimeout(long lastTimeout) {
+    private void addTimeout(int lastTimeout) {
         synchronized (lastTimes) {
             lastTimes.poll();
             lastTimes.add(lastTimeout);
             long average = 0;
-            for (Long l : lastTimes) {
+            for (int l : lastTimes) {
                 average += l;
             }
             average /= lastTimes.size();
-            timeout.set(average + THRESHOLD);
+            timeout.set((int) average + THRESHOLD);
         }
     }
 
-    public long getTimeout() {
+    public int getTimeout() {
         return timeout.get();
     }
     public void expBackOff() {
@@ -102,8 +99,12 @@ public class Process {
     private Message loadMessage() {
         // Round-robin starting from current local host
         for (byte h = 0; h >= 0 && h < NUM_HOSTS; h++) {
-            byte curr = fromIntegerToByte(next);
-            next = Math.max(1, (next + 1) % (NUM_HOSTS + 1));
+            byte curr = next;
+            if (next == NUM_HOSTS - 1) {
+                next = 0;
+            } else {
+                next++;
+            }
 
             int messageId = toSend.get(curr).takeFirst();
             if (messageId != -1) {
