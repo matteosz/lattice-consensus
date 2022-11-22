@@ -2,12 +2,12 @@ package cs451.message;
 
 public class TimedPacket implements Comparable<TimedPacket> {
     private final Packet packet;
-    private int timestamp, timeout;
+    private long timestamp, timeout;
 
-    public TimedPacket(int timeout, Packet packet) {
+    public TimedPacket(long timeout, Packet packet) {
         this.packet = packet;
         this.timeout = timeout;
-        this.timestamp = (int) System.currentTimeMillis();
+        this.timestamp = System.currentTimeMillis();
     }
 
     public Packet getPacket() {
@@ -15,18 +15,18 @@ public class TimedPacket implements Comparable<TimedPacket> {
     }
 
     public boolean timeoutExpired() {
-        return (int) System.currentTimeMillis() >= timeout + timestamp;
+        return System.currentTimeMillis() > timeout + timestamp;
     }
 
-    public void update(int timeout) {
+    public void update(long timeout) {
         packet.updateTimestamp();
-        timestamp = (int) System.currentTimeMillis();
+        timestamp = System.currentTimeMillis();
         this.timeout = timeout;
     }
 
     @Override
     public int compareTo(TimedPacket o) {
-        int time = (int) System.currentTimeMillis();
-        return Integer.compare(time - this.timestamp, time - o.timestamp);
+        long time = System.currentTimeMillis();
+        return Long.compare(time - this.timestamp, time - o.timestamp);
     }
 }

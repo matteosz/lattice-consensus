@@ -1,5 +1,6 @@
 package cs451.process;
 
+import cs451.channel.Link;
 import cs451.message.Compressor;
 import cs451.message.Message;
 import cs451.message.Packet;
@@ -9,6 +10,7 @@ import cs451.parser.Host;
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static cs451.utilities.Parameters.*;
 import static cs451.utilities.Utilities.fromByteToInteger;
@@ -19,12 +21,13 @@ public class Process {
 
     private static byte myHost;
     private final Host host;
-    private final AtomicInteger timeout;
+    private final AtomicLong timeout;
     private int packetNumber, next;
 
     private final Map<Byte, Compressor> toSend, messagesDelivered;
     private final PriorityBlockingQueue<TimedPacket> toAck;
     private final Compressor packetsAcked, packetsDelivered;
+    private final Queue<Long> lastTimes;
 
     public static byte getMyHost() {
         return myHost;
@@ -38,7 +41,8 @@ public class Process {
         packetNumber = 0;
         next = fromByteToInteger(myHost);
 
-        timeout = new AtomicInteger(BASE_TIMEOUT);
+        lastTimes = new LinkedList<>();
+        timeout = new AtomicLong(BASE_TIMEOUT);
         toSend = new HashMap<>();
         toAck = new PriorityBlockingQueue<>();
         packetsAcked = new Compressor();
@@ -49,6 +53,9 @@ public class Process {
             toSend.put(i, new Compressor());
             messagesDelivered.put(i, new Compressor());
         }
+        for (byte i = 0; i < TIMES; i++) {
+            lastTimes.add(BASE_TIMEOUT);
+        }
     }
 
     public Host getHost() {
@@ -58,14 +65,27 @@ public class Process {
         return host.getId();
     }
 
-    public int getTimeout() {
+    private void addTimeout(long lastTimeout) {
+        synchronized (lastTimes) {
+            lastTimes.poll();
+            lastTimes.add(lastTimeout);
+            long average = 0;
+            for (Long l : lastTimes) {
+                average += l;
+            }
+            average /= lastTimes.size();
+            timeout.set(average + THRESHOLD);
+        }
+    }
+
+    public long getTimeout() {
         return timeout.get();
     }
     public void expBackOff() {
-        timeout.set(Math.min(2 * timeout.get(), MAX_TIMEOUT));// random.nextInt(THRESHOLD_TIMEOUT));
+        addTimeout(Math.min(2 * timeout.get(), MAX_TIMEOUT));
     }
     public void notify(int lastTime) {
-        timeout.set(lastTime);//+THRESHOLD_TIMEOUT);
+        addTimeout(lastTime);
     }
 
     public void load(int numMessages) {
