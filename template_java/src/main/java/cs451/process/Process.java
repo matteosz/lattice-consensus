@@ -65,7 +65,7 @@ public class Process {
         timeout.set(Math.min(2 * timeout.get(), MAX_TIMEOUT));// random.nextInt(THRESHOLD_TIMEOUT));
     }
     public void notify(int lastTime) {
-        timeout.set(lastTime+THRESHOLD_TIMEOUT);
+        timeout.set(lastTime);//+THRESHOLD_TIMEOUT);
     }
 
     public void load(int numMessages) {
