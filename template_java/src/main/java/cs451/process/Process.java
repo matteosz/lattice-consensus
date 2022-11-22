@@ -18,11 +18,8 @@ import static cs451.message.Packet.MAX_COMPRESSION;
 public class Process {
 
     private static byte myHost;
-    //private static final Random random = new Random();
-
     private final Host host;
     private final AtomicInteger timeout;
-    private final int numHosts, batch;
     private int packetNumber, next;
 
     private final Map<Byte, Compressor> toSend, messagesDelivered;
@@ -36,10 +33,8 @@ public class Process {
         myHost = id;
     }
 
-    public Process(Host host, int numHosts) {
+    public Process(Host host) {
         this.host = host;
-        this.numHosts = numHosts;
-        batch = numHosts <= 1 ? LINK_BATCH : LINK_BATCH / numHosts;
         packetNumber = 0;
         next = fromByteToInteger(myHost);
 
@@ -50,7 +45,7 @@ public class Process {
         packetsDelivered = new Compressor();
         messagesDelivered = new HashMap<>();
 
-        for (byte i = 0; i >= 0 && i < numHosts; i++) {
+        for (byte i = 0; i >= 0 && i < NUM_HOSTS; i++) {
             toSend.put(i, new Compressor());
             messagesDelivered.put(i, new Compressor());
         }
@@ -81,14 +76,14 @@ public class Process {
     }
 
     public boolean hasSpace() {
-        return toAck.size() < batch;
+        return toAck.size() < LINK_BATCH;
     }
 
     private Message loadMessage() {
         // Round-robin starting from current local host
-        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+        for (byte h = 0; h >= 0 && h < NUM_HOSTS; h++) {
             byte curr = fromIntegerToByte(next);
-            next = Math.max(1, (next + 1) % (numHosts + 1));
+            next = Math.max(1, (next + 1) % (NUM_HOSTS + 1));
 
             int messageId = toSend.get(curr).takeFirst();
             if (messageId != -1) {

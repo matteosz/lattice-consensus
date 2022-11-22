@@ -1,0 +1,7 @@
+Exception in thread "pool-1-thread-2" java.lang.NullPointerException: Cannot invoke "cs451.channel.FairLossLink.enqueuePacket(cs451.message.Packet, byte)" because "this.link" is null
+	at cs451.channel.StubbornLink.stubbornDeliver(StubbornLink.java:40)
+	at cs451.channel.Link.callback(Link.java:38)
+	at cs451.channel.FairLossLink.receivePackets(FairLossLink.java:78)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:833)

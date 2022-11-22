@@ -15,10 +15,9 @@ public abstract class Link {
     private static Map<Byte, Process> network = new HashMap<>();
 
     public static void populateNetwork(Map<Byte, Host> hosts) {
-        int numHosts = hosts.size();
         for (Map.Entry<Byte, Host> entry : hosts.entrySet()) {
             if (entry.getKey() != getMyHost()) {
-                network.put(entry.getKey(), new Process(entry.getValue(), numHosts));
+                network.put(entry.getKey(), new Process(entry.getValue()));
             }
         }
     }
