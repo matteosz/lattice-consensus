@@ -7,24 +7,26 @@ import cs451.message.TimedPacket;
 import cs451.parser.Host;
 
 import java.util.*;
-import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs451.utilities.Parameters.*;
+import static cs451.utilities.Utilities.fromByteToInteger;
+import static cs451.utilities.Utilities.fromIntegerToByte;
 import static cs451.message.Packet.MAX_COMPRESSION;
 
 public class Process {
 
     private static byte myHost;
+    private static final Random random = new Random();
+
     private final Host host;
     private final AtomicInteger timeout;
-    private int packetNumber;
-    private byte next;
+    private final int numHosts;
+    private int packetNumber, next;
 
     private final Map<Byte, Compressor> toSend, messagesDelivered;
-    private final PriorityBlockingQueue<TimedPacket> toAck;
+    private final Queue<TimedPacket> toAck;
     private final Compressor packetsAcked, packetsDelivered;
-    private final Queue<Integer> lastTimes;
 
     public static byte getMyHost() {
         return myHost;
@@ -33,25 +35,22 @@ public class Process {
         myHost = id;
     }
 
-    public Process(Host host) {
+    public Process(Host host, int numHosts) {
         this.host = host;
+        this.numHosts = numHosts;
         packetNumber = 0;
-        next = myHost;
+        next = fromByteToInteger(myHost);
 
-        lastTimes = new LinkedList<>();
         timeout = new AtomicInteger(BASE_TIMEOUT);
         toSend = new HashMap<>();
-        toAck = new PriorityBlockingQueue<>();
+        toAck = new LinkedList<>();
         packetsAcked = new Compressor();
         packetsDelivered = new Compressor();
         messagesDelivered = new HashMap<>();
 
-        for (byte i = 0; i >= 0 && i < NUM_HOSTS; i++) {
+        for (byte i = 0; i >= 0 && i < numHosts; i++) {
             toSend.put(i, new Compressor());
             messagesDelivered.put(i, new Compressor());
-        }
-        for (byte i = 0; i < TIMES; i++) {
-            lastTimes.add(BASE_TIMEOUT);
         }
     }
 
@@ -62,27 +61,14 @@ public class Process {
         return host.getId();
     }
 
-    private void addTimeout(int lastTimeout) {
-        synchronized (lastTimes) {
-            lastTimes.poll();
-            lastTimes.add(lastTimeout);
-            long average = 0;
-            for (int l : lastTimes) {
-                average += l;
-            }
-            average /= lastTimes.size();
-            timeout.set((int) average + THRESHOLD);
-        }
-    }
-
     public int getTimeout() {
         return timeout.get();
     }
     public void expBackOff() {
-        addTimeout(Math.min(2 * timeout.get(), MAX_TIMEOUT));
+        timeout.set(Math.min(2 * timeout.get(), MAX_TIMEOUT) + random.nextInt(RANDOM_MAX));
     }
     public void notify(int lastTime) {
-        addTimeout(lastTime);
+        timeout.set(lastTime + random.nextInt(RANDOM_MAX));
     }
 
     public void load(int numMessages) {
@@ -97,14 +83,10 @@ public class Process {
     }
 
     private Message loadMessage() {
-        // Round-robin starting from current local host
-        for (byte h = 0; h >= 0 && h < NUM_HOSTS; h++) {
-            byte curr = next;
-            if (next == NUM_HOSTS - 1) {
-                next = 0;
-            } else {
-                next++;
-            }
+
+        for (byte h = 0; h >= 0 && h < numHosts; h++) {
+            byte curr = fromIntegerToByte(next);
+            next = next == numHosts? 1 : next + 1;
 
             int messageId = toSend.get(curr).takeFirst();
             if (messageId != -1) {
@@ -132,13 +114,11 @@ public class Process {
         return null;
     }
 
-    public List<TimedPacket> nextPacketsToAck() {
-        List<TimedPacket> packets = new LinkedList<>();
-        toAck.drainTo(packets);
-        return packets;
+    public TimedPacket nextPacketToAck() {
+        return toAck.poll();
     }
     public void addPacketToAck(TimedPacket packet) {
-        toAck.put(packet);
+        toAck.add(packet);
     }
 
     public boolean hasAcked(int id) {

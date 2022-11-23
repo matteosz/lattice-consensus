@@ -2,7 +2,7 @@ package cs451.message;
 
 public class Compressor {
 
-    private class Node {
+    private static class Node {
         private int first, last;
         private Node next;
 
@@ -91,6 +91,7 @@ public class Compressor {
                     }
                     return true;
                 }
+
             }
             prev.next = new Node(value, value, null);
             return true;

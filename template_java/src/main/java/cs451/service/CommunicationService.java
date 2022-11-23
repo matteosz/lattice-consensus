@@ -30,24 +30,32 @@ public class CommunicationService {
         try {
             // Write on fly: this saves memory while having the same throughput of writing at the end
             writer = new BufferedWriter(new FileWriter(parser.output()), 32768);
-            broadcast = new FIFOBroadcast(port, CommunicationService::broadcast, CommunicationService::deliver);
+            broadcast = new FIFOBroadcast(port, hosts.size(), CommunicationService::broadcast, CommunicationService::deliver);
             broadcast.load(numMessages);
 
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            //e.printStackTrace();
+        }
     }
 
     public static void logAndTerminate() {
         interruptThreads();
-        try {
-            writer.close();
-        } catch(IOException ignored) {}
+        synchronized (writer) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void deliver(byte originId, int id) {
         synchronized (writer) {
             try {
                 writer.write(String.format("d %d %d\n", originId + 1, id));
-            } catch (IOException ignored) {}
+            } catch (IOException e) {
+                //e.printStackTrace();
+            }
         }
     }
 
@@ -55,7 +63,9 @@ public class CommunicationService {
         synchronized (writer) {
             try {
                 writer.write(String.format("b %d\n", id));
-            } catch (IOException ignored) {}
+            } catch (IOException e) {
+                //e.printStackTrace();
+            }
         }
     }
 

@@ -24,7 +24,6 @@ public class StubbornLink extends Link {
         link = new FairLossLink(port, this::stubbornDeliver);
 
         running = new AtomicBoolean(true);
-
         worker = Executors.newFixedThreadPool(1);
         worker.execute(this::sendPackets);
     }
@@ -35,7 +34,7 @@ public class StubbornLink extends Link {
 
             getProcess(packet.getSenderId()).notify(packet.getEmissionTime());
 
-        } else {
+        } else if (link != null){
 
             link.enqueuePacket(packet.convertToAck(getMyHost()), packet.getSenderId());
 
@@ -48,21 +47,19 @@ public class StubbornLink extends Link {
         while (running.get()) {
 
             for (Process process : getNetwork().values()) {
+                TimedPacket timedPacket = process.nextPacketToAck();
+                if (timedPacket != null && !process.hasAcked(timedPacket.getPacket().getPacketId())) {
 
-                for (TimedPacket timedPacket : process.nextPacketsToAck()) {
+                    if (timedPacket.timeoutExpired()) {
 
-                    if (!process.hasAcked(timedPacket.getPacket().getPacketId())) {
+                        process.expBackOff();
+                        timedPacket.update(process.getTimeout());
 
-                        if (timedPacket.timeoutExpired()) {
-
-                            process.expBackOff();
-                            timedPacket.update(process.getTimeout());
-
-                            link.enqueuePacket(timedPacket.getPacket(), process.getId());
-                        }
-                        process.addPacketToAck(timedPacket);
+                        link.enqueuePacket(timedPacket.getPacket(), process.getId());
                     }
+                    process.addPacketToAck(timedPacket);
                 }
+
                 if (!process.hasSpace()) {
                     continue;
                 }

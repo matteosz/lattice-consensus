@@ -45,11 +45,11 @@ def startProcesses(processes, runscript, hostsFilePath, configFilePath, outputDi
     for pid in range(1, processes+1):
         cmd_ext = ['--id', str(pid),
                    '--hosts', hostsFilePath,
-                   '--output', os.path.join(outputDirPath, 'proc{:02d}.output'.format(pid)),
+                   '--output', os.path.join(outputDirPath, 'proc{:03d}.output'.format(pid)),
                    configFilePath]
 
-        stdoutFd = open(os.path.join(outputDirPath, 'proc{:02d}.stdout'.format(pid)), "w")
-        stderrFd = open(os.path.join(outputDirPath, 'proc{:02d}.stderr'.format(pid)), "w")
+        stdoutFd = open(os.path.join(outputDirPath, 'proc{:03d}.stdout'.format(pid)), "w")
+        stderrFd = open(os.path.join(outputDirPath, 'proc{:03d}.stderr'.format(pid)), "w")
 
 
         procs.append((pid, subprocess.Popen(cmd + cmd_ext, stdout=stdoutFd, stderr=stderrFd)))

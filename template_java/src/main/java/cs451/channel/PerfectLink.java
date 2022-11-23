@@ -21,6 +21,7 @@ public class PerfectLink {
 
     private void perfectDeliver(Packet packet) {
         Process sender = getProcess(packet.getSenderId());
+
         if (sender.deliverPacket(packet)) {
             packet.applyToMessages(m -> callback(m, sender));
         }

@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 
 import static cs451.process.Process.getMyHost;
-import static cs451.utilities.Parameters.NUM_HOSTS;
 
 public class FIFOBroadcast {
 
@@ -19,15 +18,15 @@ public class FIFOBroadcast {
     private final BiConsumer<Byte, Integer> deliverCallback;
     private final Map<Byte, Compressor> fifoDelivered;
 
-    public FIFOBroadcast(int port, Consumer<Integer> broadcastCallback, BiConsumer<Byte, Integer> deliverCallback) throws SocketException {
+    public FIFOBroadcast(int port, int numHosts, Consumer<Integer> broadcastCallback, BiConsumer<Byte, Integer> deliverCallback) throws SocketException {
         this.broadcastCallback = broadcastCallback;
         this.deliverCallback = deliverCallback;
         this.fifoDelivered = new HashMap<>();
-        this.broadcast = new UniformReliableBroadcast(port, this::fifoDeliver);
+        this.broadcast = new UniformReliableBroadcast(port, numHosts, this::fifoDeliver);
 
-        for (byte h = 0; h >= 0 && h < NUM_HOSTS; h++) {
+        for (byte h = 0; h >= 0 && h < numHosts; h++) {
             Compressor compressed = new Compressor();
-            // Use 0 as anchor for next messages
+            // Use 0 as anchor for first message incoming (it will start from 1)
             compressed.add(0);
             fifoDelivered.put(h, compressed);
         }
@@ -39,12 +38,11 @@ public class FIFOBroadcast {
 
     private void fifoDeliver(Message message) {
         byte originId = message.getOrigin();
-        int lastDelivered, lastToDeliver;
         Compressor compressedFromOrigin = fifoDelivered.get(originId);
 
-        lastDelivered = compressedFromOrigin.getHeadLast();
+        int lastDelivered = compressedFromOrigin.getHeadLast();
         compressedFromOrigin.add(message.getPayload());
-        lastToDeliver = compressedFromOrigin.getHeadLast();
+        int lastToDeliver = compressedFromOrigin.getHeadLast();
 
         int prev = lastDelivered + 1;
         while (prev <= lastToDeliver) {

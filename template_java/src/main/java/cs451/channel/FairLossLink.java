@@ -29,10 +29,9 @@ public class FairLossLink extends Link {
         super(packetCallback);
 
         socket = new DatagramSocket(port);
-
         datagramsToSend = new LinkedBlockingQueue<>();
-        running = new AtomicBoolean(true);
 
+        running = new AtomicBoolean(true);
         workers = Executors.newFixedThreadPool(2);
         workers.execute(this::dequeuePacket);
         workers.execute(this::receivePackets);
@@ -59,7 +58,7 @@ public class FairLossLink extends Link {
             try {
                 socket.send(datagramsToSend.take());
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             } catch (InterruptedException e) {
                 //e.printStackTrace();
                 Thread.currentThread().interrupt();
@@ -77,7 +76,7 @@ public class FairLossLink extends Link {
                 socket.receive(datagramPacket);
                 callback(new Packet(datagramPacket.getData()));
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
 
          }
