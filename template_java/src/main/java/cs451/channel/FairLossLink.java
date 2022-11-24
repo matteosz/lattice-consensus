@@ -22,17 +22,18 @@ public class FairLossLink extends Link {
 
     private final DatagramSocket socket;
     private final BlockingQueue<DatagramPacket> datagramsToSend;
-    private final ExecutorService workers;
-    private final AtomicBoolean running;
+    private AtomicBoolean running;
 
     public FairLossLink(int port, Consumer<Packet> packetCallback) throws SocketException {
         super(packetCallback);
 
         socket = new DatagramSocket(port);
         datagramsToSend = new LinkedBlockingQueue<>();
+    }
 
+    public void activate() {
         running = new AtomicBoolean(true);
-        workers = Executors.newFixedThreadPool(2);
+        ExecutorService workers = Executors.newFixedThreadPool(2);
         workers.execute(this::dequeuePacket);
         workers.execute(this::receivePackets);
     }
@@ -84,7 +85,6 @@ public class FairLossLink extends Link {
 
     public void stopThreads() {
         running.set(false);
-        workers.shutdownNow();
     }
 
 }

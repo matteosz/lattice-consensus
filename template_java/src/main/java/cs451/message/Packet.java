@@ -55,11 +55,11 @@ public class Packet {
         this.data[IS_ACK_OS] = (byte) (isAck? 1 : 0);
         fromIntegerToByteArray(timestamp, this.data, TIMESTAMP_OS);
 
-        int ix = MEX_OS;
+        int ptr = MEX_OS;
         for (Message m : messages) {
-            this.data[ix] = m.getOrigin();
-            fromIntegerToByteArray(m.getPayload(), this.data, ix + 1);
-            ix += MESSAGE_SIZE;
+            this.data[ptr] = m.getOrigin();
+            fromIntegerToByteArray(m.getPayload(), this.data, ptr + 1);
+            ptr += MESSAGE_SIZE;
         }
     }
 
@@ -88,16 +88,16 @@ public class Packet {
 
     public Packet convertToAck(byte newLastSenderId) {
         byte[] newData = data.clone();
-        newData[SENDER_ID_OS] = newLastSenderId;
         newData[IS_ACK_OS] = 1;
+        newData[SENDER_ID_OS] = newLastSenderId;
         return new Packet(newData, numMessages, packetId, newLastSenderId, true, timestamp);
     }
 
     public void applyToMessages(Consumer<Message> callback) {
-        int ix = MEX_OS;
+        byte ptr = MEX_OS;
         for (byte m = 0; m < numMessages; m++) {
-            callback.accept(new Message(this.data[ix], senderId, Utilities.fromByteToIntegerArray(data, ix + 1)));
-            ix += MESSAGE_SIZE;
+            callback.accept(new Message(this.data[ptr], senderId, Utilities.fromByteToIntegerArray(data, ptr + 1)));
+            ptr += MESSAGE_SIZE;
         }
     }
 

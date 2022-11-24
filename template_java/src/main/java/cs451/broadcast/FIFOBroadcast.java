@@ -39,12 +39,11 @@ public class FIFOBroadcast {
     private void fifoDeliver(Message message) {
         byte originId = message.getOrigin();
         Compressor compressedFromOrigin = fifoDelivered.get(originId);
+        int lastDelivered = compressedFromOrigin.takeLast();
 
-        int lastDelivered = compressedFromOrigin.getHeadLast();
         compressedFromOrigin.add(message.getPayload());
-        int lastToDeliver = compressedFromOrigin.getHeadLast();
+        int lastToDeliver = compressedFromOrigin.takeLast(), prev = lastDelivered + 1;
 
-        int prev = lastDelivered + 1;
         while (prev <= lastToDeliver) {
             if (originId == getMyHost()) {
                 broadcastCallback.accept(prev);

@@ -11,7 +11,7 @@ public class Host {
 
     private byte id;
     private InetAddress ip;
-    private int port = -1;
+    private int port;
 
     public boolean populate(String idString, String ipString, String portString) {
         try {

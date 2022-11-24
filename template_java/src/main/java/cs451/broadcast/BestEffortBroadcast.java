@@ -45,7 +45,6 @@ public class BestEffortBroadcast extends Broadcast {
                 link.load(numMessages, h);
             }
         }
-
         while (running.get()) {
             try {
                 callback(linkDelivered.take());

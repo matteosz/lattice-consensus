@@ -2,16 +2,23 @@ package cs451.utilities;
 
 public class Parameters {
 
-
-    public static int BASE_TIMEOUT = 256;
-    public static int MAX_TIMEOUT = 16384;
-    public static int RANDOM_MAX = 128;
-    public static byte MAX_ATTEMPTS = 3;
-    public static int LINK_BATCH;
-    public static int BROADCAST_BATCH = 131072;
+    public static int TIMEOUT, MAX_TIMEOUT = 32768, LINK_BATCH = 32, BROADCAST_BATCH = 80000;
+    public static byte EMPTY_CYCLES = 3, THRESHOLD;
 
     public static void setParams(int numHosts) {
-        LINK_BATCH = 1024 / numHosts;
+        switch (numHosts / 10) {
+            case 0: case 1: case 2: case 3:
+                TIMEOUT = 64;
+                THRESHOLD = 30;
+                break;
+            case 4: case 5: case 6: case 7:
+                TIMEOUT = 256;
+                THRESHOLD = 40;
+                break;
+            default:
+                TIMEOUT = 300;
+                THRESHOLD = 50;
+        }
     }
 
     private Parameters() {}

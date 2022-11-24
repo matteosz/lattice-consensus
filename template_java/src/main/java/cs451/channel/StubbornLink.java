@@ -15,16 +15,16 @@ import static cs451.process.Process.getMyHost;
 public class StubbornLink extends Link {
 
     private final FairLossLink link;
-    private final ExecutorService worker;
     private final AtomicBoolean running;
 
     public StubbornLink(int port, Consumer<Packet> packetCallback) throws SocketException {
         super(packetCallback);
 
         link = new FairLossLink(port, this::stubbornDeliver);
+        link.activate();
 
         running = new AtomicBoolean(true);
-        worker = Executors.newFixedThreadPool(1);
+        ExecutorService worker = Executors.newFixedThreadPool(1);
         worker.execute(this::sendPackets);
     }
 
@@ -34,7 +34,7 @@ public class StubbornLink extends Link {
 
             getProcess(packet.getSenderId()).notify(packet.getEmissionTime());
 
-        } else if (link != null){
+        } else {
 
             link.enqueuePacket(packet.convertToAck(getMyHost()), packet.getSenderId());
 
@@ -75,7 +75,6 @@ public class StubbornLink extends Link {
 
     public void stopThreads() {
         running.set(false);
-        worker.shutdownNow();
         link.stopThreads();
     }
 

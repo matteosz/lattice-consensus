@@ -109,7 +109,7 @@ public class Compressor {
         }
     }
 
-    public int getHeadLast() {
+    public int takeLast() {
         if (head == null) {
             return -1;
         }

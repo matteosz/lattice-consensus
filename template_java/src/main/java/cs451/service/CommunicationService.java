@@ -44,7 +44,7 @@ public class CommunicationService {
             try {
                 writer.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
     }

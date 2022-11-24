@@ -17,8 +17,6 @@ import static cs451.message.Packet.MAX_COMPRESSION;
 public class Process {
 
     private static byte myHost;
-    private static final Random random = new Random();
-
     private final Host host;
     private final AtomicInteger timeout;
     private final int numHosts;
@@ -41,7 +39,7 @@ public class Process {
         packetNumber = 0;
         next = fromByteToInteger(myHost);
 
-        timeout = new AtomicInteger(BASE_TIMEOUT);
+        timeout = new AtomicInteger(TIMEOUT);
         toSend = new HashMap<>();
         toAck = new LinkedList<>();
         packetsAcked = new Compressor();
@@ -65,10 +63,10 @@ public class Process {
         return timeout.get();
     }
     public void expBackOff() {
-        timeout.set(Math.min(2 * timeout.get(), MAX_TIMEOUT) + random.nextInt(RANDOM_MAX));
+        timeout.set(Math.min(2 * timeout.get(), MAX_TIMEOUT) + THRESHOLD);
     }
     public void notify(int lastTime) {
-        timeout.set(lastTime + random.nextInt(RANDOM_MAX));
+        timeout.set(lastTime + THRESHOLD);
     }
 
     public void load(int numMessages) {
@@ -87,7 +85,6 @@ public class Process {
         for (byte h = 0; h >= 0 && h < numHosts; h++) {
             byte curr = fromIntegerToByte(next);
             next = next == numHosts? 1 : next + 1;
-
             int messageId = toSend.get(curr).takeFirst();
             if (messageId != -1) {
                 return new Message(curr, messageId);
@@ -100,7 +97,7 @@ public class Process {
 
         List<Message> messages = new LinkedList<>();
         byte count = 0;
-        while (count < MAX_ATTEMPTS && messages.size() < MAX_COMPRESSION) {
+        while (count < EMPTY_CYCLES && messages.size() < MAX_COMPRESSION) {
             Message message = loadMessage();
             if (message == null) {
                 count++;

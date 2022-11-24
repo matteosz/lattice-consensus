@@ -11,8 +11,8 @@ public class OutputParser {
         if (!key.equals("--output")) {
             return false;
         }
-
-        path = new File(value).getPath();
+        File file = new File(value);
+        path = file.getPath();
         return true;
     }
 
