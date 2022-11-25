@@ -2,10 +2,11 @@ package cs451.utilities;
 
 public class Parameters {
 
-    public static int TIMEOUT, MAX_TIMEOUT = 32768, LINK_BATCH = 32, BROADCAST_BATCH = 80000;
+    public static int TIMEOUT, MAX_TIMEOUT = 32768, LINK_BATCH = 1024, BROADCAST_BATCH = 100000;
     public static byte EMPTY_CYCLES = 3, THRESHOLD;
 
     public static void setParams(int numHosts) {
+        LINK_BATCH /= numHosts;
         switch (numHosts / 10) {
             case 0: case 1: case 2: case 3:
                 TIMEOUT = 64;
