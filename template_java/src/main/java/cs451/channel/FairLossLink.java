@@ -48,7 +48,7 @@ public class FairLossLink extends Link {
         try {
             datagramsToSend.put(dataPacket);
         } catch (InterruptedException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             Thread.currentThread().interrupt();
         }
     }
@@ -59,9 +59,9 @@ public class FairLossLink extends Link {
             try {
                 socket.send(datagramsToSend.take());
             } catch (IOException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             } catch (InterruptedException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
                 Thread.currentThread().interrupt();
             }
         }
@@ -77,7 +77,7 @@ public class FairLossLink extends Link {
                 socket.receive(datagramPacket);
                 callback(new Packet(datagramPacket.getData()));
             } catch (IOException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             }
 
          }

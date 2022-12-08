@@ -1,5 +1,7 @@
 package cs451.parser;
 
+import cs451.message.Proposal;
+import java.util.List;
 import java.util.Map;
 
 public class Parser {
@@ -39,7 +41,7 @@ public class Parser {
             help();
         }
 
-        if (!configParser.populate(args[6])) {
+        if (!configParser.populate(args[6], myId())) {
             help();
         }
     }
@@ -60,7 +62,7 @@ public class Parser {
         return outputParser.getPath();
     }
 
-    public int messages() {
-        return configParser.getMessages();
+    public List<Proposal> getProposals() {
+        return configParser.getProposals();
     }
 }

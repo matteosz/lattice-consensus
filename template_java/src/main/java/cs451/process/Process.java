@@ -1,28 +1,29 @@
 package cs451.process;
 
 import cs451.message.Compressor;
-import cs451.message.Message;
 import cs451.message.Packet;
+import cs451.message.Proposal;
 import cs451.message.TimedPacket;
 import cs451.parser.Host;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static cs451.message.Packet.MAX_PACKET_SIZE;
+import static cs451.message.Packet.MEX_OS;
 import static cs451.utilities.Parameters.*;
-import static cs451.utilities.Utilities.fromByteToInteger;
-import static cs451.utilities.Utilities.fromIntegerToByte;
 import static cs451.message.Packet.MAX_COMPRESSION;
 
 public class Process {
-
+    
     private static byte myHost;
     private final Host host;
     private final AtomicInteger timeout;
     private final int numHosts;
-    private int packetNumber, next;
+    private int packetNumber;
 
-    private final Map<Byte, Compressor> toSend, messagesDelivered;
+    private final TreeSet<Proposal> toSend;
+    private final Set<Proposal> proposalsDelivered;
     private final Queue<TimedPacket> toAck;
     private final Compressor packetsAcked, packetsDelivered;
 
@@ -37,19 +38,13 @@ public class Process {
         this.host = host;
         this.numHosts = numHosts;
         packetNumber = 0;
-        next = fromByteToInteger(myHost);
 
         timeout = new AtomicInteger(TIMEOUT);
-        toSend = new HashMap<>();
+        toSend = new TreeSet<>();
         toAck = new LinkedList<>();
         packetsAcked = new Compressor();
         packetsDelivered = new Compressor();
-        messagesDelivered = new HashMap<>();
-
-        for (byte i = 0; i >= 0 && i < numHosts; i++) {
-            toSend.put(i, new Compressor());
-            messagesDelivered.put(i, new Compressor());
-        }
+        proposalsDelivered = new HashSet<>();
     }
 
     public Host getHost() {
@@ -69,44 +64,54 @@ public class Process {
         timeout.set(lastTime + THRESHOLD);
     }
 
-    public void load(int numMessages) {
-        toSend.get(myHost).setHead(1, numMessages);
+    public void load(List<Proposal> proposals) {
+        synchronized (toSend) {
+            for (Proposal proposal : proposals) {
+                toSend.add(Proposal.createProposal(proposal));
+            }
+        }
     }
-    public void addMessage(Message message) {
-        toSend.get(message.getOrigin()).add(message.getPayload());
+    public void addProposal(Proposal proposal) {
+        synchronized (toSend) {
+            toSend.add(proposal);
+        }
     }
 
     public boolean hasSpace() {
         return toAck.size() < LINK_BATCH;
     }
 
-    private Message loadMessage() {
-
-        for (byte h = 0; h >= 0 && h < numHosts; h++) {
-            byte curr = fromIntegerToByte(next);
-            next = next == numHosts? 1 : next + 1;
-            int messageId = toSend.get(curr).takeFirst();
-            if (messageId != -1) {
-                return new Message(curr, messageId);
+    private Proposal loadProposal(int budget) {
+        synchronized (toSend) {
+            for (byte h = 0; h >= 0 && h < numHosts; h++) {
+                Proposal proposal = toSend.pollFirst();
+                if (proposal != null) {
+                    if (proposal.getBytes() <= budget) {
+                        return proposal;
+                    } else {
+                        toSend.add(proposal);
+                    }
+                }
             }
         }
-
         return null;
     }
     public Packet getNextPacket() {
 
-        List<Message> messages = new LinkedList<>();
+        List<Proposal> proposals = new LinkedList<>();
         byte count = 0;
-        while (count < EMPTY_CYCLES && messages.size() < MAX_COMPRESSION) {
-            Message message = loadMessage();
-            if (message == null) {
+        int len = MEX_OS;
+        while (count < EMPTY_CYCLES && proposals.size() < MAX_COMPRESSION) {
+            Proposal proposal = loadProposal(MAX_PACKET_SIZE - len);
+            if (proposal == null) {
                 count++;
             } else {
-                messages.add(message);
+                proposals.add(proposal);
+                len += proposal.getBytes();
             }
         }
-        if (!messages.isEmpty()) {
-            return new Packet(messages, ++packetNumber, myHost);
+        if (!proposals.isEmpty()) {
+            return new Packet(proposals, ++packetNumber, myHost, len);
         }
         return null;
     }
@@ -130,12 +135,8 @@ public class Process {
         }
     }
 
-    public boolean deliver(Message message) {
-        return messagesDelivered.get(message.getOrigin()).add(message.getPayload());
-    }
-
-    public Map<Byte, Compressor> getDelivered() {
-        return messagesDelivered;
+    public boolean deliver(Proposal proposal) {
+        return proposalsDelivered.add(proposal);
     }
 
 }

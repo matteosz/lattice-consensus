@@ -1,0 +1,2 @@
+From a new terminal type `kill -SIGINT 3877` or `kill -SIGTERM 3877` to stop processing packets
+

@@ -2,7 +2,7 @@ package cs451.utilities;
 
 public class Parameters {
 
-    public static int TIMEOUT, MAX_TIMEOUT = 32768, LINK_BATCH = 1024, BROADCAST_BATCH = 100000;
+    public static int TIMEOUT, MAX_TIMEOUT = 32768, LINK_BATCH = 128, BROADCAST_BATCH = 10000, PROPOSAL_BATCH = 16;
     public static byte EMPTY_CYCLES = 3, THRESHOLD;
 
     public static void setParams(int numHosts) {
