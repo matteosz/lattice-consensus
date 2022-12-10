@@ -1,68 +1,34 @@
 package cs451.parser;
 
 import cs451.message.Proposal;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 
+/**
+ * Parser class that takes the command line arguments
+ * and parse them calling the specific sub-parser
+ */
 public class Parser {
-    private IdParser idParser;
-    private HostsParser hostsParser;
-    private OutputParser outputParser;
-    private ConfigParser configParser;
 
-    public Parser(String[] args) {
-        parse(args);
-    }
-
-    public void parse(String[] args) {
-
-        idParser = new IdParser();
-        hostsParser = new HostsParser();
-        outputParser = new OutputParser();
-        configParser = new ConfigParser();
-
-        if (args.length != 7) {
-            help();
-        }
-
-        if (!idParser.populate(args[0], args[1])) {
-            help();
-        }
-
-        if (!hostsParser.populate(args[2], args[3])) {
-            help();
-        }
-
-        if (!hostsParser.inRange(idParser.getId())) {
-            help();
-        }
-
-        if (!outputParser.populate(args[4], args[5])) {
-            help();
-        }
-
-        if (!configParser.populate(args[6], myId())) {
+    /**
+     * Parse the input
+     * @param args arguments passed from command line
+     */
+    public static void parse(String[] args) {
+        // Check that the arguments are 7
+        if (args.length != 7 || !IdParser.populate(args[0], args[1])     ||
+                                !HostsParser.populate(args[2], args[3])  ||
+                                !OutputParser.populate(args[4], args[5]) ||
+                                !ConfigParser.populate(args[6], IdParser.getId())) {
             help();
         }
     }
 
-    private void help() {
+    /**
+     * Help function to signal error in parsing
+     */
+    private static void help() {
         System.exit(1);
     }
 
-    public byte myId() {
-        return idParser.getId();
-    }
-
-    public Map<Byte, Host> hosts() {
-        return hostsParser.getHosts();
-    }
-
-    public String output() {
-        return outputParser.getPath();
-    }
-
-    public List<Proposal> getProposals() {
-        return configParser.getProposals();
-    }
 }

@@ -1,26 +1,55 @@
 package cs451.message;
 
+/**
+ * TimedPacket class
+ *
+ * It associates a timestamp and timeout to
+ * a certain packet to manage the resending
+ */
 public class TimedPacket {
-    private final Packet packet;
-    private int timestamp, timeout;
 
-    public TimedPacket(int timeout, Packet packet) {
+    /** Encapsulated packet */
+    private final Packet packet;
+
+    /** Timestamp of the creation of the timed packet */
+    private long timestamp;
+
+    /** Timeout of the host to which this packet is directed */
+    private long timeout;
+
+    /**
+     * Create a TimedPacket from parameters
+     * @param timeout host's timeout
+     * @param packet encapsulated packet
+     */
+    public TimedPacket(long timeout, Packet packet) {
         this.packet = packet;
         this.timeout = timeout;
-        this.timestamp = (int) System.currentTimeMillis();
+        // Set timestamp to current time in ms
+        this.timestamp = System.currentTimeMillis();
     }
 
+    /**
+     * @return encapsulated packet
+     */
     public Packet getPacket() {
         return packet;
     }
 
+    /**
+     * @return true if host's timeout has expired
+     */
     public boolean timeoutExpired() {
-        return (int) System.currentTimeMillis() - timestamp > timeout;
+        return System.currentTimeMillis() - timestamp > timeout;
     }
 
-    public void update(int timeout) {
+    /**
+     * Update the timestamp and timeout
+     * @param timeout new host's timeout
+     */
+    public void update(long timeout) {
         packet.updateTimestamp();
-        timestamp = (int) System.currentTimeMillis();
+        timestamp = System.currentTimeMillis();
         this.timeout = timeout;
     }
 

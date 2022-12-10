@@ -1,2 +1,2 @@
-From a new terminal type `kill -SIGINT 3873` or `kill -SIGTERM 3873` to stop processing packets
+From a new terminal type `kill -SIGINT 1929` or `kill -SIGTERM 1929` to stop processing packets
 

@@ -2,13 +2,23 @@ package cs451.parser;
 
 import java.io.File;
 
+/**
+ * Class to parse the output filename
+ */
 public class OutputParser {
 
-    private String path;
+    /** Output file path */
+    private static String path;
 
-    public boolean populate(String key, String value) {
-
+    /**
+     * Parse the output filename
+     * @param key argument in the command line (--arg)
+     * @param value value after the key
+     * @return true if correctly parsed, false otherwise
+     */
+    public static boolean populate(String key, String value) {
         if (!key.equals("--output")) {
+            System.err.println("Wrong arg used for output file");
             return false;
         }
         File file = new File(value);
@@ -16,7 +26,10 @@ public class OutputParser {
         return true;
     }
 
-    public String getPath() {
+    /**
+     * @return output file path
+     */
+    public static String getPath() {
         return path;
     }
 

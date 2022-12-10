@@ -7,35 +7,47 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
+/**
+ * The ConfigParser reads the .config file,
+ * check if it's properly formatted and then
+ * create a list of all the proposals
+ */
 public class ConfigParser {
 
-    private final List<Proposal> proposals = new LinkedList<>();
+    /** LinkedList of the proposals in the config file */
+    private static LinkedList<Proposal> proposals;
 
-    public boolean populate(String value, byte myHost) {
+    /**
+     * Read the config file and populate the proposals list
+     * @param value config filename
+     * @param myHost id of my host
+     * @return true if correctly parsed, false otherwise
+     */
+    public static boolean populate(String value, byte myHost) {
         File file = new File(value);
         try (BufferedReader br = new BufferedReader(new FileReader(file.getPath()))) {
-
+            // Read the header -> p vs ds
             String[] header = br.readLine().split("\\s");
             if (header.length != 3) {
+                System.err.println("Header of config not correct");
                 return false;
             }
             try {
                 int proposalNumber = Integer.parseInt(header[0]);
                 int maxProposalLength = Integer.parseInt(header[1]);
                 int maxDistinct = Integer.parseInt(header[2]);
-
+                // Check if are valid integers
                 if (proposalNumber <= 0 || maxProposalLength <= 0 || maxDistinct <= 0) {
                     return false;
                 }
-                int p = 1;
+                proposals = new LinkedList<>();
+                int p = 0;
                 for(String line; (line = br.readLine()) != null; ) {
                     if (line.isBlank()) {
                         continue;
                     }
-
                     String[] splits = line.split("\\s");
                     if (splits.length > maxProposalLength) {
                         return false;
@@ -44,24 +56,27 @@ public class ConfigParser {
                     for (String split : splits) {
                         values.add(Integer.parseInt(split));
                     }
-                    proposals.add(new Proposal(p++, (byte) 0, myHost, values, 1));
+                    // Add in tail to the list
+                    proposals.addLast(new Proposal(p++, (byte) 0, myHost, values, 1));
                 }
                 if (proposals.size() != proposalNumber) {
+                    System.err.println("Not as many proposals as declared in the header");
                     return false;
                 }
 
             } catch (NumberFormatException e) {
+                e.printStackTrace();
                 return false;
             }
 
         } catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
-
         return true;
     }
 
-    public List<Proposal> getProposals() {
+    public static LinkedList<Proposal> getProposals() {
         return proposals;
     }
 }

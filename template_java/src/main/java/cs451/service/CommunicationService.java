@@ -1,7 +1,15 @@
 package cs451.service;
 
-import cs451.channel.Link;
+import cs451.broadcast.BestEffortBroadcast;
+import cs451.channel.FairLossLink;
+import cs451.channel.Network;
+import cs451.channel.StubbornLink;
 import cs451.consensus.LatticeConsensus;
+import cs451.message.Proposal;
+import cs451.parser.ConfigParser;
+import cs451.parser.HostsParser;
+import cs451.parser.IdParser;
+import cs451.parser.OutputParser;
 import cs451.process.Process;
 import cs451.parser.Host;
 import cs451.parser.Parser;
@@ -10,32 +18,51 @@ import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Manager class to start the consensus and
+ * deliver proposals by writing the output
+ *
+ * Main functions:
+ *  1) Load all the classes
+ *  2) Write the logs
+ */
 public class CommunicationService {
 
-    private static LatticeConsensus consensus;
+    /** BufferedWriter to write efficiently the output file */
     private static BufferedWriter writer;
 
-    public static void start(Parser parser) {
+    /**
+     * Start the consensus and initialize all static fields
+     */
+    public static void start() {
+        // Retrieves the information from the parser
+        Map<Byte, Host> hosts = HostsParser.getHosts();
+        byte myId = IdParser.getId();
+        LinkedList<Proposal> proposals = ConfigParser.getProposals();
 
-        Map<Byte, Host> hosts = parser.hosts();
-        byte myId = parser.myId();
-
+        // Static initialization
         Parameters.setParams(hosts.size());
-        Process.setMyHost(myId);
-        Link.populateNetwork(hosts);
+        Process.initialize(myId, proposals);
+        Network.populateNetwork(hosts);
 
+        // Initialize the BufferedWriter and start the consensus
         try {
-            writer = new BufferedWriter(new FileWriter(parser.output()), 32768);
-            consensus = new LatticeConsensus(hosts.get(myId).getPort(), hosts.size(), CommunicationService::deliver, parser.getProposals().size());
-            consensus.start(parser.getProposals());
+            writer = new BufferedWriter(new FileWriter(OutputParser.getPath()), 32768);
+            LatticeConsensus.start(hosts.get(myId).getPort(), hosts.size(), CommunicationService::deliver, proposals);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * After the SIGINT or SIGTERM, stop all threads
+     * and close the output file
+     */
     public static void logAndTerminate() {
         interruptThreads();
         synchronized (writer) {
@@ -47,23 +74,37 @@ public class CommunicationService {
         }
     }
 
-    private static void deliver(Set<Integer> proposals, int id) {
+    /**
+     * Deliver a proposal by writing it into the file as new line
+     * @param proposals (simply set of integers) to deliver
+     */
+    private static void deliver(Set<Integer> proposals) {
         synchronized (writer) {
             try {
-                writer.write(proposals.toString().replaceAll(",", "").replaceAll("\\[|\\]", ""));
-                writer.newLine();
+                Iterator<Integer> iterator = proposals.iterator();
+                while (iterator.hasNext()) {
+                    int num = iterator.next();
+                    // Check if it's last number
+                    if (!iterator.hasNext()) {
+                        writer.write(String.format("%d\n", num));
+                    } else {
+                        writer.write(String.format("%d ", num));
+                    }
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
+    /**
+     * Interrupt all running threads
+     * of underlying instances
+     */
     private static void interruptThreads() {
-        if (consensus != null) {
-            consensus.stopThreads();
-        }
+        FairLossLink.stopThreads();
+        StubbornLink.stopThreads();
+        BestEffortBroadcast.stopThreads();
     }
-
-    private CommunicationService() {}
 
 }
