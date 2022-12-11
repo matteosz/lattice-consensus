@@ -19,14 +19,14 @@ import static cs451.channel.Network.getProcess;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
 
 /**
- * FAIR-LOSS link
+ * Fair-loss link:
  *
- * The lowest abstraction for the channels
+ * The lowest abstraction for the channels.
  *
  * Main functions:
  * 1) It uses a blocking queue to store datagram packets to send and a thread infinitely polling
- *    from the queue to send through the socket
- * 2) Another thread listens to the socket and deliver packets to upper layers
+ *    from the queue to send through the socket.
+ * 2) Another thread listens to the socket and deliver packets to upper layers.
  */
 public class FairLossLink {
 
@@ -43,7 +43,7 @@ public class FairLossLink {
     private static Consumer<Packet> packetCallback;
 
     /**
-     * Initialize the FairLoss Link
+     * Initialize the FairLoss Link.
      * @param port integer representing the port to bind the datagram socket
      * @param packetCallback a consumer function to call the delivery of the upper layer
      * @throws SocketException
@@ -57,7 +57,7 @@ public class FairLossLink {
     }
 
     /**
-     * Create a datagram packet and insert it in the blocking queue
+     * Create a datagram packet and insert it in the blocking queue.
      * @param packet packet to be serialized and inserted in the queue
      * @param target host's id of the future recipient
      */

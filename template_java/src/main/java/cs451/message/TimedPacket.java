@@ -1,10 +1,10 @@
 package cs451.message;
 
 /**
- * TimedPacket class
+ * TimedPacket class:
  *
  * It associates a timestamp and timeout to
- * a certain packet to manage the resending
+ * a certain packet to manage the resending.
  */
 public class TimedPacket {
 
@@ -18,7 +18,7 @@ public class TimedPacket {
     private long timeout;
 
     /**
-     * Create a TimedPacket from parameters
+     * Create a TimedPacket from parameters.
      * @param timeout host's timeout
      * @param packet encapsulated packet
      */
@@ -44,7 +44,7 @@ public class TimedPacket {
     }
 
     /**
-     * Update the timestamp and timeout
+     * Update the timestamp and timeout.
      * @param timeout new host's timeout
      */
     public void update(long timeout) {

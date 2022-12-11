@@ -8,6 +8,8 @@ import cs451.process.Process;
 
 import java.net.SocketException;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,13 +25,13 @@ import static cs451.process.Process.getMyHost;
 import static cs451.process.Process.proposalsToSend;
 
 /**
- * STUBBORN link
+ * Stubborn link:
  *
- * Abstraction used to do the core work of sending packets
+ * Abstraction used to do the core work of sending packets.
  *
  * Main functions:
- * 1) Send the packets to all the host accordingly
- * 2) Deliver once the underlying layer has delivered as well
+ * 1) Send the packets to all the host accordingly.
+ * 2) Deliver once the underlying layer has delivered as well.
  */
 public class StubbornLink {
 
@@ -40,7 +42,7 @@ public class StubbornLink {
     private static Consumer<Packet> packetCallback;
 
     /**
-     * Initialize the link and start the thread
+     * Initialize the link and start the thread.
      * @param port integer representing the port to bind the datagram socket
      * @param packetCallback a consumer function to call the delivery of the upper layer
      * @throws SocketException
@@ -53,8 +55,8 @@ public class StubbornLink {
     }
 
     /**
-     * Consumer function given to the underlying layer
-     * Check if the packet is ack and reset the host's timeout
+     * Consumer function given to the underlying layer.
+     * Check if the packet is ack and reset the host's timeout.
      * Otherwise, it sends an ack back and call the delivery of the upper layer
      * @param packet received from fair-loss link
      */
@@ -74,11 +76,11 @@ public class StubbornLink {
     }
 
     /**
-     * Core function to send packets
+     * Core function to send packets.
      * It consists of 2 main phases:
      *  1) Go through the packets to resend, that have not been acked yet
-     *     and check their timeout, if over then resend, if already acked stop resending
-     *  2) If at least half of the hosts have enough space, load new packets
+     *     and check their timeout, if over then resend, if already acked stop resending.
+     *  2) If at least half of the hosts have enough space, load new packets.
      */
     private static void sendPackets() {
         // View of all processes except my host
@@ -91,21 +93,22 @@ public class StubbornLink {
             // Initial assumption: everyone has enough space
             int hasSpace = processes.size();
             for (Process process : processes) {
-                TimedPacket timedPacket = process.nextPacketToAck();
-                // Check if the that packet has not been acked yet to resend
-                if (timedPacket != null && !process.hasAcked(
-                    timedPacket.getPacket().getPacketId())) {
-                    // If the current living time of the packet is greater than host's timeout
-                    if (timedPacket.timeoutExpired()) {
-                        // Double the host's timeout
-                        process.expBackOff();
-                        // Update the packet timestamp
-                        timedPacket.update(process.getTimeout());
-                        // Resend the packet
-                        FairLossLink.enqueuePacket(timedPacket.getPacket(), process.getId());
+                for (TimedPacket timedPacket : process.nextPacketsToAck()) {
+                    // Check if the that packet has not been acked yet to resend
+                    if (timedPacket != null && !process.hasAcked(
+                        timedPacket.getPacket().getPacketId())) {
+                        // If the current living time of the packet is greater than host's timeout
+                        if (timedPacket.timeoutExpired()) {
+                            // Double the host's timeout
+                            process.expBackOff();
+                            // Update the packet timestamp
+                            timedPacket.update(process.getTimeout());
+                            // Resend the packet
+                            FairLossLink.enqueuePacket(timedPacket.getPacket(), process.getId());
+                        }
+                        // Re-insert in queue
+                        process.addPacketToAck(timedPacket);
                     }
-                    // Re-insert in queue
-                    process.addPacketToAck(timedPacket);
                 }
                 // Check if I freed enough space
                 if (!process.hasSpace()) {
@@ -121,47 +124,42 @@ public class StubbornLink {
             // Try to put in a packet the highest possible number of proposal
             // This is limited by a maximum threshold and the packet's size
             int len = MEX_OS;
-            int offset = 0;
             Packet sharedPacket = null;
             // Get the current window of proposals permitted
-            int maxProposals = LatticeConsensus.window.get();
-            if (maxProposals > 0) {
+            int limit = Math.min(MAX_COMPRESSION, LatticeConsensus.window.get());
+            // If there's space in the window
+            if (limit > 0) {
+                List<Proposal> sublist = new LinkedList<>();
                 // Lock proposalsToSend since it's accessed by another thread to add other proposals
-                synchronized (proposalsToSend) {
-                    for (Proposal proposal : proposalsToSend) {
-                        // Find how many bytes the current proposal occupies to find the fit
-                        int curr = proposal.getBytes();
-                        if (MAX_PACKET_SIZE - len >= curr) {
-                            len += curr;
-                            offset++;
-                        } else {
-                            break;
-                        }
-                        if (offset == Math.min(MAX_COMPRESSION, maxProposals)) {
-                            break;
-                        }
+                Iterator<Proposal> iterator = proposalsToSend.iterator();
+                while (iterator.hasNext() && sublist.size() < limit) {
+                    // Find how many bytes the current proposal occupies to find the fit
+                    Proposal curr = iterator.next();
+                    if (MAX_PACKET_SIZE - len >= curr.getBytes()) {
+                        len += curr.getBytes();
+                        sublist.add(curr);
+                        iterator.remove();
+                    } else {
+                        break;
                     }
-
-                    // If I have at least a proposal to pack
-                    if (offset > 0) {
-                        // Sublist (view)
-                        List<Proposal> sublist = proposalsToSend.subList(0, offset);
-                        // Create a shared packet with the given proposals
-                        sharedPacket = new Packet(
-                            sublist, packetNumber++,
-                            getMyHost(), len);
-                        // Clean the sublist after having it as bytes in the packet to save memory
-                        sublist.clear();
-                        // Shrink the window with the number of proposals sent
-                        LatticeConsensus.window.addAndGet(-offset);
-                    }
+                }
+                int size = sublist.size();
+                // If I have at least a proposal to pack
+                if (size > 0) {
+                    // Create a shared packet with the given proposals
+                    sharedPacket = new Packet(
+                        sublist, packetNumber++,
+                        getMyHost(), len);
+                    // Clean the sublist after having it as bytes in the packet to save memory
+                    sublist.clear();
+                    // Shrink the window with the number of proposals sent
+                    LatticeConsensus.window.addAndGet(-size);
                 }
             }
 
             byte inc = 0;
             for (Process process : processes) {
                 // Load ack and nack in a packet
-
                 // ACK
                 int[] ackLen = {MEX_OS};
                 List<Proposal> ack = process.getNextAckProposals(ackLen, process.getAckToSend());
@@ -172,10 +170,9 @@ public class StubbornLink {
                     process.addPacketToAck(new TimedPacket(process.getTimeout(), ackPacket));
                     FairLossLink.enqueuePacket(ackPacket, process.getId());
                     if (inc < 1) {
-                        ++inc;
+                        inc = 1;
                     }
                 }
-
                 // NACK
                 ackLen[0] = MEX_OS;
                 ack = process.getNextAckProposals(ackLen, process.getNackToSend());
@@ -185,7 +182,7 @@ public class StubbornLink {
                     process.addPacketToAck(new TimedPacket(process.getTimeout(), ackPacket));
                     FairLossLink.enqueuePacket(ackPacket, process.getId());
                     if (inc < 2) {
-                        ++inc;
+                        inc = 2;
                     }
                 }
 
@@ -194,9 +191,7 @@ public class StubbornLink {
                     process.addPacketToAck(new TimedPacket(process.getTimeout(), sharedPacket));
                     FairLossLink.enqueuePacket(sharedPacket, process.getId());
                 }
-
             }
-
             if (inc > 0) {
                 // Next packet number
                 packetNumber += inc + 1;

@@ -12,10 +12,10 @@ import static cs451.utilities.Utilities.fromIntegerToByteArray;
 import static cs451.utilities.Utilities.fromLongToByteArray;
 
 /**
- * UDP Packet class
+ * UDP Packet class:
  *
  * It contains metadata + a set of proposals
- * in a serialized form (byte array)
+ * in a serialized form (byte array).
  */
 public class Packet {
 
@@ -49,12 +49,12 @@ public class Packet {
     private byte[] data;
 
     /**
-     * Build a packet by extracting the metadata from the byte array
+     * Build a packet by extracting the metadata from the byte array.
      * @param data serialized packet (byte array)
      */
     public Packet(byte[] data) {
         this.packetId = fromByteToIntegerArray(data, PCK_ID_OS);
-        this.isAck = data[IS_ACK_OS] != 0;
+        this.isAck = data[IS_ACK_OS] == 1;
         this.senderId = data[SENDER_ID_OS];
         this.timestamp = fromByteToLongArray(data, TIMESTAMP_OS);
         this.numberOfProposals = data[NUMBER_PROPOSALS_OS];
@@ -62,8 +62,8 @@ public class Packet {
     }
 
     /**
-     * Build a packet given metadata and list of proposals
-     * It serializes the packet into a byte array
+     * Build a packet given metadata and list of proposals.
+     * It serializes the packet into a byte array.
      * @param proposals list of proposals to pack
      * @param packetId id of packet
      * @param senderId id of sender
@@ -79,7 +79,7 @@ public class Packet {
         this.numberOfProposals = (byte) proposals.size();
         // Write the header
         fromIntegerToByteArray(packetId, this.data, PCK_ID_OS);
-        // 0 -> False, 1 -> True
+        // IsAck bit: 0 -> False, 1 -> True
         this.data[IS_ACK_OS] = 0;
         this.data[SENDER_ID_OS] = this.senderId;
         fromLongToByteArray(this.timestamp, this.data, TIMESTAMP_OS);
@@ -105,7 +105,7 @@ public class Packet {
     }
 
     /**
-     * Private constructor that simply assign the passed parameters
+     * Private constructor that simply assign the passed parameters.
      * @param data byte array
      * @param packetId id of the packet
      * @param senderId id of the sender
@@ -139,7 +139,7 @@ public class Packet {
     }
 
     /**
-     * Generate a new packet which is the ack of the given one
+     * Generate a new packet which is the ack of the given one.
      * @return ack packet
      */
     public Packet convertToAck() {
@@ -151,7 +151,7 @@ public class Packet {
     }
 
     /**
-     * Apply a consumer function to the proposals contained in a packet
+     * Apply a consumer function to the proposals contained in a packet.
      * @param callback consumer function to apply
      */
     public void applyToProposals(Consumer<Proposal> callback) {

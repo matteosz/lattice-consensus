@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * The ConfigParser reads the .config file,
  * check if it's properly formatted and then
- * create a list of all the proposals
+ * create a list of all the proposals.
  */
 public class ConfigParser {
 
@@ -20,7 +20,7 @@ public class ConfigParser {
     private static LinkedList<Proposal> proposals;
 
     /**
-     * Read the config file and populate the proposals list
+     * Read the config file and populate the proposals list.
      * @param value config filename
      * @param myHost id of my host
      * @return true if correctly parsed, false otherwise
@@ -76,6 +76,9 @@ public class ConfigParser {
         return true;
     }
 
+    /**
+     * @return List of original proposals
+     */
     public static LinkedList<Proposal> getProposals() {
         return proposals;
     }

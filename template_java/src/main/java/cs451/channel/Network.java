@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * NETWORK
+ * Network class:
  *
- * It just populates the network given the information of the hosts
+ * It just populates the network given the information of the hosts.
  */
 public class Network {
 
@@ -19,8 +19,8 @@ public class Network {
     private static final Map<Byte, Process> network = new HashMap<>();
 
     /**
-     *
-     * @param hosts information retrieved by the parser of the
+     * Populate the network allocating the processes.
+     * @param hosts information retrieved by the parser of the hosts
      */
     public static void populateNetwork(Map<Byte, Host> hosts) {
         for (Map.Entry<Byte, Host> entry : hosts.entrySet()) {
@@ -32,7 +32,7 @@ public class Network {
     }
 
     /**
-     * Retrieves a process given its id
+     * Retrieves a process given its id.
      * @param id of the host
      * @return Process of the given host
      */

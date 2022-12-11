@@ -24,12 +24,14 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * CommunicationService:
+ *
  * Manager class to start the consensus and
- * deliver proposals by writing the output
+ * deliver proposals by writing the output.
  *
  * Main functions:
- *  1) Load all the classes
- *  2) Write the logs
+ *  1) Load all the classes.
+ *  2) Write the logs.
  */
 public class CommunicationService {
 
@@ -75,7 +77,7 @@ public class CommunicationService {
     }
 
     /**
-     * Deliver a proposal by writing it into the file as new line
+     * Deliver a proposal by writing it into the file as new line.
      * @param proposals (simply set of integers) to deliver
      */
     private static void deliver(Set<Integer> proposals) {
@@ -90,6 +92,7 @@ public class CommunicationService {
                     } else {
                         writer.write(String.format("%d ", num));
                     }
+                    writer.flush();
                 }
             } catch (IOException e) {
                 e.printStackTrace();

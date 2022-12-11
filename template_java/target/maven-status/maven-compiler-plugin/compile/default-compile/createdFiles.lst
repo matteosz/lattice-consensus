@@ -1,5 +1,4 @@
 cs451/channel/FairLossLink.class
-cs451/channel/Link.class
 cs451/message/Proposal.class
 cs451/consensus/LatticeConsensus.class
 cs451/parser/OutputParser.class
@@ -7,6 +6,7 @@ cs451/Main.class
 cs451/message/Packet.class
 cs451/channel/StubbornLink.class
 cs451/parser/Parser.class
+cs451/channel/Network.class
 cs451/parser/Host.class
 cs451/utilities/Parameters.class
 cs451/process/Process.class

@@ -14,19 +14,18 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
- * LATTICE consensus
+ * Lattice consensus:
  *
- * It implements a weak form of consensus in asynchronous networks
+ * It implements a weak form of consensus in asynchronous networks.
  *
  * Main functions:
- *  1) Propose a set values to other hosts
- *  2) Decide on a set of common value
+ *  1) Propose a set values to other hosts.
+ *  2) Decide on a set of common value.
  */
 public class LatticeConsensus {
 
@@ -49,25 +48,26 @@ public class LatticeConsensus {
     private final static Map<Integer, byte[]> ackCount = new HashMap<>();
 
     /** Mapping to a given proposal id the set of integers as proposed and accepted values */
-    private static Map<Integer, Set<Integer>> proposedValue = new HashMap<>(),
-                                              acceptedValue = new HashMap<>();
+    private static final Map<Integer, Set<Integer>> proposedValue = new HashMap<>(),
+                                                    acceptedValue = new HashMap<>();
 
     /**
-     * Compressor to save the delivered proposal as range
+     * Compressor to save the delivered proposal as range.
      * Since proposal's ids start from 0, it's initialized with -1
      * to anchor the first proposal
      */
-    private static Compressor delivered = new Compressor(-1);
+    private static final Compressor delivered = new Compressor(false, -1);
 
     /** List of original proposals to send globally */
     private static LinkedList<Proposal> originals;
 
     /**
-     *
-     * @param port
-     * @param numHosts
-     * @param deliverCallback
-     * @param proposals
+     * Start the consensus by loading a batch of proposals
+     * and starting to broadcast those proposals.
+     * @param port integer representing the port to bind the datagram socket
+     * @param numHosts total number of hosts in system
+     * @param deliverCallback consumer function to write logs
+     * @param proposals original proposals from config
      * @throws SocketException
      */
     public static void start(int port, int numHosts, Consumer<Set<Integer>> deliverCallback, LinkedList<Proposal> proposals) throws SocketException {
@@ -94,7 +94,7 @@ public class LatticeConsensus {
     }
 
     /**
-     * Deliver a proposal of type PROPOSAL
+     * Deliver a proposal of type PROPOSAL.
      * @param proposal delivered by underlying layer
      */
     private static void deliverProposal(Proposal proposal) {
@@ -113,7 +113,7 @@ public class LatticeConsensus {
     }
 
     /**
-     * Deliver a proposal of type ACK
+     * Deliver a proposal of type ACK.
      * @param proposal delivered by underlying layer
      */
     private static void deliverAck(Proposal proposal) {
@@ -129,7 +129,7 @@ public class LatticeConsensus {
     }
 
     /**
-     * Deliver a proposal of type NACK
+     * Deliver a proposal of type NACK.
      * @param proposal delivered by underlying layer
      */
     private static void deliverNAck(Proposal proposal) {
@@ -146,7 +146,7 @@ public class LatticeConsensus {
     }
 
     /**
-     * Nack event: when the number of nack increases this event is triggered
+     * Nack event: when the number of nack increases this event is triggered.
      * @param proposal that triggered the event
      */
     private static void checkNAck(Proposal proposal) {
@@ -169,7 +169,7 @@ public class LatticeConsensus {
     }
 
     /**
-     * Ack event: when the number of ack increases this event is triggered
+     * Ack event: when the number of ack increases this event is triggered.
      * @param id proposal id that triggered the event
      */
     private static void checkAck(int id) {
@@ -188,13 +188,13 @@ public class LatticeConsensus {
             while (lastDelivered <= lastToDeliver) {
                 callback.accept(proposedValue.get(lastDelivered));
                 // Clear proposedValue to save memory
-                proposedValue.get(id).clear();
+                //proposedValue.get(id).clear();
                 lastDelivered++;
             }
 
             active[id] = false;
             // Clear accepted value to save memory
-            acceptedValue.get(id).clear();
+            //acceptedValue.get(id).clear();
         }
     }
 
@@ -202,21 +202,19 @@ public class LatticeConsensus {
      * Load the next proposal from original ones
      */
     private static void loadNext() {
-        try {
+        if (originals.size() > 0) {
             Proposal proposal = originals.removeFirst();
             populateProposal(proposal);
             synchronized (proposalsToSend) {
                 // Add in tail to the shared proposals
                 proposalsToSend.addLast(proposal);
             }
-        } catch (NoSuchElementException e) {
-            e.printStackTrace();
         }
     }
 
     /**
      * Populate the data structures to store metadata about
-     * a given proposal
+     * a given proposal.
      * @param proposal to load
      */
     private static void populateProposal(Proposal proposal) {

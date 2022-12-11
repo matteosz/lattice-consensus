@@ -1,2 +1,0 @@
-From a new terminal type `kill -SIGINT 1903` or `kill -SIGTERM 1903` to stop processing packets
-

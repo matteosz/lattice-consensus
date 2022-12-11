@@ -10,13 +10,13 @@ import java.util.function.Consumer;
 import static cs451.channel.Network.getProcess;
 
 /**
- * PERFECT link
+ * Perfect link:
  *
- * The highest channel abstraction
+ * The highest channel abstraction.
  *
  * Main function:
  *  1) Deliver the packets, extract the proposals contained and deliver
- *     them to the upper layer
+ *     them to the upper layer.
  */
 public class PerfectLink {
 
@@ -24,7 +24,7 @@ public class PerfectLink {
     private static Consumer<Proposal> proposalConsumer;
 
     /**
-     * Perfect link initialization
+     * Perfect link initialization.
      * @param port integer representing the port to bind the datagram socket
      * @param proposalConsumer consumer function to call the delivery of the upper layer
      * @throws SocketException
@@ -35,10 +35,10 @@ public class PerfectLink {
     }
 
     /**
-     * Consumer function given to the underlying layer
-     * Deliver the packet given its id
-     * Then deliver the proposals contained in the packet,
-     * calling the consumer function given by the upper layer
+     * Consumer function given to the underlying layer.
+     * Deliver the packet given its id,
+     * then deliver the proposals contained in the packet,
+     * calling the consumer function given by the upper layer.
      * @param packet received from stubborn link
      */
     private static void perfectDeliver(Packet packet) {
@@ -50,7 +50,7 @@ public class PerfectLink {
     }
 
     /**
-     * Call the consumer function after delivering the proposal
+     * Call the consumer function after delivering the proposal.
      * @param proposal to deliver
      * @param sender of the proposal
      */
@@ -61,7 +61,7 @@ public class PerfectLink {
     }
 
     /**
-     * Send a proposal of type ACK to the target
+     * Send a proposal of type ACK to the target.
      * @param proposal proposal ACK to be sent
      * @param targetId id of recipient
      */
@@ -70,7 +70,7 @@ public class PerfectLink {
     }
 
     /**
-     * Send a proposal of type NACK to the target
+     * Send a proposal of type NACK to the target.
      * @param proposal proposal NACK to be sent
      * @param targetId id of recipient
      */
@@ -78,10 +78,4 @@ public class PerfectLink {
         getProcess(targetId).addNackProposal(proposal);
     }
 
-    /**
-     * Stop the running threads of the underlying layers
-     */
-    public static void stopThreads() {
-        StubbornLink.stopThreads();
-    }
 }

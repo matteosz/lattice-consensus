@@ -6,6 +6,9 @@ import cs451.message.TimedPacket;
 import cs451.parser.Host;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static cs451.message.Packet.MAX_PACKET_SIZE;
@@ -13,20 +16,22 @@ import static cs451.utilities.Parameters.*;
 import static cs451.message.Packet.MAX_COMPRESSION;
 
 /**
- * PROCESS
+ * Process:
  *
- * Contain the information about the hosts and the
- * proposals to send, delivered and acked
+ * It contains the information about the hosts and the
+ * proposals to send, delivered and acked.
  */
 public class Process {
 
-    /** The static objects represent something which is shared among all hosts */
+    /**
+     * The static objects represent something which is shared among all hosts
+     */
 
     /** Host id of the local host */
     private static byte myHost;
 
-    /** List of shared proposals to send to every host */
-    public static final LinkedList<Proposal> proposalsToSend = new LinkedList<>();
+    /** Thread-safe queue of shared proposals to send to every host */
+    public static final ConcurrentLinkedDeque<Proposal> proposalsToSend = new ConcurrentLinkedDeque<>();
 
     /** Information about this distant host */
     private final Host host;
@@ -37,33 +42,32 @@ public class Process {
     /** Queue of packets associated with a timeout, to be resent to the current host */
     private final Queue<TimedPacket> toAck = new LinkedList<>();
 
-    /** Queue of proposals (NACK type) to send to the current host */
-    private final Queue<Proposal> nackToSend = new LinkedList<>();
-
     /** Queue of proposals (ACK type) to send to the current host */
-    private final Queue<Proposal> ackToSend = new LinkedList<>();
+    private final ConcurrentLinkedQueue<Proposal> ackToSend = new ConcurrentLinkedQueue<>();
+
+    /** Queue of proposals (NACK type) to send to the current host */
+    private final ConcurrentLinkedQueue<Proposal> nackToSend = new ConcurrentLinkedQueue<>();
 
     /** Compressor to represent all the packet id acked */
-    private final Compressor packetsAcked = new Compressor();
+    private final Compressor packetsAcked = new Compressor(true);
 
     /** Compressor to represent all the packet id delivered */
-    private final Compressor packetsDelivered = new Compressor();
+    private final Compressor packetsDelivered = new Compressor(false);
 
     /** Compressors to represent all the proposal id delivered, divided by type */
-    private final Compressor proposalsDelivered = new Compressor(),
-                             ackDelivered = new Compressor(),
-                             nackDelivered = new Compressor();
+    private final Compressor proposalsDelivered = new Compressor(false),
+                             ackDelivered = new Compressor(false),
+                             nackDelivered = new Compressor(false);
 
     /**
-     * Initialize the proposals to send by loading a batch of original proposals
+     * Initialize the proposals to send by loading a batch of original proposals.
      * @param id of local host
      * @param prop list of original proposals
      */
     public static void initialize(byte id, LinkedList<Proposal> prop) {
         myHost = id;
         // Load the first batch from original proposals
-        List<Proposal> sublist = prop.subList(0, PROPOSAL_BATCH);
-        proposalsToSend.addAll(sublist);
+        proposalsToSend.addAll(prop.subList(0, Math.min(PROPOSAL_BATCH, prop.size())));
     }
 
     /**
@@ -74,7 +78,7 @@ public class Process {
     }
 
     /**
-     * Initialize all data structures
+     * Initialize all data structures.
      * @param host information about the host
      */
     public Process(Host host) {
@@ -114,7 +118,7 @@ public class Process {
     /**
      * Notify the host's activity
      * and update its timeout to the
-     * emission time of the packet received
+     * emission time of the packet received.
      * @param lastTime time of emission of the packet
      */
     public void notify(long lastTime) {
@@ -130,35 +134,33 @@ public class Process {
     }
 
     /**
-     * Get a list of proposal from the queue passed
+     * Get a list of proposal from the queue passed.
      * @param len initial length of the packet with no proposals (header)
      * @param ack type of queue passed (ack or nack)
      * @return list of max. 8 proposals that fit the maximum packet size
      */
-    public List<Proposal> getNextAckProposals(int[] len, Queue<Proposal> ack) {
+    public List<Proposal> getNextAckProposals(int[] len, ConcurrentLinkedQueue<Proposal> ack) {
         byte count = 0;
         List<Proposal> proposals = new LinkedList<>();
-        synchronized (ack) {
-            while (proposals.size() < MAX_COMPRESSION && count < MAX_MISS) {
-                Proposal proposal;
-                proposal = ack.poll();
-                if (proposal == null) {
-                    // No proposal to be sent yet
-                    break;
+        while (proposals.size() < MAX_COMPRESSION && count < MAX_MISS) {
+            Proposal proposal = ack.poll();
+            if (proposal == null || proposal.getBytes() > (MAX_PACKET_SIZE - len[0])) {
+                // No proposal to be sent yet or not fitting the packet
+                ++count;
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return proposals;
                 }
-                // Ensure that the proposal fit in the packet
-                if (proposal.getBytes() <= (MAX_PACKET_SIZE - len[0])) {
-                    proposals.add(proposal);
-                    len[0] += proposal.getBytes();
-                } else if (ack.size() < 1) {
-                    // If there's no other proposal yet then break
-                    break;
-                } else {
-                    // If the current proposal doesn't fit try to fit another proposal
-                    ++count;
+                if (proposal != null) {
                     // Insert back the proposal at the end of the queue
                     ack.add(proposal);
                 }
+            } else {
+                // Ensure that the proposal fit in the packet
+                proposals.add(proposal);
+                len[0] += proposal.getBytes();
             }
         }
         return proposals;
@@ -167,27 +169,29 @@ public class Process {
     /**
      * @return nack proposals yet to be sent
      */
-    public Queue<Proposal> getNackToSend() {
+    public ConcurrentLinkedQueue<Proposal> getNackToSend() {
         return nackToSend;
     }
 
     /**
      * @return ack proposals yet to be sent
      */
-    public Queue<Proposal> getAckToSend() {
+    public ConcurrentLinkedQueue<Proposal> getAckToSend() {
         return ackToSend;
     }
 
     /**
-     * @return first timed packet of the queue
+     * @return first timed packet of the queue,
      *         null if empty
      */
-    public TimedPacket nextPacketToAck() {
-        return toAck.poll();
+    public List<TimedPacket> nextPacketsToAck() {
+        List<TimedPacket> copy = new ArrayList<>(toAck);
+        toAck.clear();
+        return copy;
     }
 
     /**
-     * Add a timed packet to the queue of packets to ack
+     * Add a timed packet to the queue of packets to ack.
      * @param packet to be rechecked later
      */
     public void addPacketToAck(TimedPacket packet) {
@@ -195,6 +199,7 @@ public class Process {
     }
 
     /**
+     * Whether the host has already acked a given packet.
      * @param id packet id
      * @return true if already acked, false otherwise
      */
@@ -203,27 +208,23 @@ public class Process {
     }
 
     /**
-     * Add to the acked proposals to be sent the given proposal
+     * Add to the acked proposals to be sent the given proposal.
      * @param proposal to send of type ACK
      */
     public void addAckProposal(Proposal proposal) {
-        synchronized (ackToSend) {
-            ackToSend.add(proposal);
-        }
+        ackToSend.add(proposal);
     }
 
     /**
-     * Add to the nack proposals to be sent the given proposal
+     * Add to the nack proposals to be sent the given proposal.
      * @param proposal to send of type NACK
      */
     public void addNackProposal(Proposal proposal) {
-        synchronized (nackToSend) {
-            nackToSend.add(proposal);
-        }
+        nackToSend.add(proposal);
     }
 
     /**
-     * Add to the delivered a given packet id
+     * Add to the delivered a given packet id.
      * @param packetId to deliver
      * @return true if added correctly and not delivered before, false otherwise
      */
@@ -232,7 +233,7 @@ public class Process {
     }
 
     /**
-     * Add to the acked a given packet id (ack)
+     * Add to the acked a given packet id (ack).
      * @param ackId to ack
      */
     public void deliverAck(int ackId) {
@@ -240,7 +241,7 @@ public class Process {
     }
 
     /**
-     * Deliver a proposal
+     * Deliver a proposal depending on its type.
      * @param proposal to deliver
      * @return true if correctly added and not delivered before, else otherwise
      */

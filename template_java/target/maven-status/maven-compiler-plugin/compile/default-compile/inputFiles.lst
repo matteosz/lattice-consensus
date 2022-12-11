@@ -1,6 +1,7 @@
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/message/Proposal.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/parser/Parser.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/parser/Host.java
+/Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/channel/Network.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/message/Compressor.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/parser/ConfigParser.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/consensus/LatticeConsensus.java
@@ -10,7 +11,6 @@
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/message/TimedPacket.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/process/Process.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/channel/PerfectLink.java
-/Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/channel/Link.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/message/Packet.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/parser/IdParser.java
 /Users/matteosuez/Desktop/Github Repo/distributed-algo/template_java/src/main/java/cs451/parser/HostsParser.java

@@ -2,7 +2,7 @@ package cs451.utilities;
 
 /**
  * Class containing some important parameters, tuned
- * heuristically depending on the number of hosts in the network
+ * heuristically depending on the number of hosts in the network.
  */
 public class Parameters {
 
@@ -28,7 +28,7 @@ public class Parameters {
     public static byte MAX_MISS = 3;
 
     /**
-     * Tune the hyperparams depending on the number of hosts
+     * Tune the hyperparams depending on the number of hosts.
      * @param numHosts in the system
      */
     public static void setParams(int numHosts) {

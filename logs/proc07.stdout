@@ -1,2 +1,0 @@
-From a new terminal type `kill -SIGINT 1900` or `kill -SIGTERM 1900` to stop processing packets
-

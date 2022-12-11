@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Parse the hosts file by creating
- * the hosts and populating the network
+ * the hosts and populating the network.
  */
 public class HostsParser {
 
@@ -16,7 +16,7 @@ public class HostsParser {
     private static final Map<Byte, Host> hosts = new HashMap<>();
 
     /**
-     * Parse the hosts file
+     * Parse the hosts file.
      * @param key argument in the command line (--arg)
      * @param filename value after the key
      * @return true if correctly parsed, false otherwise
@@ -58,7 +58,7 @@ public class HostsParser {
     }
 
     /**
-     * Check if all hosts' ids are in a correct range
+     * Check if all hosts' ids are in a correct range.
      * @return true if all correct, false otherwise
      */
     private static boolean checkIdRange() {

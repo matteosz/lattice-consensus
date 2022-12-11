@@ -3,7 +3,7 @@ package cs451.parser;
 import java.io.File;
 
 /**
- * Class to parse the output filename
+ * Class to parse the output filename.
  */
 public class OutputParser {
 
@@ -11,7 +11,7 @@ public class OutputParser {
     private static String path;
 
     /**
-     * Parse the output filename
+     * Parse the output filename.
      * @param key argument in the command line (--arg)
      * @param value value after the key
      * @return true if correctly parsed, false otherwise

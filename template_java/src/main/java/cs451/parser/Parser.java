@@ -6,12 +6,12 @@ import java.util.Map;
 
 /**
  * Parser class that takes the command line arguments
- * and parse them calling the specific sub-parser
+ * and parse them calling the specific sub-parser.
  */
 public class Parser {
 
     /**
-     * Parse the input
+     * Parse the input.
      * @param args arguments passed from command line
      */
     public static void parse(String[] args) {

@@ -31,7 +31,10 @@ import cs451.service.CommunicationService;
  */
 
 /**
- * Main class
+ * Main class:
+ *
+ * Starting point of the program.
+ *
  */
 public class Main {
 
@@ -44,7 +47,7 @@ public class Main {
     }
 
     /**
-     * Main function to which pass args to be parsed
+     * Main function to which pass args to be parsed.
      * @param args command line arguments
      * @throws InterruptedException
      */

@@ -3,7 +3,7 @@ package cs451.parser;
 import static cs451.utilities.Utilities.fromIntegerToByte;
 
 /**
- * Class to parse the id of my local host
+ * Class to parse the id of my local host.
  */
 public class IdParser {
 
@@ -11,7 +11,7 @@ public class IdParser {
     private static byte id;
 
     /**
-     * Parse the id from key argument and value
+     * Parse the id from key argument and value.
      * @param key argument in the command line (--arg)
      * @param value value after the key
      * @return true if correctly parsed, false otherwise

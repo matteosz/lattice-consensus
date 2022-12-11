@@ -6,7 +6,8 @@ import java.net.UnknownHostException;
 import static cs451.utilities.Utilities.fromIntegerToByte;
 
 /**
- * Represent a host in the network
+ * Host class:
+ * It represents a host in the network.
  */
 public class Host {
 
@@ -21,9 +22,9 @@ public class Host {
 
     /**
      * Creates a host by parsing id, ip and port
-     * @param idString
-     * @param ipString
-     * @param portString
+     * @param idString host's id as string to parse
+     * @param ipString host's ip address
+     * @param portString host's socket port
      * @return true if correctly parsed, false otherwise
      */
     public boolean populate(String idString, String ipString, String portString) {

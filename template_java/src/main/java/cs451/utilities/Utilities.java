@@ -2,7 +2,7 @@ package cs451.utilities;
 
 /**
  * Utilities class used for converting
- * byte to int/long and vice-versa
+ * byte to int/long and vice-versa.
  */
 public class Utilities {
 
@@ -14,7 +14,7 @@ public class Utilities {
 
     /**
      * Fill a byte array starting from an offset with a
-     * converted integer value
+     * converted integer value.
      * @param value integer to be converted in bytes
      * @param array byte array where to store the value
      * @param offset in the byte array from where to start filling with value
@@ -28,7 +28,7 @@ public class Utilities {
 
     /**
      * Convert a byte array starting from an offset into
-     * an integer value
+     * an integer value.
      * @param bytes byte array containing the value
      * @param offset in the byte array from where to start retrieving the value
      * @return converted integer
@@ -41,7 +41,7 @@ public class Utilities {
     }
 
     /**
-     * Long version of fromIntegerToByteArray
+     * Long version of fromIntegerToByteArray.
      * @param value integer to be converted in bytes
      * @param array byte array where to store the value
      * @param offset in the byte array from where to start filling with value
@@ -58,7 +58,7 @@ public class Utilities {
     }
 
     /**
-     * Long version of fromByteToIntegerArray
+     * Long version of fromByteToIntegerArray.
      * @param bytes byte array containing the value
      * @param offset in the byte array from where to start retrieving the value
      * @return converted integer
@@ -76,7 +76,7 @@ public class Utilities {
 
     /**
      * The following function converts an integer into byte
-     * assuming: Integer in range [1, 128] -> Byte in range [0, 127]
+     * assuming: Integer in range [1, 128] -> Byte in range [0, 127].
      * @param value initial integer value
      * @return byte conversion scaled of 1 unit
      */

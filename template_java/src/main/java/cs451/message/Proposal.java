@@ -4,11 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Proposal class
+ * Proposal class:
  *
- * It represents a proposal in a consensus round
+ * It represents a proposal in a consensus round.
  *
- * A proposal is a set of integers plus some metadata
+ * A proposal is a set of integers plus some metadata.
  */
 public class Proposal {
 
@@ -34,12 +34,12 @@ public class Proposal {
     private final Set<Integer> proposedValues;
 
     /**
-     * Simple constructor for a proposal
+     * Simple constructor for a proposal.
      * @param proposalNumber id of the proposal
      * @param type of proposal (0, 1, 2)
      * @param sender id
-     * @param proposedValues
-     * @param activeProposalNumber
+     * @param proposedValues set of integer
+     * @param activeProposalNumber current active count in the consensus round
      */
     public Proposal(int proposalNumber, byte type, byte sender,
         Set<Integer> proposedValues, int activeProposalNumber) {
@@ -51,8 +51,8 @@ public class Proposal {
     }
 
     /**
-     * Statically create a proposal given some proposed values
-     * These values are hard copied into a new hash set
+     * Statically create a proposal given some proposed values.
+     * These values are hard copied into a new hash set.
      * @param proposalNumber id of the proposal
      * @param type (0, 1, 2)
      * @param sender id
@@ -108,7 +108,7 @@ public class Proposal {
 
     /**
      * Compute the length that the proposal has in bytes when
-     * serialized within a packet
+     * serialized within a packet.
      * @return number of bytes used
      */
     public int getBytes() {
