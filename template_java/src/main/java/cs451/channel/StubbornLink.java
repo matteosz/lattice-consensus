@@ -21,12 +21,10 @@ import static cs451.channel.Network.getProcess;
 import static cs451.message.Packet.MAX_COMPRESSION;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
 import static cs451.message.Packet.MEX_OS;
-import static cs451.process.Process.getMyHost;
+import static cs451.process.Process.myHost;
 import static cs451.process.Process.proposalsToSend;
 
 /**
- * Stubborn link:
- *
  * Abstraction used to do the core work of sending packets.
  *
  * Main functions:
@@ -90,85 +88,22 @@ public class StubbornLink {
 
         while (running.get()) {
             // First try to resend all possible ack for all processes
-            // Initial assumption: everyone has enough space
-            int hasSpace = processes.size();
-            for (Process process : processes) {
-                for (TimedPacket timedPacket : process.nextPacketsToAck()) {
-                    // Check if the that packet has not been acked yet to resend
-                    if (timedPacket != null && !process.hasAcked(
-                        timedPacket.getPacket().getPacketId())) {
-                        // If the current living time of the packet is greater than host's timeout
-                        if (timedPacket.timeoutExpired()) {
-                            // Double the host's timeout
-                            process.expBackOff();
-                            // Update the packet timestamp
-                            timedPacket.update(process.getTimeout());
-                            // Resend the packet
-                            FairLossLink.enqueuePacket(timedPacket.getPacket(), process.getId());
-                        }
-                        // Re-insert in queue
-                        process.addPacketToAck(timedPacket);
-                    }
-                }
-                // Check if I freed enough space
-                if (!process.hasSpace()) {
-                    hasSpace--;
-                }
-            }
-
-            // Check at least half has enough space to continue
-            if (hasSpace < processes.size() / 2) {
+            if (!resendPackets(processes)) {
                 continue;
             }
-
-            // Try to put in a packet the highest possible number of proposal
-            // This is limited by a maximum threshold and the packet's size
-            int len = MEX_OS;
-            Packet sharedPacket = null;
-            // Get the current window of proposals permitted
-            int limit = Math.min(MAX_COMPRESSION, LatticeConsensus.window.get());
-            // If there's space in the window
-            if (limit > 0) {
-                List<Proposal> sublist = new LinkedList<>();
-                // Lock proposalsToSend since it's accessed by another thread to add other proposals
-                Iterator<Proposal> iterator = proposalsToSend.iterator();
-                while (iterator.hasNext() && sublist.size() < limit) {
-                    // Find how many bytes the current proposal occupies to find the fit
-                    Proposal curr = iterator.next();
-                    if (MAX_PACKET_SIZE - len >= curr.getBytes()) {
-                        len += curr.getBytes();
-                        sublist.add(curr);
-                        iterator.remove();
-                    } else {
-                        break;
-                    }
-                }
-                int size = sublist.size();
-                // If I have at least a proposal to pack
-                if (size > 0) {
-                    // Create a shared packet with the given proposals
-                    sharedPacket = new Packet(
-                        sublist, packetNumber++,
-                        getMyHost(), len);
-                    // Clean the sublist after having it as bytes in the packet to save memory
-                    sublist.clear();
-                    // Shrink the window with the number of proposals sent
-                    LatticeConsensus.window.addAndGet(-size);
-                }
+            // Craft the shared packet
+            Packet sharedPacket = craftSharedPacket(packetNumber);
+            if (sharedPacket == null) {
+                --packetNumber;
             }
-
             byte inc = 0;
             for (Process process : processes) {
-                // Load ack and nack in a packet
                 // ACK
                 int[] ackLen = {MEX_OS};
                 List<Proposal> ack = process.getNextAckProposals(ackLen, process.getAckToSend());
-                Packet ackPacket;
                 if (ack.size() > 0) {
                     // Use packet number + 1
-                    ackPacket = new Packet(ack, packetNumber + 1, getMyHost(), ackLen[0]);
-                    process.addPacketToAck(new TimedPacket(process.getTimeout(), ackPacket));
-                    FairLossLink.enqueuePacket(ackPacket, process.getId());
+                    sendPacket(process, new Packet(ack, packetNumber + 1, myHost, ackLen[0]));
                     if (inc < 1) {
                         inc = 1;
                     }
@@ -178,25 +113,101 @@ public class StubbornLink {
                 ack = process.getNextAckProposals(ackLen, process.getNackToSend());
                 if (ack.size() > 0) {
                     // Use packet number + 2
-                    ackPacket = new Packet(ack, packetNumber + 2, getMyHost(), ackLen[0]);
-                    process.addPacketToAck(new TimedPacket(process.getTimeout(), ackPacket));
-                    FairLossLink.enqueuePacket(ackPacket, process.getId());
+                    sendPacket(process, new Packet(ack, packetNumber + 2, myHost, ackLen[0]));
                     if (inc < 2) {
                         inc = 2;
                     }
                 }
-
                 // Send the crafted shared packet
                 if (sharedPacket != null) {
-                    process.addPacketToAck(new TimedPacket(process.getTimeout(), sharedPacket));
-                    FairLossLink.enqueuePacket(sharedPacket, process.getId());
+                    sendPacket(process, sharedPacket);
                 }
             }
-            if (inc > 0) {
-                // Next packet number
-                packetNumber += inc + 1;
+            packetNumber += inc + 1;
+        }
+    }
+
+    /**
+     * Try to resend all timed out packets if not acked yet.
+     * @param processes collection of all hosts
+     * @return true if at least half hosts have enough space, false otherwise
+     */
+    private static boolean resendPackets(Collection<Process> processes) {
+        // Initial assumption: everyone has enough space
+        int hasSpace = processes.size();
+        for (Process process : processes) {
+            for (TimedPacket timedPacket : process.nextPacketsToAck()) {
+                // Check if the that packet has not been acked yet to resend
+                if (timedPacket != null && !process.hasAcked(
+                    timedPacket.getPacket().getPacketId())) {
+                    // If the current living time of the packet is greater than host's timeout
+                    if (timedPacket.timeoutExpired()) {
+                        // Double the host's timeout
+                        process.expBackOff();
+                        // Update the packet timestamp
+                        timedPacket.update(process.getTimeout());
+                        // Resend the packet
+                        FairLossLink.enqueuePacket(timedPacket.getPacket(), process.getId());
+                    }
+                    // Re-insert in queue
+                    process.addPacketToAck(timedPacket);
+                }
+            }
+            // Check if I freed enough space
+            if (!process.hasSpace()) {
+                hasSpace--;
             }
         }
+        // Check at least half has enough space to continue
+        return hasSpace >= processes.size() / 2;
+    }
+
+    /**
+     * It creates a packet shared among all the hosts (broadcast).
+     * Try to put in a packet the highest possible number of proposal.
+     * This is limited by a maximum threshold and the packet's size
+     * @return shared packet with the packet proposals
+     */
+    private static Packet craftSharedPacket(int packetNumber) {
+        int len = MEX_OS;
+        // Get the current window of proposals permitted
+        int limit = Math.min(MAX_COMPRESSION, LatticeConsensus.window.get());
+        // If there's space in the window
+        if (limit > 0) {
+            List<Proposal> sublist = new LinkedList<>();
+            Iterator<Proposal> iterator = proposalsToSend.iterator();
+            while (iterator.hasNext() && sublist.size() < limit) {
+                // Find how many bytes the current proposal occupies to find the fit
+                Proposal curr = iterator.next();
+                if (MAX_PACKET_SIZE - len >= curr.getBytes()) {
+                    len += curr.getBytes();
+                    sublist.add(curr);
+                    iterator.remove();
+                } else {
+                    break;
+                }
+            }
+            int size = sublist.size();
+            // If I have at least a proposal to pack
+            if (size > 0) {
+                // Shrink the window with the number of proposals sent
+                LatticeConsensus.window.addAndGet(-size);
+                // Create a shared packet with the given proposals
+                return new Packet(sublist, packetNumber,myHost, len);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Send a packet and put it the re-send queue
+     * with the current process timeout
+     * @param process to which send the packet
+     * @param packet to be sent
+     */
+    private static void sendPacket(Process process, Packet packet) {
+        process.addPacketToAck(new TimedPacket(process.getTimeout(), packet));
+        FairLossLink.enqueuePacket(packet, process.getId());
     }
 
     /**

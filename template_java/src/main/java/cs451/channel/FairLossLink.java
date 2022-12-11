@@ -19,8 +19,6 @@ import static cs451.channel.Network.getProcess;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
 
 /**
- * Fair-loss link:
- *
  * The lowest abstraction for the channels.
  *
  * Main functions:

@@ -1,8 +1,6 @@
 package cs451.message;
 
 /**
- * Compressor:
- *
  * It's used to efficiently compress a set of values
  * by using both a non-concurrent and a thread-safe
  * lock-based linked list of intervals.

@@ -25,7 +25,7 @@ public class Parameters {
     public static int PROPOSAL_BATCH = 16;
 
     /** Maximum number of allowed miss from retrieving an ack or nack proposal to send */
-    public static byte MAX_MISS = 3;
+    public static byte MAX_MISS = 2;
 
     /**
      * Tune the hyperparams depending on the number of hosts.

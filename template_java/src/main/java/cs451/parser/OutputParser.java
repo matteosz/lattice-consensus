@@ -1,14 +1,15 @@
 package cs451.parser;
 
+import cs451.service.CommunicationService;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * Class to parse the output filename.
  */
 public class OutputParser {
-
-    /** Output file path */
-    private static String path;
 
     /**
      * Parse the output filename.
@@ -22,15 +23,12 @@ public class OutputParser {
             return false;
         }
         File file = new File(value);
-        path = file.getPath();
+        try {
+            CommunicationService.writer = new BufferedWriter(new FileWriter(file.getPath()), 32768);
+        } catch (IOException e) {
+            return false;
+        }
         return true;
-    }
-
-    /**
-     * @return output file path
-     */
-    public static String getPath() {
-        return path;
     }
 
 }

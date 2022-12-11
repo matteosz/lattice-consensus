@@ -6,7 +6,6 @@ import java.net.UnknownHostException;
 import static cs451.utilities.Utilities.fromIntegerToByte;
 
 /**
- * Host class:
  * It represents a host in the network.
  */
 public class Host {

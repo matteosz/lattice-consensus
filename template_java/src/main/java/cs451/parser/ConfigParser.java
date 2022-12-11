@@ -1,5 +1,7 @@
 package cs451.parser;
 
+import static cs451.consensus.LatticeConsensus.originals;
+
 import cs451.message.Proposal;
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,9 +17,6 @@ import java.util.Set;
  * create a list of all the proposals.
  */
 public class ConfigParser {
-
-    /** LinkedList of the proposals in the config file */
-    private static LinkedList<Proposal> proposals;
 
     /**
      * Read the config file and populate the proposals list.
@@ -42,7 +41,7 @@ public class ConfigParser {
                 if (proposalNumber <= 0 || maxProposalLength <= 0 || maxDistinct <= 0) {
                     return false;
                 }
-                proposals = new LinkedList<>();
+                originals = new LinkedList<>();
                 int p = 0;
                 for(String line; (line = br.readLine()) != null; ) {
                     if (line.isBlank()) {
@@ -57,9 +56,9 @@ public class ConfigParser {
                         values.add(Integer.parseInt(split));
                     }
                     // Add in tail to the list
-                    proposals.addLast(new Proposal(p++, (byte) 0, myHost, values, 1));
+                    originals.add(new Proposal(p++, (byte) 0, myHost, values, 1));
                 }
-                if (proposals.size() != proposalNumber) {
+                if (originals.size() != proposalNumber) {
                     System.err.println("Not as many proposals as declared in the header");
                     return false;
                 }
@@ -76,10 +75,4 @@ public class ConfigParser {
         return true;
     }
 
-    /**
-     * @return List of original proposals
-     */
-    public static LinkedList<Proposal> getProposals() {
-        return proposals;
-    }
 }

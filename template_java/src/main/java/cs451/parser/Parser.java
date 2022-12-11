@@ -1,8 +1,6 @@
 package cs451.parser;
 
-import cs451.message.Proposal;
-import java.util.LinkedList;
-import java.util.Map;
+import static cs451.process.Process.myHost;
 
 /**
  * Parser class that takes the command line arguments
@@ -19,7 +17,7 @@ public class Parser {
         if (args.length != 7 || !IdParser.populate(args[0], args[1])     ||
                                 !HostsParser.populate(args[2], args[3])  ||
                                 !OutputParser.populate(args[4], args[5]) ||
-                                !ConfigParser.populate(args[6], IdParser.getId())) {
+                                !ConfigParser.populate(args[6], myHost)) {
             help();
         }
     }

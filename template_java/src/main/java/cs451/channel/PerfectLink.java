@@ -10,8 +10,6 @@ import java.util.function.Consumer;
 import static cs451.channel.Network.getProcess;
 
 /**
- * Perfect link:
- *
  * The highest channel abstraction.
  *
  * Main function:

@@ -1,6 +1,6 @@
 package cs451.channel;
 
-import static cs451.process.Process.getMyHost;
+import static cs451.process.Process.myHost;
 
 import cs451.parser.Host;
 import cs451.process.Process;
@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Network class:
- *
  * It just populates the network given the information of the hosts.
  */
 public class Network {
@@ -25,7 +23,7 @@ public class Network {
     public static void populateNetwork(Map<Byte, Host> hosts) {
         for (Map.Entry<Byte, Host> entry : hosts.entrySet()) {
             // No need to map my current host, since I won't send packets to myself
-            if (entry.getKey() != getMyHost()) {
+            if (entry.getKey() != myHost) {
                 network.put(entry.getKey(), new Process(entry.getValue()));
             }
         }

@@ -13,8 +13,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
- * BEB broadcast:
- *
  * It serves to send to all hosts a given proposal.
  *
  * It has 2 main functions:

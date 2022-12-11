@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Proposal class:
- *
  * It represents a proposal in a consensus round.
  *
  * A proposal is a set of integers plus some metadata.

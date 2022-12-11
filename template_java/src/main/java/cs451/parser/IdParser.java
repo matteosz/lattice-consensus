@@ -2,13 +2,12 @@ package cs451.parser;
 
 import static cs451.utilities.Utilities.fromIntegerToByte;
 
+import cs451.process.Process;
+
 /**
  * Class to parse the id of my local host.
  */
 public class IdParser {
-
-    /** Local host id */
-    private static byte id;
 
     /**
      * Parse the id from key argument and value.
@@ -27,19 +26,12 @@ public class IdParser {
                 System.err.println("Local id not valid");
                 return false;
             }
-            IdParser.id = fromIntegerToByte(id);
+            Process.myHost = fromIntegerToByte(id);
         } catch (NumberFormatException e) {
             e.printStackTrace();
             return false;
         }
         return true;
-    }
-
-    /**
-      * @return local host id
-     */
-    public static byte getId() {
-        return id;
     }
 
 }

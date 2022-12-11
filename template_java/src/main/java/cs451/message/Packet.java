@@ -5,17 +5,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static cs451.process.Process.getMyHost;
+import static cs451.process.Process.myHost;
 import static cs451.utilities.Utilities.fromByteToIntegerArray;
 import static cs451.utilities.Utilities.fromByteToLongArray;
 import static cs451.utilities.Utilities.fromIntegerToByteArray;
 import static cs451.utilities.Utilities.fromLongToByteArray;
 
 /**
- * UDP Packet class:
- *
- * It contains metadata + a set of proposals
- * in a serialized form (byte array).
+ * It represents a UDP packet. It contains metadata +
+ * a set of proposals in a serialized form (byte array).
  */
 public class Packet {
 
@@ -146,8 +144,8 @@ public class Packet {
         byte[] newData = data.clone();
         // Simply change the isAck flag and the sender
         newData[IS_ACK_OS] = 1;
-        newData[SENDER_ID_OS] = getMyHost();
-        return new Packet(newData, packetId, newData[SENDER_ID_OS], true, timestamp, numberOfProposals);
+        newData[SENDER_ID_OS] = myHost;
+        return new Packet(newData, packetId, myHost, true, timestamp, numberOfProposals);
     }
 
     /**

@@ -1,8 +1,6 @@
 package cs451.message;
 
 /**
- * TimedPacket class:
- *
  * It associates a timestamp and timeout to
  * a certain packet to manage the resending.
  */

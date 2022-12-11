@@ -6,18 +6,16 @@ import cs451.message.TimedPacket;
 import cs451.parser.Host;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static cs451.consensus.LatticeConsensus.originals;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
 import static cs451.utilities.Parameters.*;
 import static cs451.message.Packet.MAX_COMPRESSION;
 
 /**
- * Process:
- *
  * It contains the information about the hosts and the
  * proposals to send, delivered and acked.
  */
@@ -28,7 +26,7 @@ public class Process {
      */
 
     /** Host id of the local host */
-    private static byte myHost;
+    public static byte myHost;
 
     /** Thread-safe queue of shared proposals to send to every host */
     public static final ConcurrentLinkedDeque<Proposal> proposalsToSend = new ConcurrentLinkedDeque<>();
@@ -60,21 +58,10 @@ public class Process {
                              nackDelivered = new Compressor(false);
 
     /**
-     * Initialize the proposals to send by loading a batch of original proposals.
-     * @param id of local host
-     * @param prop list of original proposals
+     * Initialize the proposals to send by loading a batch of original proposals
      */
-    public static void initialize(byte id, LinkedList<Proposal> prop) {
-        myHost = id;
-        // Load the first batch from original proposals
-        proposalsToSend.addAll(prop.subList(0, Math.min(PROPOSAL_BATCH, prop.size())));
-    }
-
-    /**
-     * @return local host id
-     */
-    public static byte getMyHost() {
-        return myHost;
+    public static void initialize() {
+        proposalsToSend.addAll(originals.subList(0, Math.min(PROPOSAL_BATCH, originals.size())));
     }
 
     /**
@@ -111,8 +98,10 @@ public class Process {
      * Truncate to a maximum timeout
      */
     public void expBackOff() {
-        // Do not double the previous threshold
-        timeout.set(Math.min(2 * (timeout.get() - THRESHOLD), MAX_TIMEOUT) + THRESHOLD);
+        long initial = timeout.get();
+        initial = initial == TIMEOUT? initial : initial - THRESHOLD;
+        // Don't double the previous threshold
+        timeout.set(Math.min(2 * initial, MAX_TIMEOUT) + THRESHOLD);
     }
 
     /**
