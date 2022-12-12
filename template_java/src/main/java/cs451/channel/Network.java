@@ -1,5 +1,6 @@
 package cs451.channel;
 
+import static cs451.parser.HostsParser.hosts;
 import static cs451.process.Process.myHost;
 
 import cs451.parser.Host;
@@ -18,9 +19,8 @@ public class Network {
 
     /**
      * Populate the network allocating the processes.
-     * @param hosts information retrieved by the parser of the hosts
      */
-    public static void populateNetwork(Map<Byte, Host> hosts) {
+    public static void populateNetwork() {
         for (Map.Entry<Byte, Host> entry : hosts.entrySet()) {
             // No need to map my current host, since I won't send packets to myself
             if (entry.getKey() != myHost) {

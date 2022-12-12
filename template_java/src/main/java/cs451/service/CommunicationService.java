@@ -30,24 +30,24 @@ import java.util.Set;
  */
 public class CommunicationService {
 
-    /** BufferedWriter to write efficiently the output file */
-    public static BufferedWriter writer;
+    /** Output file name */
+    public static String output;
+
+    /** String builder containing the logs to write */
+    private static final StringBuilder sb = new StringBuilder(32768);
 
     /**
      * Start the consensus and initialize all static fields
      */
     public static void start() {
-        // Retrieves the information from the parser
-        Map<Byte, Host> hosts = HostsParser.getHosts();
-
         // Static initialization
-        Parameters.setParams(hosts.size());
+        Parameters.setParams();
         Process.initialize();
-        Network.populateNetwork(hosts);
+        Network.populateNetwork();
 
         // Start the consensus
         try {
-            LatticeConsensus.start(hosts.get(myHost).getPort(), hosts.size(), CommunicationService::deliver);
+            LatticeConsensus.start(CommunicationService::deliver);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -55,13 +55,13 @@ public class CommunicationService {
 
     /**
      * After the SIGINT or SIGTERM, stop all threads
-     * and close the output file
+     * and logs into the output file
      */
     public static void logAndTerminate() {
         interruptThreads();
-        synchronized (writer) {
-            try {
-                writer.close();
+        synchronized (sb) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(output), 32768)) {
+                writer.write(sb.toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -69,25 +69,20 @@ public class CommunicationService {
     }
 
     /**
-     * Deliver a proposal by writing it into the file as new line.
+     * Deliver a proposal by writing it into the sb as new line.
      * @param proposals (simply set of integers) to deliver
      */
     private static void deliver(Set<Integer> proposals) {
-        synchronized (writer) {
-            try {
-                Iterator<Integer> iterator = proposals.iterator();
-                while (iterator.hasNext()) {
-                    int num = iterator.next();
-                    // Check if it's last number
-                    if (!iterator.hasNext()) {
-                        writer.write(String.format("%d\n", num));
-                    } else {
-                        writer.write(String.format("%d ", num));
-                    }
-                    writer.flush();
+        synchronized (sb) {
+            Iterator<Integer> iterator = proposals.iterator();
+            while (iterator.hasNext()) {
+                int num = iterator.next();
+                // Check if it's last number
+                if (!iterator.hasNext()) {
+                    sb.append(String.format("%d\n", num));
+                } else {
+                    sb.append(String.format("%d ", num));
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }

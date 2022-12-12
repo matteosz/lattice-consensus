@@ -83,7 +83,7 @@ public class Compressor {
          * in the way that it's not consecutive on the left to first.
          * @param value
          * @return true if value lies on the left of first, not being
-         *         consecutive to it, false otherwise
+         * consecutive to it, false otherwise
          */
         public boolean follows(int value) {
             return first > value + 1;

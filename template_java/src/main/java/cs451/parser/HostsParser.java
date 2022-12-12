@@ -15,7 +15,7 @@ import java.util.Map;
 public class HostsParser {
 
     /** Mapping the hosts info to their ids */
-    private static final Map<Byte, Host> hosts = new HashMap<>();
+    public static final Map<Byte, Host> hosts = new HashMap<>();
 
     /**
      * Parse the hosts file.
@@ -74,10 +74,4 @@ public class HostsParser {
         return true;
     }
 
-    /**
-     * @return hash map of the hosts
-     */
-    public static Map<Byte, Host> getHosts() {
-        return hosts;
-    }
 }

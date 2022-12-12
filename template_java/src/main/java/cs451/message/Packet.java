@@ -1,5 +1,6 @@
 package cs451.message;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -208,4 +209,14 @@ public class Packet {
         return System.currentTimeMillis() - timestamp;
     }
 
+    @Override
+    public String toString() {
+        return "Packet{" +
+            "packetId=" + packetId +
+            ", isAck=" + isAck +
+            ", senderId=" + senderId +
+            ", timestamp=" + timestamp +
+            ", numberOfProposals=" + numberOfProposals +
+            "}";
+    }
 }

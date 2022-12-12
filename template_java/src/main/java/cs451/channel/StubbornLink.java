@@ -6,6 +6,8 @@ import cs451.message.Proposal;
 import cs451.message.TimedPacket;
 import cs451.process.Process;
 
+import cs451.utilities.Parameters;
+import java.net.DatagramPacket;
 import java.net.SocketException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -41,13 +43,12 @@ public class StubbornLink {
 
     /**
      * Initialize the link and start the thread.
-     * @param port integer representing the port to bind the datagram socket
      * @param packetCallback a consumer function to call the delivery of the upper layer
      * @throws SocketException
      */
-    public static void start(int port, Consumer<Packet> packetCallback) throws SocketException {
+    public static void start(Consumer<Packet> packetCallback) throws SocketException {
         StubbornLink.packetCallback = packetCallback;
-        FairLossLink.start(port, StubbornLink::stubbornDeliver);
+        FairLossLink.start(StubbornLink::stubbornDeliver);
         ExecutorService worker = Executors.newFixedThreadPool(1);
         worker.execute(StubbornLink::sendPackets);
     }
@@ -59,7 +60,13 @@ public class StubbornLink {
      * @param packet received from fair-loss link
      */
     private static void stubbornDeliver(Packet packet) {
+        if (Parameters.DEBUG) {
+            System.out.println("Delivered packet from fair-loss link:\n" + packet);
+        }
         if (packet.isAck()) {
+            if (Parameters.DEBUG) {
+                System.out.println("Delivered the ACK of packet: #id = " + packet.getPacketId());
+            }
             Process sender = getProcess(packet.getSenderId());
             // Reset timeout with emission time
             sender.notify(packet.getEmissionTime());
@@ -68,6 +75,9 @@ public class StubbornLink {
         } else {
             // Send an ack back, same identical packet only change the isAck flag
             FairLossLink.enqueuePacket(packet.convertToAck(), packet.getSenderId());
+            if (Parameters.DEBUG) {
+                System.out.println("Sent back the ACK of packet: #id = " + packet.getPacketId());
+            }
             // Deliver to upper layer
             packetCallback.accept(packet);
         }
@@ -89,6 +99,9 @@ public class StubbornLink {
         while (running.get()) {
             // First try to resend all possible ack for all processes
             if (!resendPackets(processes)) {
+                if (Parameters.DEBUG) {
+                    System.out.println("No more space on the link!");
+                }
                 continue;
             }
             // Craft the shared packet
@@ -107,6 +120,9 @@ public class StubbornLink {
                     if (inc < 1) {
                         inc = 1;
                     }
+                    if (Parameters.DEBUG) {
+                        System.out.println("Sent packet #" + (packetNumber+1) + " of " + ack.size() + " ACKS to " + process.getId());
+                    }
                 }
                 // NACK
                 ackLen[0] = MEX_OS;
@@ -116,6 +132,9 @@ public class StubbornLink {
                     sendPacket(process, new Packet(ack, packetNumber + 2, myHost, ackLen[0]));
                     if (inc < 2) {
                         inc = 2;
+                    }
+                    if (Parameters.DEBUG) {
+                        System.out.println("Sent packet #" + (packetNumber+2) + " of " + ack.size() + " NACKS to " + process.getId());
                     }
                 }
                 // Send the crafted shared packet
@@ -142,6 +161,9 @@ public class StubbornLink {
                     timedPacket.getPacket().getPacketId())) {
                     // If the current living time of the packet is greater than host's timeout
                     if (timedPacket.timeoutExpired()) {
+                        if (Parameters.DEBUG) {
+                            System.out.println("Timeout was expired, resending");
+                        }
                         // Double the host's timeout
                         process.expBackOff();
                         // Update the packet timestamp
@@ -151,11 +173,13 @@ public class StubbornLink {
                     }
                     // Re-insert in queue
                     process.addPacketToAck(timedPacket);
+                } else if (Parameters.DEBUG) {
+                    System.out.println("Timed-packet removed from queue cause ack has been received");
                 }
             }
             // Check if I freed enough space
             if (!process.hasSpace()) {
-                hasSpace--;
+                --hasSpace;
             }
         }
         // Check at least half has enough space to continue
@@ -193,7 +217,10 @@ public class StubbornLink {
                 // Shrink the window with the number of proposals sent
                 LatticeConsensus.window.addAndGet(-size);
                 // Create a shared packet with the given proposals
-                return new Packet(sublist, packetNumber,myHost, len);
+                if (Parameters.DEBUG) {
+                    System.out.println("Crafted a shared packet with #" + size + " proposals to send to everyone: #id = " + packetNumber);
+                }
+                return new Packet(sublist, packetNumber, myHost, len);
             }
         }
         return null;

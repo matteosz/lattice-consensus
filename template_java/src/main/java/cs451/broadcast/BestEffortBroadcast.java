@@ -23,10 +23,10 @@ import java.util.function.Consumer;
 public class BestEffortBroadcast {
 
     /**
-     * Blocking queue of proposals delivered from underlying layer to be delivered by the upper one
-     * with a maximum constant capacity to limit the amount of memory used
+     * Blocking queue of proposals delivered from underlying layer
+     * to be delivered by the upper one
      */
-    private static final BlockingQueue<Proposal> linkDelivered = new LinkedBlockingQueue<>(BROADCAST_BATCH);
+    private static final BlockingQueue<Proposal> linkDelivered = new LinkedBlockingQueue<>();
 
     /** Running flag to stop the thread when the application stops */
     private static final AtomicBoolean running = new AtomicBoolean(true);
@@ -36,14 +36,13 @@ public class BestEffortBroadcast {
      * Then, take from the blocking queue the proposals
      * and call the consumer function based on its type
      * to deliver them to the upper layer.
-     * @param port integer representing the port to bind the datagram socket
      * @param proposalConsumer consumer function for proposal of type PROPOSAL
      * @param ackConsumer consumer function for proposal of type ACK
      * @param nackConsumer consumer function for proposal of type NACK
      * @throws SocketException
      */
-    public static void start(int port, Consumer<Proposal> proposalConsumer, Consumer<Proposal> ackConsumer, Consumer<Proposal> nackConsumer) throws SocketException {
-        PerfectLink.start(port, BestEffortBroadcast::bebDeliver);
+    public static void start(Consumer<Proposal> proposalConsumer, Consumer<Proposal> ackConsumer, Consumer<Proposal> nackConsumer) throws SocketException {
+        PerfectLink.start(BestEffortBroadcast::bebDeliver);
         // Start delivering
         while (running.get()) {
             try {

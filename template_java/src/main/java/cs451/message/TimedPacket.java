@@ -1,5 +1,7 @@
 package cs451.message;
 
+import cs451.utilities.Parameters;
+
 /**
  * It associates a timestamp and timeout to
  * a certain packet to manage the resending.
@@ -38,7 +40,12 @@ public class TimedPacket {
      * @return true if host's timeout has expired
      */
     public boolean timeoutExpired() {
-        return System.currentTimeMillis() - timestamp > timeout;
+        long time = System.currentTimeMillis();
+        if (time - timestamp > timeout && Parameters.DEBUG) {
+            System.out.println("Timeout was: " + timeout + ", time alive is: " + (time - timestamp));
+            return true;
+        }
+        return false;
     }
 
     /**

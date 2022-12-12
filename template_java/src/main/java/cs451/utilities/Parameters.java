@@ -1,19 +1,23 @@
 package cs451.utilities;
 
+import cs451.parser.HostsParser;
+
 /**
  * Class containing some important parameters, tuned
  * heuristically depending on the number of hosts in the network.
  */
 public class Parameters {
 
-    /** Starting timeout for each host */
-    public static int TIMEOUT;
+    public static final boolean DEBUG = true;
 
-    /** Threshold for the maximum timeout for an host */
-    public static int MAX_TIMEOUT = 32768;
+    /** Starting timeout for each host */
+    public static int TIMEOUT = 16;
+
+    /** Threshold for the maximum timeout for a host */
+    public static int MAX_TIMEOUT = 512;
 
     /** Threshold to be arbitrary added to hosts' timeout to prevent collisions */
-    public static int THRESHOLD;
+    public static int THRESHOLD = 10;
 
     /** Maximum number of packets to resend at a given time in the system */
     public static int LINK_BATCH = 128;
@@ -29,26 +33,20 @@ public class Parameters {
 
     /**
      * Tune the hyperparams depending on the number of hosts.
-     * @param numHosts in the system
      */
-    public static void setParams(int numHosts) {
+    public static void setParams() {
+        int numHosts = HostsParser.hosts.size();
         // Since the ack/nack are individual for process, the link batch is intended as for the whole network
         LINK_BATCH /= numHosts;
         switch (numHosts / 10) {
             // From 0 to 39 hosts
             case 0: case 1: case 2: case 3:
-                TIMEOUT = 64;
-                THRESHOLD = 30;
                 break;
             // From 40 to 79 hosts
             case 4: case 5: case 6: case 7:
-                TIMEOUT = 256;
-                THRESHOLD = 40;
                 break;
             // From 80 to 128 hosts
             default:
-                TIMEOUT = 300;
-                THRESHOLD = 50;
         }
     }
 

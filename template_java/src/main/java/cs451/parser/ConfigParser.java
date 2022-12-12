@@ -36,9 +36,8 @@ public class ConfigParser {
             try {
                 int proposalNumber = Integer.parseInt(header[0]);
                 int maxProposalLength = Integer.parseInt(header[1]);
-                int maxDistinct = Integer.parseInt(header[2]);
                 // Check if are valid integers
-                if (proposalNumber <= 0 || maxProposalLength <= 0 || maxDistinct <= 0) {
+                if (proposalNumber <= 0 || maxProposalLength <= 0) {
                     return false;
                 }
                 originals = new LinkedList<>();

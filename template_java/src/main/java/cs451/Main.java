@@ -11,12 +11,12 @@ import cs451.service.CommunicationService;
  * @section LICENSE
  *
  * Copyright © 2022-2023
- *
+ * <p>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
- * any later version. Please see https://gnu.org/licenses/gpl.html
- *
+ * any later version. Please see <a href="https://gnu.org/licenses/gpl.html">GPLv3</a>
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -29,10 +29,6 @@ import cs451.service.CommunicationService;
  * purpose it implements also a stack of underlying abstractions,
  * from the FairLoss link to the Best Effort Broadcast.
  *
- */
-
-/**
- * Starting point of the program.
  */
 public class Main {
 

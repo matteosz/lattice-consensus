@@ -55,7 +55,7 @@ public class Proposal {
      * @param type (0, 1, 2)
      * @param sender id
      * @param values proposed values to use in the proposal
-     * @param activeProposalNumber
+     * @param activeProposalNumber active count in consensus
      * @return new proposal
      */
     public static Proposal createProposal(int proposalNumber, byte type, byte sender, Set<Integer> values, int activeProposalNumber) {

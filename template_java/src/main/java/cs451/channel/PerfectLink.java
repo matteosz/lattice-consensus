@@ -4,6 +4,7 @@ import cs451.message.Packet;
 import cs451.message.Proposal;
 import cs451.process.Process;
 
+import cs451.utilities.Parameters;
 import java.net.SocketException;
 import java.util.function.Consumer;
 
@@ -23,13 +24,12 @@ public class PerfectLink {
 
     /**
      * Perfect link initialization.
-     * @param port integer representing the port to bind the datagram socket
      * @param proposalConsumer consumer function to call the delivery of the upper layer
      * @throws SocketException
      */
-    public static void start(int port, Consumer<Proposal> proposalConsumer) throws SocketException {
+    public static void start(Consumer<Proposal> proposalConsumer) throws SocketException {
         PerfectLink.proposalConsumer = proposalConsumer;
-        StubbornLink.start(port, PerfectLink::perfectDeliver);
+        StubbornLink.start(PerfectLink::perfectDeliver);
     }
 
     /**
@@ -43,6 +43,9 @@ public class PerfectLink {
         Process sender = getProcess(packet.getSenderId());
 
         if (sender.deliverPacket(packet.getPacketId())) {
+            if (Parameters.DEBUG) {
+                System.out.println("Delivered new packet: #id = " + packet.getPacketId());
+            }
             packet.applyToProposals(p -> callback(p, sender));
         }
     }
@@ -54,6 +57,7 @@ public class PerfectLink {
      */
     private static void callback(Proposal proposal, Process sender) {
         if (sender.deliver(proposal)) {
+            System.out.println("Delivered new proposal: #id = " + proposal.getProposalNumber());
             proposalConsumer.accept(proposal);
         }
     }

@@ -3,6 +3,7 @@ package cs451.channel;
 import cs451.message.Packet;
 import cs451.parser.Host;
 
+import cs451.utilities.Parameters;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -17,6 +18,8 @@ import java.util.function.Consumer;
 
 import static cs451.channel.Network.getProcess;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
+import static cs451.parser.HostsParser.hosts;
+import static cs451.process.Process.myHost;
 
 /**
  * The lowest abstraction for the channels.
@@ -42,13 +45,12 @@ public class FairLossLink {
 
     /**
      * Initialize the FairLoss Link.
-     * @param port integer representing the port to bind the datagram socket
      * @param packetCallback a consumer function to call the delivery of the upper layer
      * @throws SocketException
      */
-    public static void start(int port, Consumer<Packet> packetCallback) throws SocketException {
+    public static void start(Consumer<Packet> packetCallback) throws SocketException {
         FairLossLink.packetCallback = packetCallback;
-        socket = new DatagramSocket(port);
+        socket = new DatagramSocket(hosts.get(myHost).getPort());
         ExecutorService workers = Executors.newFixedThreadPool(2);
         workers.execute(FairLossLink::dequeuePacket);
         workers.execute(FairLossLink::receivePackets);
@@ -64,6 +66,10 @@ public class FairLossLink {
         Host targetHost = getProcess(target).getHost();
         // Serialize the packet as a byte array
         byte[] buffer = packet.getBytes();
+        if (Parameters.DEBUG) {
+            System.out.println("Sending through fair-loss new packet to (byte): " + target);
+            System.out.println(packet);
+        }
         try {
             // The method put will insert the element if the space is available, otherwise it'll wait
             datagramsToSend.put(new DatagramPacket(buffer, buffer.length, targetHost.getIpAsAddress(), targetHost.getPort()));

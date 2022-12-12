@@ -1,10 +1,7 @@
 package cs451.parser;
 
 import cs451.service.CommunicationService;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 /**
  * Class to parse the output filename.
@@ -23,11 +20,7 @@ public class OutputParser {
             return false;
         }
         File file = new File(value);
-        try {
-            CommunicationService.writer = new BufferedWriter(new FileWriter(file.getPath()), 32768);
-        } catch (IOException e) {
-            return false;
-        }
+        CommunicationService.output = file.getPath();
         return true;
     }
 
