@@ -11,13 +11,13 @@ public class Parameters {
     public static final boolean DEBUG = false;
 
     /** Starting timeout for each host */
-    public static int TIMEOUT = 16;
+    public static int TIMEOUT = 128;
 
     /** Threshold for the maximum timeout for a host */
-    public static int MAX_TIMEOUT = 512;
+    public static int MAX_TIMEOUT = 4096;
 
     /** Threshold to be arbitrary added to hosts' timeout to prevent collisions */
-    public static int THRESHOLD = 10;
+    public static int THRESHOLD = 15;
 
     /** Maximum number of packets to resend at a given time in the system */
     public static int LINK_BATCH = 1024;
@@ -26,7 +26,7 @@ public class Parameters {
     public static int BROADCAST_BATCH = 10000;
 
     /** Window size for the proposal to be processed */
-    public static int PROPOSAL_BATCH = 32;
+    public static int PROPOSAL_BATCH = 16;
 
     /** Maximum number of allowed miss from retrieving an ack or nack proposal to send */
     public static byte MAX_MISS = 2;

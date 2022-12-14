@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static cs451.consensus.LatticeConsensus.originals;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
 import static cs451.utilities.Parameters.*;
 import static cs451.message.Packet.MAX_COMPRESSION;
@@ -22,7 +21,7 @@ import static cs451.message.Packet.MAX_COMPRESSION;
 public class Process {
 
     /**
-     * The static objects represent something which is shared among all hosts
+     * The static objects represent something shared among all hosts
      */
 
     /** Host id of the local host */
@@ -60,12 +59,8 @@ public class Process {
                              ackDelivered = new HashMap<>(),
                              nackDelivered = new HashMap<>();
 
-    /**
-     * Initialize the proposals to send by loading a batch of original proposals
-     */
-    public static void initialize() {
-        proposalsToSend.addAll(originals.subList(0, Math.min(PROPOSAL_BATCH, originals.size())));
-    }
+    /** Data structure to deliver cleaning request */
+    private final Compressor cleanDelivered = new Compressor(false);
 
     /**
      * Initialize all data structures.
@@ -165,7 +160,7 @@ public class Process {
     }
 
     /**
-     * @return
+     * @return next timed packet in queue to resend
      */
     public TimedPacket nextPacketToAck() {
         return toAck.poll();
@@ -227,18 +222,17 @@ public class Process {
      * @return true if correctly added and not delivered before, else otherwise
      */
     public boolean deliver(Proposal proposal) {
-        Map<Integer, Compressor> map;
         switch (proposal.getType()) {
             case 0:
-                map = ackDelivered;
-                break;
+                return commonDeliver(proposal.getProposalNumber(), proposal.getActiveProposalNumber(), proposalsDelivered);
             case 1:
-                map = nackDelivered;
-                break;
-            default:
-                map = proposalsDelivered;
+                return commonDeliver(proposal.getProposalNumber(), proposal.getActiveProposalNumber(), ackDelivered);
+            case 2:
+                return commonDeliver(proposal.getProposalNumber(), proposal.getActiveProposalNumber(), nackDelivered);
+            case 3:
+                return cleanDelivered.add(proposal.getProposalNumber());
         }
-        return commonDeliver(proposal.getProposalNumber(), proposal.getActiveProposalNumber(), map);
+        return false;
     }
 
     /**

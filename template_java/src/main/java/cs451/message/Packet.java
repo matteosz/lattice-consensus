@@ -1,6 +1,5 @@
 package cs451.message;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,8 +25,13 @@ public class Packet {
                      SENDER_ID_OS = 1 + IS_ACK_OS,
                      TIMESTAMP_OS = 1 + SENDER_ID_OS,
                      NUMBER_PROPOSALS_OS = Long.BYTES + TIMESTAMP_OS,
-                     MEX_OS = 1 + NUMBER_PROPOSALS_OS,
-                     MAX_PACKET_SIZE = 65507;
+                     HEADER = 1 + NUMBER_PROPOSALS_OS;
+
+    /**
+     * Max. dimension of a packet in bytes, it will be at most HEADER + 8 * MAX_PROPOSAL_SIZE,
+     * where the maximum proposal size is (4 + ds) * 4
+     */
+    public static int MAX_PACKET_SIZE;
 
     /** Integer representing the unique packet id */
     private final int packetId;
@@ -76,22 +80,26 @@ public class Packet {
         this.isAck = false;
         this.timestamp = System.currentTimeMillis();
         this.numberOfProposals = (byte) proposals.size();
+
         // Write the header
         fromIntegerToByteArray(packetId, this.data, PCK_ID_OS);
-        // IsAck bit: 0 -> False, 1 -> True
         this.data[IS_ACK_OS] = 0;
         this.data[SENDER_ID_OS] = this.senderId;
         fromLongToByteArray(this.timestamp, this.data, TIMESTAMP_OS);
         this.data[NUMBER_PROPOSALS_OS] = this.numberOfProposals;
+
         // Write the proposals
-        int ptr = MEX_OS;
+        int ptr = HEADER;
         for (Proposal prop : proposals) {
+            // Proposal ID
             fromIntegerToByteArray(prop.getProposalNumber(), this.data, ptr);
             ptr += Integer.BYTES;
+            // Proposal Active Count
             fromIntegerToByteArray(prop.getActiveProposalNumber(), this.data, ptr);
             ptr += Integer.BYTES;
+            // Proposal TYPE
             this.data[ptr++] = prop.getType();
-            // If the proposal is ACK type then it has no proposed value
+            // If the proposal is ACK/CLEAN type then it has no proposed value
             if (!prop.isAck()) {
                 fromIntegerToByteArray(prop.getLength(), this.data, ptr);
                 ptr += Integer.BYTES;
@@ -142,7 +150,8 @@ public class Packet {
      * @return ack packet
      */
     public Packet convertToAck() {
-        byte[] newData = data.clone();
+        // For the ack we simply need the header of packet
+        byte[] newData = new byte[HEADER];
         // Simply change the isAck flag and the sender
         newData[IS_ACK_OS] = 1;
         newData[SENDER_ID_OS] = myHost;
@@ -154,7 +163,7 @@ public class Packet {
      * @param callback consumer function to apply
      */
     public void applyToProposals(Consumer<Proposal> callback) {
-        int ptr = MEX_OS;
+        int ptr = HEADER;
         for (byte m = 0; m < numberOfProposals; m++) {
             Proposal proposal;
             int numProposal = fromByteToIntegerArray(data, ptr);
@@ -165,6 +174,8 @@ public class Packet {
             // If type is ACK
             if (type == 1) {
                 proposal = new Proposal(numProposal, type, senderId, null, activeId);
+            } else if (type == 3) {
+                proposal = new Proposal(numProposal);
             } else {
                 int numValues = fromByteToIntegerArray(data, ptr);
                 ptr += Integer.BYTES;
@@ -200,6 +211,13 @@ public class Packet {
      */
     public boolean isAck() {
         return isAck;
+    }
+
+    /**
+     * @return packet's timestamp
+     */
+    public long getTimestamp() {
+        return timestamp;
     }
 
     /**

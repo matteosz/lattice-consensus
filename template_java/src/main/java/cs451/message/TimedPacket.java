@@ -57,7 +57,7 @@ public class TimedPacket {
      */
     public void update(long timeout) {
         packet.updateTimestamp();
-        timestamp = System.currentTimeMillis();
+        timestamp = packet.getTimestamp();
         this.timeout = timeout;
     }
 

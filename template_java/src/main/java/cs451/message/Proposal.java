@@ -10,7 +10,7 @@ import java.util.Set;
  */
 public class Proposal {
 
-    /** Length in bytes of an ack proposal */
+    /** Length in bytes of an ack proposal - 1 byte + 2 integers */
     private static final int ACK_COUNT = 1 + 2 * Integer.BYTES;
 
     /** Proposal unique id */
@@ -19,17 +19,19 @@ public class Proposal {
     /** Active proposal number used in consensus */
     private final int activeProposalNumber;
 
-    /** Type of proposal: 0 -> PROPOSAL
-     *                    1 -> ACK
-     *                    2 -> NACK
+    /**
+     * Type of proposal: 0 -> PROPOSAL.
+     *                    1 -> ACK.
+     *                    2 -> NACK.
+     *                    3 -> CLEAN.
      */
     private final byte type;
 
     /** Sender id of the proposal */
-    private final byte sender;
+    private byte sender;
 
     /** Real proposal, set of integers */
-    private final Set<Integer> proposedValues;
+    private Set<Integer> proposedValues;
 
     /**
      * Simple constructor for a proposal.
@@ -46,6 +48,12 @@ public class Proposal {
         this.sender = sender;
         this.proposedValues = proposedValues;
         this.activeProposalNumber = activeProposalNumber;
+    }
+
+    public Proposal(int proposalNumber) {
+        this.proposalNumber = proposalNumber;
+        this.type = 3;
+        this.activeProposalNumber = 0;
     }
 
     /**
@@ -77,7 +85,7 @@ public class Proposal {
     }
 
     /**
-     * @return type of the proposal (0, 1, 2)
+     * @return type of the proposal (0, 1, 2, 3)
      */
     public byte getType() {
         return type;
@@ -110,7 +118,7 @@ public class Proposal {
      * @return number of bytes used
      */
     public int getBytes() {
-        if (type == 1) {
+        if (type == 1 || type == 3) {
             return ACK_COUNT;
         } else {
             // If not an ack then it's present also the number of proposals (int)
@@ -120,10 +128,10 @@ public class Proposal {
     }
 
     /**
-     * @return true if type == 1 (ACK), false otherwise
+     * @return true if type is ACK or CLEAN, false otherwise
      */
     public boolean isAck() {
-        return type == 1;
+        return type == 1 || type == 3;
     }
 
 }

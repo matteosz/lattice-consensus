@@ -1,10 +1,11 @@
 package cs451.broadcast;
 
+import static cs451.channel.Network.getNetwork;
 import static cs451.process.Process.proposalsToSend;
-import static cs451.utilities.Parameters.BROADCAST_BATCH;
 
 import cs451.channel.PerfectLink;
 
+import cs451.consensus.LatticeConsensus;
 import cs451.message.Proposal;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
@@ -60,6 +61,9 @@ public class BestEffortBroadcast {
                         // If it's NACK type
                         nackConsumer.accept(proposal);
                         break;
+                        // It's a clean message
+                    case 3:
+                        LatticeConsensus.clean(proposal.getProposalNumber());
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -83,13 +87,23 @@ public class BestEffortBroadcast {
     }
 
     /**
-     * Broadcast to all hosts the given proposal.
-     * @param proposal to be broadcast
+     * Broadcast to all host a given proposal.
+     * Simply put the proposal at the beginning of the shared list.
+     * The beginning ensures that will be loaded before the original proposals.
+     * @param proposal to broadcast
      */
     public static void broadcast(Proposal proposal) {
-        // Simply put the proposal at the beginning of the shared list
-        // The beginning ensures that will be loaded before the original proposals
         proposalsToSend.addFirst(proposal);
+    }
+
+    /**
+     * Broadcast to all hosts a proposal of type ACK (or CLEAN).
+     * @param proposal of ACK/CLEAN type to broadcast
+     */
+    public static void broadcastDelivered(Proposal proposal) {
+        for (byte id : getNetwork().keySet()) {
+            PerfectLink.sendAck(proposal, id);
+        }
     }
 
     /**

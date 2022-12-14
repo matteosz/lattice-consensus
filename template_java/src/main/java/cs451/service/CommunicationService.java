@@ -1,23 +1,17 @@
 package cs451.service;
 
-import static cs451.process.Process.myHost;
-
 import cs451.broadcast.BestEffortBroadcast;
 import cs451.channel.FairLossLink;
 import cs451.channel.Network;
 import cs451.channel.StubbornLink;
 import cs451.consensus.LatticeConsensus;
-import cs451.parser.HostsParser;
-import cs451.parser.OutputParser;
 import cs451.process.Process;
-import cs451.parser.Host;
 
 import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,7 +36,6 @@ public class CommunicationService {
     public static void start() {
         // Static initialization
         Parameters.setParams();
-        Process.initialize();
         Network.populateNetwork();
 
         // Start the consensus

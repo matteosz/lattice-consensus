@@ -41,7 +41,6 @@ public class PerfectLink {
      */
     private static void perfectDeliver(Packet packet) {
         Process sender = getProcess(packet.getSenderId());
-
         if (sender.deliverPacket(packet.getPacketId())) {
             if (Parameters.DEBUG) {
                 System.out.println("Delivered new packet: #id = " + packet.getPacketId() + " from p:" + sender.getId());

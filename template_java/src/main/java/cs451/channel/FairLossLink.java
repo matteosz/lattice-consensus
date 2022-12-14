@@ -67,7 +67,7 @@ public class FairLossLink {
         // Serialize the packet as a byte array
         byte[] buffer = packet.getBytes();
         if (Parameters.DEBUG) {
-            System.out.println("Sending through fair-loss new packet to (byte): " + target);
+            System.out.println("Sending through fair-loss new packet to p: " + target);
             System.out.println(packet);
         }
         try {

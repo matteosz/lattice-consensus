@@ -71,7 +71,7 @@ public class Compressor {
 
         /**
          * Check if a value lies within the current interval.
-         * @param value
+         * @param value integer
          * @return true if it's included, false otherwise
          */
         public boolean included(int value) {
@@ -81,7 +81,7 @@ public class Compressor {
         /**
          * Check if a given value precedes my interval,
          * in the way that it's not consecutive on the left to first.
-         * @param value
+         * @param value integer
          * @return true if value lies on the left of first, not being
          * consecutive to it, false otherwise
          */
@@ -95,6 +95,9 @@ public class Compressor {
 
     /** Access flag used to indicate whether it's thread-safe and synchronize the access */
     private final Boolean access;
+
+    /** Lock of the data structure */
+    private final Object lock = new Object();
 
     /**
      * Create an empty compressor.
@@ -123,7 +126,7 @@ public class Compressor {
      */
     public boolean contains(int value) {
         if (access) {
-            synchronized (access) {
+            synchronized (lock) {
                 return coreContains(value);
             }
         }
@@ -153,7 +156,7 @@ public class Compressor {
      */
     public boolean add(int value) {
         if (access) {
-            synchronized (access) {
+            synchronized (lock) {
                 return coreAdd(value);
             }
         }
@@ -203,7 +206,7 @@ public class Compressor {
      */
     public int takeLast() {
         if (access) {
-            synchronized (access) {
+            synchronized (lock) {
                 if (head == null) {
                     return -1;
                 }

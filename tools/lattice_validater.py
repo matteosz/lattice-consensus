@@ -69,7 +69,8 @@ for i in range(1, number_processes+1):
     except EnvironmentError:
         print(EnvironmentError)
         print("File not found: " + output_path + str(i) + '.output')
-    
+
+error = False
 # Validity
 for i in range(number_proposal):
     
@@ -86,26 +87,27 @@ for i in range(number_proposal):
 
         # I_i subset of O_i
         if not (proposes[i][j].issubset(decisions[i][j])):
-            print(f"Validation failed for proposal {i} of process {j}")
-            print("Proposed_i: " +  proposes[i][j])
-            print("Decided_i: " + decisions[i][j])
-            exit()
+            print(f"NOT CONTAINING PROPOSED: Validation failed for proposal {i} of process {j}")
+            print("Proposed_i: ", proposes[i][j])
+            print("Decided_i: ", decisions[i][j])
+            error = True
 
         # O_i subset of all proposed
         if not (decisions[i][j].issubset(all_proposed)):
-            print(f"Validation failed for proposal {i} of process {j}")
-            print("Decided_i: " + decisions[i][j])
-            print("All proposed: " + all_proposed)
-            exit()
+            print(f"OUT OF PROPOSED: Validation failed for proposal {i} of process {j}")
+            print("Decided_i: ", decisions[i][j])
+            print("All proposed: ", all_proposed)
+            error = True
 
         # Consistency
         for k in range(j+1, len(decisions[i])):
             # O_j subset of O_k
             if not (decisions[i][j].issubset(decisions[i][k]) or decisions[i][k].issubset(decisions[i][j])):
-                print(f"Validation failed for proposal {i} of process {j}")
-                print("Decided_i: " + decisions[i][j])
-                print(f"Not consistent with what decided by process {k}: " + decisions[i][k])
-                exit()
+                print(f"CONSISTENCY: Validation failed for proposal {i} of process {j}")
+                print("Decided_i: ", decisions[i][j])
+                print(f"Not consistent with what decided by process {k}: ", decisions[i][k])
+                error = True
 
-print("Validation successful!")
+if not error:
+    print("Validation successful!")
          

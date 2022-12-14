@@ -2,6 +2,7 @@ package cs451;
 
 import cs451.parser.Parser;
 import cs451.service.CommunicationService;
+import java.io.IOException;
 
 /**
  * @package cs451
@@ -44,7 +45,7 @@ public class Main {
      * Main function to which pass args to be parsed.
      * @param args command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Assign the shutdown hook
         initSignalHandlers();
 
