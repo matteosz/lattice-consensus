@@ -122,6 +122,27 @@ public class LatticeConsensus {
     }
 
     /**
+     * Deliver an "internal" proposal, i.e. proposal
+     * sent by the localhost to itself.
+     * It avoids to physically send it.
+     * @param proposal to deliver
+     */
+    private static void internalDeliver(Proposal proposal) {
+        int id = proposal.getProposalNumber();
+        // If accepted values is a subset of the proposed values
+        if (proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
+            acceptedValue.put(id, proposal.getProposedValues());
+            // Send and receive an ack to the proposal's sender
+            deliverAck(new Proposal(id, (byte) 1, myHost, null, proposal.getActiveProposalNumber()));
+        } else {
+            // Otherwise add all the proposed values to the accepted values
+            acceptedValue.get(id).addAll(proposal.getProposedValues());
+            // Send a nack with the new accepted values
+            deliverNAck(Proposal.createProposal(id, (byte) 2, myHost, acceptedValue.get(id), proposal.getActiveProposalNumber()));
+        }
+    }
+
+    /**
      * Deliver a proposal of type ACK.
      * @param proposal delivered by underlying layer
      */
@@ -187,17 +208,15 @@ public class LatticeConsensus {
             if (Parameters.DEBUG) {
                 System.out.println("NACK EVENT: new active count: " + activeId);
             }
-            // Set ack to 1 since I'm not sending the message to myself to save bandwidth
-            // I need to "simulate" the delivery
-            ack[0] = 1;
-            acceptedValue.put(proposalId, new HashSet<>(proposedValue.get(proposalId)));
-            // Set nack to 0
-            ack[1] = 0;
+            Proposal newProposal = Proposal.createProposal(proposalId, (byte) 0, myHost, proposedValue.get(proposalId), activeId);
+            // Broadcast to everyone the new proposal with different active count
             if (Parameters.DEBUG) {
                 System.out.println("Broadcasting new proposal");
             }
-            // Broadcast to everyone the new proposal with different active count
-            BestEffortBroadcast.broadcast(Proposal.createProposal(proposalId, (byte) 0, myHost, proposedValue.get(proposalId), activeId));
+            BestEffortBroadcast.broadcast(newProposal);
+            ack[0] = 0;
+            ack[1] = 0;
+            internalDeliver(newProposal);
         } else if (Parameters.DEBUG) {
             System.out.println("NACK EVENT failed: #nack = " + ack[1] + " #ack = " + ack[0]);
         }

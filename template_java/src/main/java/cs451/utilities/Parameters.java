@@ -8,7 +8,7 @@ import cs451.parser.HostsParser;
  */
 public class Parameters {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     /** Starting timeout for each host */
     public static int TIMEOUT = 16;
@@ -26,13 +26,13 @@ public class Parameters {
     public static int BROADCAST_BATCH = 10000;
 
     /** Window size for the proposal to be processed */
-    public static int PROPOSAL_BATCH = 16;
+    public static int PROPOSAL_BATCH = 32;
 
     /** Maximum number of allowed miss from retrieving an ack or nack proposal to send */
     public static byte MAX_MISS = 2;
 
     /**
-     * Tune the hyperparams depending on the number of hosts.
+     * Tune the hyper-params depending on the number of hosts.
      */
     public static void setParams() {
         int numHosts = HostsParser.hosts.size();

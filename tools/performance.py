@@ -127,35 +127,37 @@ class LatticeAgreementValidation:
         self.mps = max_proposal_size
         self.dval = distinct_values
 
-    def generate(self, directory):
+    def generate(self, directory, redo):
+
         hostsfile = os.path.join(directory, "hosts")
-
-        with open(hostsfile, "w") as hosts:
-            for i in range(1, self.procs + 1):
-                hosts.write("{} localhost {}\n".format(i, PROCESSES_BASE_IP + i))
-
-        maxint = 2**31 - 1
-        seeded_rand = random.Random(42)
-        try:
-            values = seeded_rand.sample(range(0, maxint + 1), self.dval)
-        except ValueError:
-            print("Cannot have to many distinct values")
-            sys.exit(1)
-
         configfiles = []
-        for pid in range(1, self.procs + 1):
-            configfile = os.path.join(directory, "lattice-agreement-{}.config".format(pid))
+        for pid in range(self.procs):
+            configfile = os.path.join(directory, "lattice-agreement-{}.config".format(pid+1))
             configfiles.append(configfile)
 
-            with open(configfile, "w") as config:
-                config.write("{} {} {}\n".format(self.props, self.mps, self.dval))
+        if redo is True:
+            with open(hostsfile, "w") as hosts:
+                for i in range(1, self.procs + 1):
+                    hosts.write("{} localhost {}\n".format(i, PROCESSES_BASE_IP + i))
 
-                for i in range(self.props):
-                    proposal = seeded_rand.sample(
-                        values, seeded_rand.randint(1, self.mps)
-                    )
-                    config.write(" ".join(map(str, proposal)))
-                    config.write("\n")
+            maxint = 2**31 - 1
+            seeded_rand = random.Random(42)
+            try:
+                values = seeded_rand.sample(range(0, maxint + 1), self.dval)
+            except ValueError:
+                print("Cannot have to many distinct values")
+                sys.exit(1)
+
+            for pid in range(self.procs):
+                with open(configfiles[pid], "w") as config:
+                    config.write("{} {} {}\n".format(self.props, self.mps, self.dval))
+
+                    for i in range(self.props):
+                        proposal = seeded_rand.sample(
+                            values, seeded_rand.randint(1, self.mps)
+                        )
+                        config.write(" ".join(map(str, proposal)))
+                        config.write("\n")
 
         return (hostsfile, configfiles)
 
@@ -326,33 +328,23 @@ def main(parser_results, testConfig):
     runscript = parser_results.runscript
     logsDir = parser_results.logsDir
     processes = parser_results.processes
+    reconfig = False if parser_results.reconfig == 0 else True
 
     if not os.path.isdir(logsDir):
         raise ValueError("Directory `{}` does not exist".format(logsDir))
 
-    if cmd == "perfect":
-        validation = Validation(processes, parser_results.messages)
-        hostsFile, configFile = validation.generatePerfectLinksConfig(logsDir)
-        configFiles = [configFile]
-    elif cmd == "fifo":
-        validation = Validation(processes, parser_results.messages)
-        hostsFile, configFile = validation.generateFifoConfig(logsDir)
-        configFiles = [configFile]
-    elif cmd == "agreement":
-        proposals = parser_results.proposals
-        pmv = parser_results.proposal_max_values
-        pdv = parser_results.proposals_distinct_values
+    proposals = parser_results.proposals
+    pmv = parser_results.proposal_max_values
+    pdv = parser_results.proposals_distinct_values
 
-        if pmv > pdv:
-            print(
-                "The distinct proposal values must at least as many as the maximum values per proposal"
-            )
-            sys.exit(1)
+    if pmv > pdv:
+        print(
+            "The distinct proposal values must at least as many as the maximum values per proposal"
+        )
+        sys.exit(1)
 
-        validation = LatticeAgreementValidation(processes, proposals, pmv, pdv)
-        hostsFile, configFiles = validation.generate(logsDir)
-    else:
-        raise ValueError("Unrecognized command")
+    validation = LatticeAgreementValidation(processes, proposals, pmv, pdv)
+    hostsFile, configFiles = validation.generate(logsDir, reconfig)
 
     try:
         # Start the processes and get their PIDs
@@ -423,47 +415,34 @@ if __name__ == "__main__":
 
     sub_parsers = parser.add_subparsers(dest="command", help="stress a given milestone")
     sub_parsers.required = True
-    parser_perfect = sub_parsers.add_parser("perfect", help="stress perfect links")
-    parser_fifo = sub_parsers.add_parser("fifo", help="stress fifo broadcast")
     parser_agreement = sub_parsers.add_parser(
         "agreement", help="stress lattice agreement"
     )
 
-    for subparser in [parser_perfect, parser_fifo, parser_agreement]:
-        subparser.add_argument(
+    parser_agreement.add_argument(
             "-r",
             "--runscript",
             required=True,
             dest="runscript",
             help="Path to run.sh",
-        )
+    )
 
-        subparser.add_argument(
+    parser_agreement.add_argument(
             "-l",
             "--logs",
             required=True,
             dest="logsDir",
             help="Directory to store stdout, stderr and outputs generated by the processes",
-        )
+    )
 
-        subparser.add_argument(
+    parser_agreement.add_argument(
             "-p",
             "--processes",
             required=True,
             type=positive_int,
             dest="processes",
             help="Number of processes that broadcast",
-        )
-
-    for subparser in [parser_perfect, parser_fifo]:
-        subparser.add_argument(
-            "-m",
-            "--messages",
-            required=True,
-            type=positive_int,
-            dest="messages",
-            help="Maximum number (because it can crash) of messages that each process can broadcast",
-        )
+    )
 
     parser_agreement.add_argument(
         "-n",
@@ -501,15 +480,25 @@ if __name__ == "__main__":
         help="Time to run the performance test, default is 60"
     )
 
+    parser_agreement.add_argument(
+        '-c',
+        '--reconfig', 
+        dest='reconfig',
+        type=int,
+        required=False,
+        help='flag to rebuild config files (True by default)'
+    )
+    parser_agreement.set_defaults(reconfig=1)
+
     results = parser.parse_args()
 
     testConfig = {
         "concurrency": 0,  # How many threads are interferring with the running processes
         "attempts": 0,  # How many interferring attempts each threads does
         "attemptsDistribution": {  # Probability with which an interferring thread will
-            "STOP": 0.48,  # select an interferring action (make sure they add up to 1)
-            "CONT": 0.48,
-            "TERM": 0.04,
+            "STOP": 0,  # select an interferring action (make sure they add up to 1)
+            "CONT": 1,
+            "TERM": 0,
         },
     }
 
