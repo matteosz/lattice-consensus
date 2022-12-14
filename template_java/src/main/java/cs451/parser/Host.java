@@ -10,7 +10,7 @@ import static cs451.utilities.Utilities.fromIntegerToByte;
  */
 public class Host {
 
-    /** ID of the host in the system */
+    /** ID of the host in the system, it's a byte starting from 0 to max. 127 */
     private byte id;
 
     /** IP address of the host */

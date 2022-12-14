@@ -211,8 +211,9 @@ public class LatticeConsensus {
         // If received the majority of ack and the proposal is currently active
         if (ackCount.get(id)[0] > majority && active[id]) {
             if (Parameters.DEBUG) {
-                System.out.println("ACK EVENT: can deliver proposal " + id);
+                System.out.println("DELIVERED " + id);
             }
+
             // Increment the window since I've delivered a proposal
             window.incrementAndGet();
             // Take the next proposal from original ones
@@ -229,7 +230,7 @@ public class LatticeConsensus {
             }
             active[id] = false;
         } else if (Parameters.DEBUG) {
-            System.out.println("ACK EVENT failed: #ack = " + ackCount.get(id)[0]);
+            System.out.println("ACK EVENT failed: #ack = " + ackCount.get(id)[0] + "active=" + active[id]);
         }
     }
 
@@ -260,6 +261,9 @@ public class LatticeConsensus {
         // Check if already not loaded to load
         if (!isLoaded(proposal.getProposalNumber())) {
             populateProposal(proposal);
+        }
+        if (Parameters.DEBUG) {
+            System.out.println("LOADING next proposal: " + proposal.getProposalNumber());
         }
         // Add in tail to the shared proposals
         proposalsToSend.add(proposal);

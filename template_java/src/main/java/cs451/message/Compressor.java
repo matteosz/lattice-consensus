@@ -165,7 +165,7 @@ public class Compressor {
      * @param value
      * @return true if added, false if already there
      */
-    public boolean coreAdd(int value) {
+    private boolean coreAdd(int value) {
         if (head == null) {
             head = new Node(value, value, null);
             return true;

@@ -41,8 +41,11 @@ public class TimedPacket {
      */
     public boolean timeoutExpired() {
         long time = System.currentTimeMillis();
-        if (time - timestamp > timeout && Parameters.DEBUG) {
-            System.out.println("Timeout was: " + timeout + ", time alive is: " + (time - timestamp));
+        if (time - timestamp > timeout) {
+            if (Parameters.DEBUG) {
+                System.out.println(
+                    "Timeout was: " + timeout + ", time alive is: " + (time - timestamp));
+            }
             return true;
         }
         return false;

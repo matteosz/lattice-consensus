@@ -30,7 +30,7 @@ for i in range(number_proposal):
 for i in range(1, number_processes+1):
     try:
         with open(config_path + 'lattice-agreement-' + str(i) + '.config') as f:
-            print("Reading: " + config_path + 'lattice-agreement-' + str(i) + '.config')
+            #print("Reading: " + config_path + 'lattice-agreement-' + str(i) + '.config')
             lines = f.readlines()
             lines = lines[1:]
             
@@ -53,7 +53,7 @@ for i in range(number_proposal):
 for i in range(1, number_processes+1):
     try:
         with open(output_path + str(i) + '.output') as f:
-            print("Reading: " + output_path + str(i) + '.output')
+            #print("Reading: " + output_path + str(i) + '.output')
             lines = f.readlines()
 
             p=0

@@ -52,10 +52,13 @@ public class Process {
     /** Compressor to represent all the packet id delivered */
     private final Compressor packetsDelivered = new Compressor(false);
 
-    /** Compressors to represent all the proposal id delivered, divided by type */
-    private final Compressor proposalsDelivered = new Compressor(false),
-                             ackDelivered = new Compressor(false),
-                             nackDelivered = new Compressor(false);
+    /**
+     * Maps to represent all the proposals' ids delivered, divided by
+     * type and associated by the active counts been delivered
+     */
+    private final Map<Integer, Compressor> proposalsDelivered = new HashMap<>(),
+                             ackDelivered = new HashMap<>(),
+                             nackDelivered = new HashMap<>();
 
     /**
      * Initialize the proposals to send by loading a batch of original proposals
@@ -128,24 +131,16 @@ public class Process {
      * @param ack type of queue passed (ack or nack)
      * @return list of max. 8 proposals that fit the maximum packet size
      */
-    public List<Proposal> getNextAckProposals(int[] len, ConcurrentLinkedQueue<Proposal> ack) {
-        byte count = 0;
+    public static List<Proposal> getNextAckProposals(int[] len, ConcurrentLinkedQueue<Proposal> ack) {
         List<Proposal> proposals = new LinkedList<>();
-        while (proposals.size() < MAX_COMPRESSION && count < MAX_MISS) {
+        while (proposals.size() < MAX_COMPRESSION) {
             Proposal proposal = ack.poll();
             if (proposal == null || proposal.getBytes() > (MAX_PACKET_SIZE - len[0])) {
-                // No proposal to be sent yet or not fitting the packet
-                ++count;
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return proposals;
-                }
                 if (proposal != null) {
                     // Insert back the proposal at the end of the queue
                     ack.add(proposal);
                 }
+                break;
             } else {
                 // Ensure that the proposal fit in the packet
                 proposals.add(proposal);
@@ -170,13 +165,10 @@ public class Process {
     }
 
     /**
-     * @return first timed packet of the queue,
-     *         null if empty
+     * @return
      */
-    public List<TimedPacket> nextPacketsToAck() {
-        List<TimedPacket> copy = new ArrayList<>(toAck);
-        toAck.clear();
-        return copy;
+    public TimedPacket nextPacketToAck() {
+        return toAck.poll();
     }
 
     /**
@@ -235,13 +227,35 @@ public class Process {
      * @return true if correctly added and not delivered before, else otherwise
      */
     public boolean deliver(Proposal proposal) {
-        if (proposal.isAck()) {
-            return ackDelivered.add(proposal.getProposalNumber());
-        } else if (proposal.isNack()) {
-            return nackDelivered.add(proposal.getProposalNumber());
-        } else  {
-            return proposalsDelivered.add(proposal.getProposalNumber());
+        Map<Integer, Compressor> map;
+        switch (proposal.getType()) {
+            case 0:
+                map = ackDelivered;
+                break;
+            case 1:
+                map = nackDelivered;
+                break;
+            default:
+                map = proposalsDelivered;
         }
+        return commonDeliver(proposal.getProposalNumber(), proposal.getActiveProposalNumber(), map);
+    }
+
+    /**
+     * Common deliver function for proposals (PROPOSAL,
+     * ACK or NACK types). It just checks if that proposal
+     * with the given active count has been delivered already
+     * @param proposalNumber original proposal's id
+     * @param activeCount proposal's active count given by consensus
+     * @param map delivery data structure
+     * @return true if correctly added and not delivered before, else otherwise
+     */
+    private static boolean commonDeliver(int proposalNumber, int activeCount, Map<Integer, Compressor> map) {
+        if (!map.containsKey(proposalNumber)) {
+            map.put(proposalNumber, new Compressor(false, activeCount));
+            return true;
+        }
+        return map.get(proposalNumber).add(activeCount);
     }
 
 }

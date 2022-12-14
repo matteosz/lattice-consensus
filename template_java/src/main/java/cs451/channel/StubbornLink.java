@@ -76,7 +76,7 @@ public class StubbornLink {
             // Send an ack back, same identical packet only change the isAck flag
             FairLossLink.enqueuePacket(packet.convertToAck(), packet.getSenderId());
             if (Parameters.DEBUG) {
-                System.out.println("Sent back the ACK of packet: #id = " + packet.getPacketId());
+                System.out.println("Sent back the ACK of packet: #id = " + packet.getPacketId() + " to p." + packet.getSenderId());
             }
             // Deliver to upper layer
             packetCallback.accept(packet);
@@ -98,12 +98,13 @@ public class StubbornLink {
 
         while (running.get()) {
             // First try to resend all possible ack for all processes
-            if (!resendPackets(processes)) {
+            resendPackets(processes);
+            /* if (!resendPackets(processes)) {
                 if (Parameters.DEBUG) {
                     System.out.println("No more space on the link!");
                 }
                 continue;
-            }
+            }*/
             // Craft the shared packet
             Packet sharedPacket = craftSharedPacket(packetNumber);
             if (sharedPacket == null) {
@@ -113,7 +114,7 @@ public class StubbornLink {
             for (Process process : processes) {
                 // ACK
                 int[] ackLen = {MEX_OS};
-                List<Proposal> ack = process.getNextAckProposals(ackLen, process.getAckToSend());
+                List<Proposal> ack = Process.getNextAckProposals(ackLen, process.getAckToSend());
                 if (ack.size() > 0) {
                     // Use packet number + 1
                     sendPacket(process, new Packet(ack, packetNumber + 1, myHost, ackLen[0]));
@@ -121,12 +122,12 @@ public class StubbornLink {
                         inc = 1;
                     }
                     if (Parameters.DEBUG) {
-                        System.out.println("Sent packet #" + (packetNumber+1) + " of " + ack.size() + " ACKS to " + process.getId());
+                        System.out.println("Sent packet #" + (packetNumber + 1) + " of " + ack.size() + " ACKS to " + process.getId());
                     }
                 }
                 // NACK
                 ackLen[0] = MEX_OS;
-                ack = process.getNextAckProposals(ackLen, process.getNackToSend());
+                ack = Process.getNextAckProposals(ackLen, process.getNackToSend());
                 if (ack.size() > 0) {
                     // Use packet number + 2
                     sendPacket(process, new Packet(ack, packetNumber + 2, myHost, ackLen[0]));
@@ -134,7 +135,7 @@ public class StubbornLink {
                         inc = 2;
                     }
                     if (Parameters.DEBUG) {
-                        System.out.println("Sent packet #" + (packetNumber+2) + " of " + ack.size() + " NACKS to " + process.getId());
+                        System.out.println("Sent packet #" + (packetNumber + 2) + " of " + ack.size() + " NACKS to " + process.getId());
                     }
                 }
                 // Send the crafted shared packet
@@ -151,39 +152,36 @@ public class StubbornLink {
      * @param processes collection of all hosts
      * @return true if at least half hosts have enough space, false otherwise
      */
-    private static boolean resendPackets(Collection<Process> processes) {
+    private static void resendPackets(Collection<Process> processes) {
         // Initial assumption: everyone has enough space
-        int hasSpace = processes.size();
+        //int hasSpace = processes.size();
         for (Process process : processes) {
-            for (TimedPacket timedPacket : process.nextPacketsToAck()) {
-                // Check if the that packet has not been acked yet to resend
-                if (timedPacket != null && !process.hasAcked(
-                    timedPacket.getPacket().getPacketId())) {
-                    // If the current living time of the packet is greater than host's timeout
-                    if (timedPacket.timeoutExpired()) {
-                        if (Parameters.DEBUG) {
-                            System.out.println("Timeout was expired, resending");
-                        }
-                        // Double the host's timeout
-                        process.expBackOff();
-                        // Update the packet timestamp
-                        timedPacket.update(process.getTimeout());
-                        // Resend the packet
-                        FairLossLink.enqueuePacket(timedPacket.getPacket(), process.getId());
+            TimedPacket timedPacket = process.nextPacketToAck();
+            // Check if the that packet has not been acked yet to resend
+            if (timedPacket != null && !process.hasAcked(
+                timedPacket.getPacket().getPacketId())) {
+                // If the current living time of the packet is greater than host's timeout
+                if (timedPacket.timeoutExpired()) {
+                    if (Parameters.DEBUG) {
+                        System.out.println("Timeout was expired, resending");
                     }
-                    // Re-insert in queue
-                    process.addPacketToAck(timedPacket);
-                } else if (Parameters.DEBUG) {
-                    System.out.println("Timed-packet removed from queue cause ack has been received");
+                    // Double the host's timeout
+                    process.expBackOff();
+                    // Update the packet timestamp
+                    timedPacket.update(process.getTimeout());
+                    // Resend the packet
+                    FairLossLink.enqueuePacket(timedPacket.getPacket(), process.getId());
                 }
+                // Re-insert in queue
+                process.addPacketToAck(timedPacket);
             }
-            // Check if I freed enough space
+            /* Check if I freed enough space
             if (!process.hasSpace()) {
                 --hasSpace;
-            }
+            }*/
         }
         // Check at least half has enough space to continue
-        return hasSpace >= processes.size() / 2;
+        //return hasSpace >= processes.size() / 2;
     }
 
     /**

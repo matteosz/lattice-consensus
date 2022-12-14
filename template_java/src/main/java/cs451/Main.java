@@ -51,9 +51,6 @@ public class Main {
         // Parse the command line arguments, the host and the config files
         Parser.parse(args);
 
-        long pid = ProcessHandle.current().pid();
-        System.out.println("From a new terminal type `kill -SIGINT " + pid + "` or `kill -SIGTERM " + pid + "` to stop processing packets\n");
-
         // Start the communication service
         CommunicationService.start();
     }

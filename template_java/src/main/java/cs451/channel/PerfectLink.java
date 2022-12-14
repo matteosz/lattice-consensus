@@ -44,7 +44,7 @@ public class PerfectLink {
 
         if (sender.deliverPacket(packet.getPacketId())) {
             if (Parameters.DEBUG) {
-                System.out.println("Delivered new packet: #id = " + packet.getPacketId());
+                System.out.println("Delivered new packet: #id = " + packet.getPacketId() + " from p:" + sender.getId());
             }
             packet.applyToProposals(p -> callback(p, sender));
         }
@@ -57,7 +57,9 @@ public class PerfectLink {
      */
     private static void callback(Proposal proposal, Process sender) {
         if (sender.deliver(proposal)) {
-            System.out.println("Delivered new proposal: #id = " + proposal.getProposalNumber());
+            if (Parameters.DEBUG) {
+                System.out.println("LINK: Delivered new proposal: #id = " + proposal.getProposalNumber() + " from p:" + sender.getId());
+            }
             proposalConsumer.accept(proposal);
         }
     }

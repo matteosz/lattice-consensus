@@ -126,11 +126,4 @@ public class Proposal {
         return type == 1;
     }
 
-    /**
-     * @return true if type == 2 (NACK), false otherwise
-     */
-    public boolean isNack() {
-        return type == 2;
-    }
-
 }

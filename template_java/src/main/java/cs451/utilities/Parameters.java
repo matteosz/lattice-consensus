@@ -20,7 +20,7 @@ public class Parameters {
     public static int THRESHOLD = 10;
 
     /** Maximum number of packets to resend at a given time in the system */
-    public static int LINK_BATCH = 128;
+    public static int LINK_BATCH = 1024;
 
     /** Maximum capacity for the queue containing the delivered proposals from the Perfect link */
     public static int BROADCAST_BATCH = 10000;
