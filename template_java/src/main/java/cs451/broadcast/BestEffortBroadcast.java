@@ -76,7 +76,7 @@ public class BestEffortBroadcast {
      * Put in the blocking queue the proposal to be delivered.
      * @param proposal to deliver
      */
-    private static void bebDeliver(Proposal proposal) {
+    public static void bebDeliver(Proposal proposal) {
         try {
             // The method put blocks if the queue doesn't have enough space
             linkDelivered.put(proposal);

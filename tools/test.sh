@@ -1,5 +1,5 @@
 #!/bin/sh
-proc=20; prop=100; vs=5; ds=10; t=60; c=1;
+proc=40; prop=100; vs=50; ds=700; t=300; c=1;
 echo $"Processes:" $proc;
 ../template_java/cleanup.sh;
 ../template_java/build.sh > /dev/null;
@@ -16,4 +16,4 @@ shopt -u extglob;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
 wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+python3 validator2.py ../logs ../logs $proc $prop;

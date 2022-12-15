@@ -80,9 +80,8 @@ public class StubbornLink {
      *  2) If at least half of the hosts have enough space, load new packets.
      */
     private static void sendPackets() {
-        // View of all processes except my host
         Collection<Process> processes = getNetwork().values();
-        // Index to build the packets, starting from 1
+        // Index to build the packets' ids, starting from 1
         int packetNumber = 1;
         while (running.get()) {
             // First try to resend all possible ack for all processes
@@ -115,12 +114,7 @@ public class StubbornLink {
                 if (!ack.isEmpty()) {
                     // Use packet number + 2
                     sendPacket(process, new Packet(ack, packetNumber + 2, myHost, ackLen[0]));
-                    if (inc < 2) {
-                        inc = 2;
-                    }
-                    if (Parameters.DEBUG) {
-                        System.out.println("Sent packet #" + (packetNumber + 2) + " of " + ack.size() + " NACKS to " + process.getId());
-                    }
+                    inc = 2;
                 }
                 // Send the crafted shared packet
                 if (sharedPacket != null) {
@@ -146,9 +140,6 @@ public class StubbornLink {
                 timedPacket.getPacket().getPacketId())) {
                 // If the current living time of the packet is greater than host's timeout
                 if (timedPacket.timeoutExpired()) {
-                    if (Parameters.DEBUG) {
-                        System.out.println("Timeout was expired, resending");
-                    }
                     // Double the host's timeout
                     process.expBackOff();
                     // Update the packet timestamp

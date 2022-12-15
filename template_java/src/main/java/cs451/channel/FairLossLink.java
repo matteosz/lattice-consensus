@@ -3,7 +3,6 @@ package cs451.channel;
 import cs451.message.Packet;
 import cs451.parser.Host;
 
-import cs451.utilities.Parameters;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -62,14 +61,9 @@ public class FairLossLink {
      * @param target host's id of the future recipient
      */
     public static void enqueuePacket(Packet packet, byte target) {
-        // Get the recipient's information
         Host targetHost = getProcess(target).getHost();
         // Serialize the packet as a byte array
         byte[] buffer = packet.getBytes();
-        if (Parameters.DEBUG) {
-            System.out.println("Sending through fair-loss new packet to p: " + target);
-            System.out.println(packet);
-        }
         try {
             // The method put will insert the element if the space is available, otherwise it'll wait
             datagramsToSend.put(new DatagramPacket(buffer, buffer.length, targetHost.getIpAsAddress(), targetHost.getPort()));
@@ -101,7 +95,7 @@ public class FairLossLink {
      * deserialize them and deliver to the upper layer
      */
     private static void receivePackets() {
-         while (running.get()) {
+        while (running.get()) {
             // In the worst scenario the buffer will have the max UDP packet size
             DatagramPacket datagramPacket = new DatagramPacket(new byte[MAX_PACKET_SIZE], MAX_PACKET_SIZE);
             try {
@@ -112,7 +106,7 @@ public class FairLossLink {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-         }
+        }
     }
 
     /**

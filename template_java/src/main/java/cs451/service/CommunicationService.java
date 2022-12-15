@@ -5,11 +5,10 @@ import cs451.channel.FairLossLink;
 import cs451.channel.Network;
 import cs451.channel.StubbornLink;
 import cs451.consensus.LatticeConsensus;
-import cs451.process.Process;
 
+import cs451.parser.ConfigParser;
 import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
@@ -24,11 +23,8 @@ import java.util.Set;
  */
 public class CommunicationService {
 
-    /** Output file name */
-    public static String output;
-
-    /** String builder containing the logs to write */
-    private static final StringBuilder sb = new StringBuilder(32768);
+    /** Buffered Writer to write logs on output file */
+    public static BufferedWriter writer;
 
     /**
      * Start the consensus and initialize all static fields
@@ -37,10 +33,9 @@ public class CommunicationService {
         // Static initialization
         Parameters.setParams();
         Network.populateNetwork();
-
         // Start the consensus
         try {
-            LatticeConsensus.start(CommunicationService::deliver);
+            LatticeConsensus.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -51,43 +46,41 @@ public class CommunicationService {
      * and logs into the output file
      */
     public static void logAndTerminate() {
-        interruptThreads();
-        synchronized (sb) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(output), 32768)) {
-                writer.write(sb.toString());
+        BestEffortBroadcast.stopThreads();
+        StubbornLink.stopThreads();
+        FairLossLink.stopThreads();
+        synchronized (writer) {
+            try {
+                writer.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        ConfigParser.closeFile();
     }
 
     /**
      * Deliver a proposal by writing it into the sb as new line.
      * @param proposals (simply set of integers) to deliver
      */
-    private static void deliver(Set<Integer> proposals) {
-        synchronized (sb) {
+    public static void deliver(Set<Integer> proposals) {
+        synchronized (writer) {
             Iterator<Integer> iterator = proposals.iterator();
-            while (iterator.hasNext()) {
-                int num = iterator.next();
-                // Check if it's last number
-                if (!iterator.hasNext()) {
-                    sb.append(String.format("%d\n", num));
-                } else {
-                    sb.append(String.format("%d ", num));
+            try {
+                while (iterator.hasNext()) {
+                    int num = iterator.next();
+                    // Check if it's last number
+                    if (!iterator.hasNext()) {
+                        writer.write(String.format("%d\n", num));
+                    } else {
+                        writer.write(String.format("%d ", num));
+                    }
                 }
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Interrupt all running threads
-     * of underlying instances
-     */
-    private static void interruptThreads() {
-        FairLossLink.stopThreads();
-        StubbornLink.stopThreads();
-        BestEffortBroadcast.stopThreads();
     }
 
 }

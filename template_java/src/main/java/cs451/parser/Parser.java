@@ -1,7 +1,5 @@
 package cs451.parser;
 
-import static cs451.process.Process.myHost;
-
 import java.io.IOException;
 
 /**

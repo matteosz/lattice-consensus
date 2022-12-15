@@ -62,19 +62,36 @@ public class ConfigParser {
             if (totalProposal <= 0 || maxProposalLength <= 0 || maxDistinctValues <= 0) {
                 return false;
             }
+            // Set the batch accordingly with ds
+            if (maxDistinctValues > 100 && maxDistinctValues <= 200) {
+                PROPOSAL_BATCH >>= 1;
+            }
+            if (maxDistinctValues > 200 && maxDistinctValues < 300) {
+                PROPOSAL_BATCH >>= 2;
+            } else if (maxDistinctValues >= 300 && maxDistinctValues < 600) {
+                PROPOSAL_BATCH >>= 3;
+            } else if (maxDistinctValues >= 600 && maxDistinctValues < 800) {
+                PROPOSAL_BATCH >>= 4;
+            } else if (maxDistinctValues >= 800) {
+                PROPOSAL_BATCH >>= 5;
+            }
             // Set global maximum packet size
             Packet.MAX_PACKET_SIZE = Packet.HEADER + MAX_COMPRESSION * (maxDistinctValues + 4) * Integer.BYTES;
-            originals = new LinkedList<>();
-            // Load first batch of proposals
-            for(String line; (line = br.readLine()) != null && currentProposal < PROPOSAL_BATCH; ++currentProposal) {
-                readLine(line);
-            }
-            if (currentProposal == totalProposal) {
-                br.close();
-            }
         } catch (NumberFormatException e) {
             e.printStackTrace();
             return false;
+        }
+        // Load first batch of proposals
+        originals = new LinkedList<>();
+        for(String line; (line = br.readLine()) != null && currentProposal < PROPOSAL_BATCH; ) {
+            if (line.isBlank()) {
+                continue;
+            }
+            readLine(line);
+            ++currentProposal;
+        }
+        if (currentProposal == totalProposal) {
+            br.close();
         }
         return true;
     }
@@ -89,25 +106,32 @@ public class ConfigParser {
         if (currentProposal == totalProposal) {
             return false;
         }
-        try {
-            int p = 0;
-            for (String line; (line = br.readLine()) != null && p < MAX_COMPRESSION; ++p) {
-                readLine(line);
-                if (++currentProposal == totalProposal) {
-                    br.close();
-                    break;
+        synchronized (br) {
+            try {
+                int p = 0;
+                for (String line; (line = br.readLine()) != null && p < Math.min(MAX_COMPRESSION, PROPOSAL_BATCH); ) {
+                    if (line.isBlank()) {
+                        continue;
+                    }
+                    readLine(line);
+                    if (++currentProposal == totalProposal) {
+                        br.close();
+                        break;
+                    }
+                    ++p;
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+                return !originals.isEmpty();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return !originals.isEmpty();
         }
         return true;
     }
 
     /**
-     * Read and parse a line of the config file
+     * Read and parse a line of the config file.
      * @param line string with proposal's set
+     * @return true if correctly parsed, false otherwise
      */
     private static void readLine(String line) {
         String[] splits = line.split("\\s");
@@ -116,6 +140,22 @@ public class ConfigParser {
             values.add(Integer.parseInt(split));
         }
         originals.add(new Proposal(currentProposal, (byte) 0, myHost, values, 1));
+    }
+
+    /**
+     * Close the file reader if still open
+     */
+    public static void closeFile() {
+        if (currentProposal == totalProposal) {
+            return;
+        }
+        synchronized (br) {
+            try {
+                br.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

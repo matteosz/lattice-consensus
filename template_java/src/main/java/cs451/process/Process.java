@@ -97,9 +97,12 @@ public class Process {
      */
     public void expBackOff() {
         long initial = timeout.get();
+        if (initial > MAX_TIMEOUT) {
+            return;
+        }
         initial = initial == TIMEOUT? initial : initial - THRESHOLD;
         // Don't double the previous threshold
-        timeout.set(Math.min(2 * initial, MAX_TIMEOUT) + THRESHOLD);
+        timeout.set(2 * initial + THRESHOLD);
     }
 
     /**
@@ -122,7 +125,7 @@ public class Process {
 
     /**
      * Get a list of proposal from the queue passed.
-     * @param len initial length of the packet with no proposals (header)
+     * @param len initial length of the packet with no proposals (header), used an array to pass by reference
      * @param ack type of queue passed (ack or nack)
      * @return list of max. 8 proposals that fit the maximum packet size
      */
@@ -146,14 +149,14 @@ public class Process {
     }
 
     /**
-     * @return nack proposals yet to be sent
+     * @return queue of nack proposals yet to be sent
      */
     public ConcurrentLinkedQueue<Proposal> getNackToSend() {
         return nackToSend;
     }
 
     /**
-     * @return ack proposals yet to be sent
+     * @return queue of ack proposals yet to be sent
      */
     public ConcurrentLinkedQueue<Proposal> getAckToSend() {
         return ackToSend;
@@ -238,7 +241,7 @@ public class Process {
     /**
      * Common deliver function for proposals (PROPOSAL,
      * ACK or NACK types). It just checks if that proposal
-     * with the given active count has been delivered already
+     * with the given active count has been delivered already.
      * @param proposalNumber original proposal's id
      * @param activeCount proposal's active count given by consensus
      * @param map delivery data structure
