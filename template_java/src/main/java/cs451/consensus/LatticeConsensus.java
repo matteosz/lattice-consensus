@@ -60,7 +60,7 @@ public class LatticeConsensus {
     private static byte finished = 0;
 
     /** Map to keep track of counter of delivered proposal to clean */
-    private static final Map<Integer, byte[]> deliveredCount = new HashMap<>();
+    private static final Map<Integer, int[]> deliveredCount = new HashMap<>();
 
     /**
      * Start the consensus by loading a batch of proposals
@@ -91,12 +91,8 @@ public class LatticeConsensus {
      */
     private static void deliverProposal(Proposal proposal) {
         int id = proposal.getProposalNumber();
-        // Load if absent
-        if (!acceptedValue.containsKey(id)) {
-            acceptedValue.put(id, new HashSet<>());
-        }
         // If accepted values is a subset of the proposed values
-        if (proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
+        if (!acceptedValue.containsKey(id) || proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
             acceptedValue.put(id, proposal.getProposedValues());
             // Send an ack to the proposal's sender
             Proposal ackProposal = new Proposal(id, (byte) 1, MY_HOST, null, proposal.getActiveProposalNumber());
@@ -161,14 +157,14 @@ public class LatticeConsensus {
         int id = proposal.getProposalNumber();
         int[] ack = ackCount.get(id);
         // If nack > 0 and nack + ack >= f + 1 and the proposal is currently active
-        if (ack[1] > 0 && (ack[0] + ack[1] > majority) && active[id]) {
+        if (active[id] && ack[1] > 0 && ((ack[0] + ack[1]) > majority)) {
             // Increment active count
             int activeId = activeProposal.get(id) + 1;
             activeProposal.put(id, activeId);
-            // Broadcast to everyone the new proposal with different active count
-            BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId));
             // Set ack and nack to 0
             ackCount.put(id, new int[] {0, 0});
+            // Broadcast to everyone the new proposal with different active count
+            BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId));
             // Deliver the proposal internally without sending to myself
             BestEffortBroadcast.bebDeliver(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId));
         }
@@ -180,9 +176,9 @@ public class LatticeConsensus {
      */
     private static void checkAck(int id) {
         // If received the majority of ack and the proposal is currently active
-        if (ackCount.get(id)[0] > majority && active[id]) {
+        if ((ackCount.get(id)[0] > majority) && active[id]) {
             // Increment the window since I've delivered a proposal
-            if (++finished == Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
+            if (++finished >= Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
                 if (ConfigParser.readProposals()) {
                     loadNext();
                 }
@@ -197,7 +193,8 @@ public class LatticeConsensus {
                 CommunicationService.deliver(proposedValue.get(lastDelivered));
                 // Send decided lastDelivered to then clean
                 BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
-                clean(lastDelivered++);
+                clean(lastDelivered);
+                ++lastDelivered;
             }
             active[id] = false;
         }
@@ -210,10 +207,9 @@ public class LatticeConsensus {
      */
     public static void clean(int id) {
         if (!deliveredCount.containsKey(id)) {
-            deliveredCount.put(id, new byte[] {1});
+            deliveredCount.put(id, new int[] {1});
         } else {
-            byte count = ++deliveredCount.get(id)[0];
-            if (count == 2 * majority || count < 0) {
+            if (++deliveredCount.get(id)[0] == NUM_HOSTS) {
                 // Everyone has decided -> can clean
                 proposedValue.get(id).clear();
                 acceptedValue.get(id).clear();

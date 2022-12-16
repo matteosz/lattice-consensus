@@ -5,7 +5,6 @@ import static cs451.message.Packet.MAX_COMPRESSION;
 import static cs451.process.Process.MY_HOST;
 import static cs451.utilities.Parameters.PROPOSAL_BATCH;
 
-import cs451.message.Packet;
 import cs451.message.Proposal;
 import cs451.utilities.Parameters;
 import java.io.BufferedReader;
@@ -115,7 +114,7 @@ public class ConfigParser {
     private static void readLine(String line) {
         try {
             String[] splits = line.split("\\s");
-            Set<Integer> values = new HashSet<>(maxProposalLength);
+            Set<Integer> values = new HashSet<>();
             for (String split : splits) {
                 values.add(Integer.parseInt(split));
             }
