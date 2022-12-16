@@ -88,15 +88,13 @@ for i in range(number_proposal):
         # I_i subset of O_i
         if not (proposes[i][j].issubset(decisions[i][j])):
             print(f"NOT CONTAINING PROPOSED: Validation failed for proposal {i} of process {j}")
-            print("Proposed_i: ", proposes[i][j])
-            print("Decided_i: ", decisions[i][j])
+            print("Proposed_i - decided_i: ", proposes[i][j] - decisions[i][j])
             error = True
 
         # O_i subset of all proposed
         if not (decisions[i][j].issubset(all_proposed)):
             print(f"OUT OF PROPOSED: Validation failed for proposal {i} of process {j}")
-            print("Decided_i: ", decisions[i][j])
-            print("All proposed: ", all_proposed)
+            print("Decided_i - all_proposed: ", decisions[i][j] - all_proposed)
             error = True
 
         # Consistency
