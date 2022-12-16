@@ -49,18 +49,23 @@ public class Parameters {
                 PROPOSAL_BATCH = 16;
         }
         // Set the batch accordingly with ds
+        if (maxDistinctValues < 150) {
+            return;
+        }
         if (maxDistinctValues > 150 && maxDistinctValues < 300) {
             PROPOSAL_BATCH >>= 1;
-        } else if (maxDistinctValues >= 300 && maxDistinctValues < 600) {
-            PROPOSAL_BATCH >>= 2;
-            LINK_BATCH >>= 1;
-        } else if (maxDistinctValues >= 600 && maxDistinctValues < 900) {
-            PROPOSAL_BATCH >>= 3;
-            LINK_BATCH >>= 1;
-        } else if (maxDistinctValues >= 900) {
-            PROPOSAL_BATCH >>= 4;
-            LINK_BATCH >>= 1;
+            return;
         }
+        if (maxDistinctValues >= 300 && maxDistinctValues < 600) {
+            PROPOSAL_BATCH >>= 2;
+        }
+        if (maxDistinctValues >= 600 && maxDistinctValues < 900) {
+            PROPOSAL_BATCH >>= 3;
+        }
+        if (maxDistinctValues >= 900) {
+            PROPOSAL_BATCH >>= 4;
+        }
+        LINK_BATCH >>= 1;
     }
 
 }

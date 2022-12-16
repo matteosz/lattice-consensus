@@ -84,11 +84,13 @@ public class StubbornLink {
         Collection<Process> processes = getNetwork().values();
         // Index to build the packets' ids, starting from 1
         while (running.get()) {
+            boolean hasSpace = false;
             // First try to resend all possible ack for all processes
             Packet sharedPacket = null;
             if (resendPackets(processes)) {
                 // Craft the shared packet if enough space
                 sharedPacket = craftSharedPacket();
+                hasSpace = true;
             }
             byte inc = 0;
             for (Process process : processes) {
@@ -102,13 +104,16 @@ public class StubbornLink {
                 if (!ack.isEmpty()) {
                     sendPacket(process, new Packet(ack, packetNumber, MY_HOST, ackLen[0]), true);
                 }
-                // NACK
-                ackLen[0] = HEADER;
-                ack = Process.getNextAckProposals(ackLen, process.getNackToSend());
-                if (!ack.isEmpty()) {
-                    // Use packet number + 1
-                    sendPacket(process, new Packet(ack, packetNumber + 1, MY_HOST, ackLen[0]), false);
-                    inc = 1;
+                if (hasSpace) {
+                    // NACK
+                    ackLen[0] = HEADER;
+                    ack = Process.getNextAckProposals(ackLen, process.getNackToSend());
+                    if (!ack.isEmpty()) {
+                        // Use packet number + 1
+                        sendPacket(process, new Packet(ack, packetNumber + 1, MY_HOST, ackLen[0]),
+                            false);
+                        inc = 1;
+                    }
                 }
             }
             packetNumber += inc + 1;
@@ -187,10 +192,10 @@ public class StubbornLink {
      * @param isAck whether the packet is made of ack
      */
     private static void sendPacket(Process process, Packet packet, boolean isAck) {
+        process.addPacketToAck(new TimedPacket(process.getTimeout(), packet, isAck));
         if (!isAck) {
             ++process.windowSize;
         }
-        process.addPacketToAck(new TimedPacket(process.getTimeout(), packet, isAck));
         FairLossLink.enqueuePacket(packet, process.getId());
     }
 

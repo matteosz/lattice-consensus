@@ -62,7 +62,7 @@ public class BestEffortBroadcast {
                         nackConsumer.accept(proposal);
                         break;
                         // It's a clean message
-                    case 3:
+                    default:
                         LatticeConsensus.clean(proposal.getProposalNumber());
                 }
             } catch (InterruptedException e) {
