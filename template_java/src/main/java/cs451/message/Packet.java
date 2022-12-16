@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static cs451.process.Process.myHost;
+import static cs451.process.Process.MY_HOST;
 import static cs451.utilities.Utilities.fromByteToIntegerArray;
 import static cs451.utilities.Utilities.fromByteToLongArray;
 import static cs451.utilities.Utilities.fromIntegerToByteArray;
@@ -154,8 +154,8 @@ public class Packet {
         byte[] newData = new byte[HEADER];
         // Simply change the isAck flag and the sender
         newData[IS_ACK_OS] = 1;
-        newData[SENDER_ID_OS] = myHost;
-        return new Packet(newData, packetId, myHost, true, timestamp, numberOfProposals);
+        newData[SENDER_ID_OS] = MY_HOST;
+        return new Packet(newData, packetId, MY_HOST, true, timestamp, numberOfProposals);
     }
 
     /**

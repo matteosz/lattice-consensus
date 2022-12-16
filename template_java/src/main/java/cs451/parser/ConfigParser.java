@@ -2,11 +2,12 @@ package cs451.parser;
 
 import static cs451.consensus.LatticeConsensus.originals;
 import static cs451.message.Packet.MAX_COMPRESSION;
-import static cs451.process.Process.myHost;
+import static cs451.process.Process.MY_HOST;
 import static cs451.utilities.Parameters.PROPOSAL_BATCH;
 
 import cs451.message.Packet;
 import cs451.message.Proposal;
+import cs451.utilities.Parameters;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,7 +34,10 @@ public class ConfigParser {
     public static int totalProposal;
 
     /** Maximum number of distinct elements in a proposal's shot */
-    private static int maxProposalLength;
+    public static int maxProposalLength;
+
+    /** Maximum number of distinct elements in total */
+    public static int maxDistinctValues;
 
     /**
      * Read the config file and populate the proposals list.
@@ -50,52 +54,28 @@ public class ConfigParser {
         };
         // Read the header -> p vs ds
         String[] header = br.readLine().split("\\s");
-        if (header.length != 3) {
-            System.err.println("Header of config not correct");
-            return false;
-        }
         try {
             totalProposal = Integer.parseInt(header[0]);
             maxProposalLength = Integer.parseInt(header[1]);
-            int maxDistinctValues = Integer.parseInt(header[2]);
-            // Check if are valid integers
-            if (totalProposal <= 0 || maxProposalLength <= 0 || maxDistinctValues <= 0) {
-                return false;
-            }
-            // Set the batch accordingly with ds
-            if (maxDistinctValues > 100 && maxDistinctValues <= 200) {
-                PROPOSAL_BATCH >>= 1;
-            }
-            if (maxDistinctValues > 200 && maxDistinctValues < 300) {
-                PROPOSAL_BATCH >>= 2;
-            } else if (maxDistinctValues >= 300 && maxDistinctValues < 600) {
-                PROPOSAL_BATCH >>= 3;
-            } else if (maxDistinctValues >= 600 && maxDistinctValues < 800) {
-                PROPOSAL_BATCH >>= 4;
-            } else if (maxDistinctValues >= 800) {
-                PROPOSAL_BATCH >>= 5;
-            }
-            // Set global maximum packet size
-            Packet.MAX_PACKET_SIZE = Packet.HEADER + MAX_COMPRESSION * (maxDistinctValues + 4) * Integer.BYTES;
+            maxDistinctValues = Integer.parseInt(header[2]);
         } catch (NumberFormatException e) {
             e.printStackTrace();
             return false;
         }
+        Parameters.setParams();
         // Load first batch of proposals
         originals = new LinkedList<>();
-        for(String line; (line = br.readLine()) != null && currentProposal < PROPOSAL_BATCH; ) {
+        for(String line; currentProposal < PROPOSAL_BATCH && (line = br.readLine()) != null; ) {
             if (line.isBlank()) {
                 continue;
             }
             readLine(line);
-            ++currentProposal;
         }
         if (currentProposal == totalProposal) {
             br.close();
         }
         return true;
     }
-
 
     /**
      * Read a "packet" of proposal.
@@ -109,12 +89,12 @@ public class ConfigParser {
         synchronized (br) {
             try {
                 int p = 0;
-                for (String line; (line = br.readLine()) != null && p < Math.min(MAX_COMPRESSION, PROPOSAL_BATCH); ) {
+                for (String line; p < Math.min(MAX_COMPRESSION, PROPOSAL_BATCH) && (line = br.readLine()) != null; ) {
                     if (line.isBlank()) {
                         continue;
                     }
                     readLine(line);
-                    if (++currentProposal == totalProposal) {
+                    if (currentProposal == totalProposal) {
                         br.close();
                         break;
                     }
@@ -131,15 +111,18 @@ public class ConfigParser {
     /**
      * Read and parse a line of the config file.
      * @param line string with proposal's set
-     * @return true if correctly parsed, false otherwise
      */
     private static void readLine(String line) {
-        String[] splits = line.split("\\s");
-        Set<Integer> values = new HashSet<>(maxProposalLength);
-        for (String split : splits) {
-            values.add(Integer.parseInt(split));
+        try {
+            String[] splits = line.split("\\s");
+            Set<Integer> values = new HashSet<>(maxProposalLength);
+            for (String split : splits) {
+                values.add(Integer.parseInt(split));
+            }
+            originals.add(new Proposal(currentProposal++, (byte) 0, MY_HOST, values, 1));
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
         }
-        originals.add(new Proposal(currentProposal, (byte) 0, myHost, values, 1));
     }
 
     /**

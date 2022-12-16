@@ -5,7 +5,6 @@ import cs451.message.Proposal;
 import cs451.message.TimedPacket;
 import cs451.process.Process;
 
-import cs451.utilities.Parameters;
 import java.net.SocketException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -21,7 +20,7 @@ import static cs451.channel.Network.getProcess;
 import static cs451.message.Packet.MAX_COMPRESSION;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
 import static cs451.message.Packet.HEADER;
-import static cs451.process.Process.myHost;
+import static cs451.process.Process.MY_HOST;
 import static cs451.process.Process.proposalsToSend;
 
 /**
@@ -38,6 +37,8 @@ public class StubbornLink {
 
     /** Consumer function given by the upper layer, called in deliver time */
     private static Consumer<Packet> packetCallback;
+
+    private static int packetNumber = 1;
 
     /**
      * Initialize the link and start the thread.
@@ -82,43 +83,32 @@ public class StubbornLink {
     private static void sendPackets() {
         Collection<Process> processes = getNetwork().values();
         // Index to build the packets' ids, starting from 1
-        int packetNumber = 1;
         while (running.get()) {
             // First try to resend all possible ack for all processes
-            if (!resendPackets(processes)) {
-                continue;
-            }
-            // Craft the shared packet
-            Packet sharedPacket = craftSharedPacket(packetNumber);
-            if (sharedPacket == null) {
-                --packetNumber;
+            Packet sharedPacket = null;
+            if (resendPackets(processes)) {
+                // Craft the shared packet if enough space
+                sharedPacket = craftSharedPacket();
             }
             byte inc = 0;
             for (Process process : processes) {
+                // Send the crafted shared packet
+                if (sharedPacket != null) {
+                    sendPacket(process, sharedPacket, false);
+                }
                 // ACK
                 int[] ackLen = {HEADER};
                 List<Proposal> ack = Process.getNextAckProposals(ackLen, process.getAckToSend());
                 if (!ack.isEmpty()) {
-                    // Use packet number + 1
-                    sendPacket(process, new Packet(ack, packetNumber + 1, myHost, ackLen[0]));
-                    if (inc < 1) {
-                        inc = 1;
-                    }
-                    if (Parameters.DEBUG) {
-                        System.out.println("Sent packet #" + (packetNumber + 1) + " of " + ack.size() + " ACKS to " + process.getId());
-                    }
+                    sendPacket(process, new Packet(ack, packetNumber, MY_HOST, ackLen[0]), true);
                 }
                 // NACK
                 ackLen[0] = HEADER;
                 ack = Process.getNextAckProposals(ackLen, process.getNackToSend());
                 if (!ack.isEmpty()) {
-                    // Use packet number + 2
-                    sendPacket(process, new Packet(ack, packetNumber + 2, myHost, ackLen[0]));
-                    inc = 2;
-                }
-                // Send the crafted shared packet
-                if (sharedPacket != null) {
-                    sendPacket(process, sharedPacket);
+                    // Use packet number + 1
+                    sendPacket(process, new Packet(ack, packetNumber + 1, MY_HOST, ackLen[0]), false);
+                    inc = 1;
                 }
             }
             packetNumber += inc + 1;
@@ -128,7 +118,7 @@ public class StubbornLink {
     /**
      * Try to resend all timed out packets if not acked yet.
      * @param processes collection of all hosts
-     * @return true if at least half hosts have enough space, false otherwise
+     * @return true if at least half of all hosts have enough space, false otherwise
      */
     private static boolean resendPackets(Collection<Process> processes) {
         // Initial assumption: everyone has enough space
@@ -136,26 +126,29 @@ public class StubbornLink {
         for (Process process : processes) {
             TimedPacket timedPacket = process.nextPacketToAck();
             // Check if the that packet has not been acked yet to resend
-            if (timedPacket != null && !process.hasAcked(
-                timedPacket.getPacket().getPacketId())) {
-                // If the current living time of the packet is greater than host's timeout
-                if (timedPacket.timeoutExpired()) {
-                    // Double the host's timeout
-                    process.expBackOff();
-                    // Update the packet timestamp
-                    timedPacket.update(process.getTimeout());
-                    // Resend the packet
-                    FairLossLink.enqueuePacket(timedPacket.getPacket(), process.getId());
+            if (timedPacket != null) {
+                if (!process.hasAcked(timedPacket.getPacket().getPacketId())) {
+                    // If the current living time of the packet is greater than host's timeout
+                    if (timedPacket.timeoutExpired()) {
+                        // Double the host's timeout
+                        process.expBackOff();
+                        // Update the packet timestamp
+                        timedPacket.update(process.getTimeout());
+                        // Resend the packet
+                        FairLossLink.enqueuePacket(timedPacket.getPacket(), process.getId());
+                    }
+                    // Re-insert in queue
+                    process.addPacketToAck(timedPacket);
+                } else if (!timedPacket.isAck()) {
+                    --process.windowSize;
+                    // Check if I freed enough space
+                    if (!process.hasSpace()) {
+                        --hasSpace;
+                    }
                 }
-                // Re-insert in queue
-                process.addPacketToAck(timedPacket);
-            }
-            // Check if I freed enough space
-            if (!process.hasSpace()) {
-                --hasSpace;
             }
         }
-        // Check at least half has enough space to continue
+        // Check at least half hosts has enough space to continue
         return hasSpace >= processes.size() / 2;
     }
 
@@ -165,7 +158,7 @@ public class StubbornLink {
      * This is limited by the packet's max. size.
      * @return shared packet with the packet proposals
      */
-    private static Packet craftSharedPacket(int packetNumber) {
+    private static Packet craftSharedPacket() {
         int len = HEADER;
         List<Proposal> sublist = new LinkedList<>();
         Iterator<Proposal> iterator = proposalsToSend.iterator();
@@ -181,7 +174,7 @@ public class StubbornLink {
         // If I have at least a proposal to pack
         if (!sublist.isEmpty()) {
             // Create a shared packet with the given proposals
-            return new Packet(sublist, packetNumber, myHost, len);
+            return new Packet(sublist, packetNumber++, MY_HOST, len);
         }
         return null;
     }
@@ -191,9 +184,13 @@ public class StubbornLink {
      * with the current process timeout
      * @param process to which send the packet
      * @param packet to be sent
+     * @param isAck whether the packet is made of ack
      */
-    private static void sendPacket(Process process, Packet packet) {
-        process.addPacketToAck(new TimedPacket(process.getTimeout(), packet));
+    private static void sendPacket(Process process, Packet packet, boolean isAck) {
+        if (!isAck) {
+            ++process.windowSize;
+        }
+        process.addPacketToAck(new TimedPacket(process.getTimeout(), packet, isAck));
         FairLossLink.enqueuePacket(packet, process.getId());
     }
 

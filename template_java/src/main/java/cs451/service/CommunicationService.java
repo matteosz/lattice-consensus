@@ -7,7 +7,6 @@ import cs451.channel.StubbornLink;
 import cs451.consensus.LatticeConsensus;
 
 import cs451.parser.ConfigParser;
-import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Iterator;
@@ -26,12 +25,13 @@ public class CommunicationService {
     /** Buffered Writer to write logs on output file */
     public static BufferedWriter writer;
 
+    /** Flush to alternate flushing for improved performance */
+    private static boolean flush = true;
+
     /**
      * Start the consensus and initialize all static fields
      */
     public static void start() {
-        // Static initialization
-        Parameters.setParams();
         Network.populateNetwork();
         // Start the consensus
         try {
@@ -76,7 +76,10 @@ public class CommunicationService {
                         writer.write(String.format("%d ", num));
                     }
                 }
-                writer.flush();
+                if (flush) {
+                    writer.flush();
+                }
+                flush = !flush;
             } catch (IOException e) {
                 e.printStackTrace();
             }

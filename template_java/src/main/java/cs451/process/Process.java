@@ -25,7 +25,10 @@ public class Process {
      */
 
     /** Host id of the local host */
-    public static byte myHost;
+    public static byte MY_HOST;
+
+    /** Number of hosts in the system */
+    public static int NUM_HOSTS;
 
     /** Thread-safe queue of shared proposals to send to every host */
     public static final ConcurrentLinkedDeque<Proposal> proposalsToSend = new ConcurrentLinkedDeque<>();
@@ -35,6 +38,9 @@ public class Process {
 
     /** Timeout of the host */
     private final AtomicLong timeout = new AtomicLong(TIMEOUT);
+
+    /** Window of messages in the resend queue */
+    public int windowSize = 0;
 
     /** Queue of packets associated with a timeout, to be resent to the current host */
     private final Queue<TimedPacket> toAck = new LinkedList<>();
@@ -55,7 +61,7 @@ public class Process {
      * Maps to represent all the proposals' ids delivered, divided by
      * type and associated by the active counts been delivered
      */
-    private final Map<Integer, Compressor> proposalsDelivered = new HashMap<>(),
+    private final Map<Integer, Integer> proposalsDelivered = new HashMap<>(),
                              ackDelivered = new HashMap<>(),
                              nackDelivered = new HashMap<>();
 
@@ -100,8 +106,6 @@ public class Process {
         if (initial > MAX_TIMEOUT) {
             return;
         }
-        initial = initial == TIMEOUT? initial : initial - THRESHOLD;
-        // Don't double the previous threshold
         timeout.set(2 * initial + THRESHOLD);
     }
 
@@ -112,7 +116,7 @@ public class Process {
      * @param lastTime time of emission of the packet
      */
     public void notify(long lastTime) {
-        timeout.set(lastTime + THRESHOLD);
+        timeout.set(lastTime);
     }
 
     /**
@@ -120,7 +124,7 @@ public class Process {
      * send new packets or just continue resending toAck
      */
     public boolean hasSpace() {
-        return toAck.size() < LINK_BATCH;
+        return windowSize < LINK_BATCH;
     }
 
     /**
@@ -131,6 +135,7 @@ public class Process {
      */
     public static List<Proposal> getNextAckProposals(int[] len, ConcurrentLinkedQueue<Proposal> ack) {
         List<Proposal> proposals = new LinkedList<>();
+        boolean retry = false;
         while (proposals.size() < MAX_COMPRESSION) {
             Proposal proposal = ack.poll();
             if (proposal == null || proposal.getBytes() > (MAX_PACKET_SIZE - len[0])) {
@@ -138,7 +143,16 @@ public class Process {
                     // Insert back the proposal at the end of the queue
                     ack.add(proposal);
                 }
-                break;
+                if (retry) {
+                    break;
+                }
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return proposals;
+                }
+                retry = true;
             } else {
                 // Ensure that the proposal fit in the packet
                 proposals.add(proposal);
@@ -247,12 +261,13 @@ public class Process {
      * @param map delivery data structure
      * @return true if correctly added and not delivered before, else otherwise
      */
-    private static boolean commonDeliver(int proposalNumber, int activeCount, Map<Integer, Compressor> map) {
-        if (!map.containsKey(proposalNumber)) {
-            map.put(proposalNumber, new Compressor(false, activeCount));
+    private static boolean commonDeliver(int proposalNumber, int activeCount, Map<Integer, Integer> map) {
+        int old = map.getOrDefault(proposalNumber, 0);
+        if (activeCount > old) {
+            map.put(proposalNumber, activeCount);
             return true;
         }
-        return map.get(proposalNumber).add(activeCount);
+        return false;
     }
 
 }

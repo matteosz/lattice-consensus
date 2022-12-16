@@ -1,5 +1,5 @@
 #!/bin/sh
-proc=100; prop=200; vs=30; ds=50; t=30; c=1;
+proc=10; prop=1000; vs=30; ds=50; t=30; c=1;
 echo $"Processes:" $proc;
 ../template_java/cleanup.sh;
 ../template_java/build.sh > /dev/null;

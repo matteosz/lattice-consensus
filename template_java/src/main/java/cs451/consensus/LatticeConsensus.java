@@ -2,8 +2,8 @@ package cs451.consensus;
 
 import static cs451.message.Packet.MAX_COMPRESSION;
 import static cs451.parser.ConfigParser.totalProposal;
-import static cs451.parser.HostsParser.hosts;
-import static cs451.process.Process.myHost;
+import static cs451.process.Process.MY_HOST;
+import static cs451.process.Process.NUM_HOSTS;
 import static cs451.process.Process.proposalsToSend;
 import static cs451.utilities.Parameters.PROPOSAL_BATCH;
 
@@ -68,7 +68,7 @@ public class LatticeConsensus {
      * @throws SocketException
      */
     public static void start() throws SocketException {
-        majority = hosts.size() / 2;
+        majority = NUM_HOSTS / 2;
         active = new boolean[totalProposal];
         // Initialize data structures, loading a first batch of proposals
         Iterator<Proposal> iterator = originals.listIterator();
@@ -99,8 +99,8 @@ public class LatticeConsensus {
         if (proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
             acceptedValue.put(id, proposal.getProposedValues());
             // Send an ack to the proposal's sender
-            Proposal ackProposal = new Proposal(id, (byte) 1, myHost, null, proposal.getActiveProposalNumber());
-            if (proposal.getSender() == myHost) {
+            Proposal ackProposal = new Proposal(id, (byte) 1, MY_HOST, null, proposal.getActiveProposalNumber());
+            if (proposal.getSender() == MY_HOST) {
                 // Don't send to myself but immediately deliver
                 BestEffortBroadcast.bebDeliver(ackProposal);
             } else {
@@ -109,9 +109,9 @@ public class LatticeConsensus {
         } else {
             // Otherwise add all the proposed values to the accepted values
             acceptedValue.get(id).addAll(proposal.getProposedValues());
-            Proposal nackProposal = Proposal.createProposal(id, (byte) 2, myHost, acceptedValue.get(id), proposal.getActiveProposalNumber());
+            Proposal nackProposal = Proposal.createProposal(id, (byte) 2, MY_HOST, acceptedValue.get(id), proposal.getActiveProposalNumber());
             // Send a nack with the new accepted values
-            if (proposal.getSender() == myHost) {
+            if (proposal.getSender() == MY_HOST) {
                 // Don't send to myself but immediately deliver
                 BestEffortBroadcast.bebDeliver(nackProposal);
             } else {
@@ -166,11 +166,11 @@ public class LatticeConsensus {
             int activeId = activeProposal.get(id) + 1;
             activeProposal.put(id, activeId);
             // Broadcast to everyone the new proposal with different active count
-            BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, myHost, proposedValue.get(id), activeId));
-            // Set ack to 1 and nack to 0
+            BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId));
+            // Set ack and nack to 0
             ackCount.put(id, new int[] {0, 0});
             // Deliver the proposal internally without sending to myself
-            BestEffortBroadcast.bebDeliver(Proposal.createProposal(id, (byte) 0, myHost, proposedValue.get(id), activeId));
+            BestEffortBroadcast.bebDeliver(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId));
         }
     }
 
@@ -182,9 +182,7 @@ public class LatticeConsensus {
         // If received the majority of ack and the proposal is currently active
         if (ackCount.get(id)[0] > majority && active[id]) {
             // Increment the window since I've delivered a proposal
-            ++finished;
-            System.out.println("DELIVERED: " + id);
-            if (finished == Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
+            if (++finished == Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
                 if (ConfigParser.readProposals()) {
                     loadNext();
                 }
@@ -199,8 +197,7 @@ public class LatticeConsensus {
                 CommunicationService.deliver(proposedValue.get(lastDelivered));
                 // Send decided lastDelivered to then clean
                 BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
-                clean(lastDelivered);
-                ++lastDelivered;
+                clean(lastDelivered++);
             }
             active[id] = false;
         }
@@ -255,7 +252,7 @@ public class LatticeConsensus {
             acceptedValue.put(id, new HashSet<>(proposal.getProposedValues()));
         } else {
             ackCount.put(id, new int[] {0, 0});
-            BestEffortBroadcast.bebDeliver(Proposal.createProposal(id, (byte) 0, myHost, proposal.getProposedValues(), proposal.getActiveProposalNumber()));
+            BestEffortBroadcast.bebDeliver(Proposal.createProposal(id, (byte) 0, MY_HOST, proposal.getProposedValues(), proposal.getActiveProposalNumber()));
         }
     }
 

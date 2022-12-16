@@ -1,7 +1,7 @@
 package cs451.channel;
 
 import static cs451.parser.HostsParser.hosts;
-import static cs451.process.Process.myHost;
+import static cs451.process.Process.MY_HOST;
 
 import cs451.parser.Host;
 import cs451.process.Process;
@@ -23,7 +23,7 @@ public class Network {
     public static void populateNetwork() {
         for (Map.Entry<Byte, Host> entry : hosts.entrySet()) {
             // No need to map my current host, since I won't send packets to myself
-            if (entry.getKey() != myHost) {
+            if (entry.getKey() != MY_HOST) {
                 network.put(entry.getKey(), new Process(entry.getValue()));
             }
         }

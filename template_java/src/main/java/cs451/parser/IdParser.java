@@ -26,7 +26,7 @@ public class IdParser {
                 System.err.println("Local id not valid");
                 return false;
             }
-            Process.myHost = fromIntegerToByte(id);
+            Process.MY_HOST = fromIntegerToByte(id);
         } catch (NumberFormatException e) {
             e.printStackTrace();
             return false;

@@ -1,7 +1,8 @@
 package cs451.parser;
 
-import static cs451.process.Process.myHost;
+import static cs451.process.Process.MY_HOST;
 
+import cs451.process.Process;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -52,10 +53,11 @@ public class HostsParser {
             return false;
         }
         // Check if local id is coherent with the parsed hosts
-        if (myHost >= hosts.size()) {
+        if (MY_HOST >= hosts.size()) {
             System.err.println("Wrong local id range");
             return false;
         }
+        Process.NUM_HOSTS = hosts.size();
         return true;
     }
 

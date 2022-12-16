@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import static cs451.channel.Network.getProcess;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
 import static cs451.parser.HostsParser.hosts;
-import static cs451.process.Process.myHost;
+import static cs451.process.Process.MY_HOST;
 
 /**
  * The lowest abstraction for the channels.
@@ -49,7 +49,7 @@ public class FairLossLink {
      */
     public static void start(Consumer<Packet> packetCallback) throws SocketException {
         FairLossLink.packetCallback = packetCallback;
-        socket = new DatagramSocket(hosts.get(myHost).getPort());
+        socket = new DatagramSocket(hosts.get(MY_HOST).getPort());
         ExecutorService workers = Executors.newFixedThreadPool(2);
         workers.execute(FairLossLink::dequeuePacket);
         workers.execute(FairLossLink::receivePackets);

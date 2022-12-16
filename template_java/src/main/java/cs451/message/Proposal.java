@@ -17,13 +17,13 @@ public class Proposal {
     private final int proposalNumber;
 
     /** Active proposal number used in consensus */
-    private final int activeProposalNumber;
+    private int activeProposalNumber;
 
     /**
      * Type of proposal: 0 -> PROPOSAL.
-     *                    1 -> ACK.
-     *                    2 -> NACK.
-     *                    3 -> CLEAN.
+     *                   1 -> ACK.
+     *                   2 -> NACK.
+     *                   3 -> CLEAN.
      */
     private final byte type;
 
@@ -50,10 +50,13 @@ public class Proposal {
         this.activeProposalNumber = activeProposalNumber;
     }
 
+    /**
+     * Create a proposal of type CLEAN.
+     * @param proposalNumber id of proposal to clean
+     */
     public Proposal(int proposalNumber) {
         this.proposalNumber = proposalNumber;
         this.type = 3;
-        this.activeProposalNumber = 0;
     }
 
     /**
