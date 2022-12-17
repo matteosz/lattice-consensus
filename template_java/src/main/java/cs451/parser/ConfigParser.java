@@ -29,7 +29,7 @@ public class ConfigParser {
     private static int currentProposal = 0;
 
     /** Total number of proposals. */
-    public static int totalProposal;
+    public static int totalProposal = 0;
 
     /** Maximum number of distinct elements in a proposal's shot. */
     public static int maxProposalLength;
@@ -51,7 +51,7 @@ public class ConfigParser {
             return false;
         };
         // Read the header -> p vs ds
-        String[] header = br.readLine().split("\\s+");
+        String[] header = br.readLine().split("\\s");
         try {
             totalProposal = Integer.parseInt(header[0]);
             maxProposalLength = Integer.parseInt(header[1]);
@@ -65,9 +65,6 @@ public class ConfigParser {
         try {
             for (String line;
                 currentProposal < PROPOSAL_BATCH && (line = br.readLine()) != null; ) {
-                if (line.isBlank()) {
-                    continue;
-                }
                 readLine(line);
             }
         } catch (IOException e) {
@@ -89,21 +86,19 @@ public class ConfigParser {
         if (currentProposal == totalProposal) {
             return false;
         }
-        synchronized (br) {
-            try {
-                int p = 0;
-                // Load min between MAX_COMPRESSION (8) and the current batch (needed when batch is less than 8)
-                for (String line; p < Math.min(MAX_COMPRESSION, PROPOSAL_BATCH) && (line = br.readLine()) != null; ++p) {
-                    readLine(line);
-                    if (currentProposal == totalProposal) {
-                        br.close();
-                        break;
-                    }
+        try {
+            int p = 0;
+            // Load min between MAX_COMPRESSION (8) and the current batch (needed when batch is less than 8)
+            for (String line; p < Math.min(MAX_COMPRESSION, PROPOSAL_BATCH) && (line = br.readLine()) != null; ++p) {
+                readLine(line);
+                if (currentProposal == totalProposal) {
+                    br.close();
+                    break;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-                return !originals.isEmpty();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return !originals.isEmpty();
         }
         return true;
     }
@@ -114,7 +109,7 @@ public class ConfigParser {
      */
     private static void readLine(String line) {
         try {
-            String[] splits = line.split("\\s+");
+            String[] splits = line.split("\\s");
             Set<Integer> values = new HashSet<>(maxProposalLength);
             for (String split : splits) {
                 values.add(Integer.parseInt(split));
@@ -133,12 +128,10 @@ public class ConfigParser {
         if (currentProposal == totalProposal) {
             return;
         }
-        synchronized (br) {
-            try {
-                br.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

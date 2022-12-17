@@ -1,6 +1,7 @@
 package cs451.parser;
 
 import cs451.service.CommunicationService;
+import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -25,6 +26,7 @@ public class OutputParser {
         File file = new File(value);
         try {
             CommunicationService.writer = new BufferedWriter(new FileWriter(file.getPath()), 32768);
+            Parameters.STARTED = true;
         } catch (IOException e) {
             e.printStackTrace();
             return false;

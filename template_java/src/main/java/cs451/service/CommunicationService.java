@@ -7,6 +7,7 @@ import cs451.channel.StubbornLink;
 import cs451.consensus.LatticeConsensus;
 
 import cs451.parser.ConfigParser;
+import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Iterator;
@@ -24,9 +25,6 @@ public class CommunicationService {
 
     /** Buffered Writer to write logs on output file. */
     public static BufferedWriter writer;
-
-    /** Flush to alternate flushing for improved performance. */
-    private static boolean flush = true;
 
     /**
      * Start the consensus and initialize all static fields.
@@ -49,10 +47,10 @@ public class CommunicationService {
         BestEffortBroadcast.stopThreads();
         StubbornLink.stopThreads();
         FairLossLink.stopThreads();
-        synchronized (writer) {
+        if (Parameters.STARTED) {
             try {
                 writer.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -64,26 +62,20 @@ public class CommunicationService {
      * @param proposals (simply set of integers) to deliver.
      */
     public static void deliver(Set<Integer> proposals) {
-        synchronized (writer) {
-            try {
-                Iterator<Integer> iterator = proposals.iterator();
-                while (iterator.hasNext()) {
-                    int num = iterator.next();
-                    // Check if it's last number
-                    if (!iterator.hasNext()) {
-                        writer.write(String.format("%d\n", num));
-                    } else {
-                        writer.write(String.format("%d ", num));
-                    }
+        try {
+            Iterator<Integer> iterator = proposals.iterator();
+            while (iterator.hasNext()) {
+                int num = iterator.next();
+                // Check if it's last number
+                if (!iterator.hasNext()) {
+                    writer.write(String.format("%d\n", num));
+                } else {
+                    writer.write(String.format("%d ", num));
                 }
-                if (flush) {
-                    writer.flush();
-                }
-                // Flush in an alternate fashion
-                flush = !flush;
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+            writer.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

@@ -12,17 +12,20 @@ import cs451.message.Packet;
  */
 public class Parameters {
 
+    /** Flag to signal the writer has been started, it avoids null pointer exception */
+    public static boolean STARTED = false;
+
     /** Starting timeout for each host. */
     public static int TIMEOUT = 1024;
 
     /** Threshold for the maximum timeout for a host. */
-    public static int MAX_TIMEOUT = 32768;
+    public static int MAX_TIMEOUT = 16384;
 
     /** Threshold to be arbitrary added to hosts' timeout to prevent collisions. */
-    public static int THRESHOLD = 15;
+    public static int THRESHOLD = 10;
 
     /** Maximum number of packets to resend at a given time in the system. */
-    public static int LINK_BATCH = 2048;
+    public static int LINK_BATCH = 1024;
 
     /** Window size for the proposal to be processed. */
     public static int PROPOSAL_BATCH;
@@ -56,16 +59,17 @@ public class Parameters {
             PROPOSAL_BATCH >>= 1;
             return;
         }
-        if (maxDistinctValues >= 300 && maxDistinctValues < 600) {
+        if (maxDistinctValues >= 300 && maxDistinctValues < 500) {
             PROPOSAL_BATCH >>= 2;
         }
-        if (maxDistinctValues >= 600 && maxDistinctValues < 900) {
+        if (maxDistinctValues >= 500 && maxDistinctValues < 800) {
             PROPOSAL_BATCH >>= 3;
+            LINK_BATCH >>= 1;
         }
-        if (maxDistinctValues >= 900) {
+        if (maxDistinctValues >= 800) {
             PROPOSAL_BATCH >>= 4;
+            LINK_BATCH >>= 2;
         }
-        LINK_BATCH >>= 1;
     }
 
 }
