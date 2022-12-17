@@ -108,12 +108,12 @@ public class LatticeConsensus {
     public static void deliverAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
-        if (active.contains(id) && activeId == activeProposal.get(id)) {
+        if (activeId == activeProposal.get(id)) {
             // Increase the ack counter
             ++ackCount.get(id)[0];
             // Now check 2 events, since ack has been incremented
-            checkAck(id);
             checkNAck(id);
+            checkAck(id);
         }
     }
 
@@ -124,7 +124,7 @@ public class LatticeConsensus {
     public static void deliverNAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
-        if (active.contains(id) && activeId == activeProposal.get(id)) {
+        if (activeId == activeProposal.get(id)) {
             // Add to my proposed values all the proposal's values
             proposedValue.get(id).addAll(proposal.getProposedValues());
             // Increment the nack counter
@@ -141,7 +141,7 @@ public class LatticeConsensus {
     private static void checkNAck(int id) {
         Integer[] ack = ackCount.get(id);
         // If nack > 0 and nack + ack >= f + 1 and the proposal is currently active
-        if ((ack[1] > 0) && ((ack[0] + ack[1]) > majority)) {
+        if (active.contains(id) && (ack[1] > 0) && ((ack[0] + ack[1]) > majority)) {
             // Increment active count
             int activeId = activeProposal.get(id) + 1;
             activeProposal.put(id, activeId);
@@ -158,7 +158,7 @@ public class LatticeConsensus {
      */
     private static void checkAck(int id) {
         // If received the majority of ack and the proposal is currently active
-        if (ackCount.get(id)[0] > majority) {
+        if (active.contains(id) && ackCount.get(id)[0] > majority) {
             // Increment the window since I've delivered a proposal
             if (++finished == Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
                 if (ConfigParser.readProposals()) {
