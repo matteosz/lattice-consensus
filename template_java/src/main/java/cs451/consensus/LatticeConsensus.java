@@ -108,7 +108,7 @@ public class LatticeConsensus {
     public static void deliverAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
-        if (activeId == activeProposal.get(id)) {
+        if (activeId == activeProposal.getOrDefault(id, -1)) {
             // Increase the ack counter
             ++ackCount.get(id)[0];
             // Now check 2 events, since ack has been incremented
@@ -124,7 +124,7 @@ public class LatticeConsensus {
     public static void deliverNAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
-        if (activeId == activeProposal.get(id)) {
+        if (activeId == activeProposal.getOrDefault(id, -1)) {
             // Add to my proposed values all the proposal's values
             proposedValue.get(id).addAll(proposal.getProposedValues());
             // Increment the nack counter
