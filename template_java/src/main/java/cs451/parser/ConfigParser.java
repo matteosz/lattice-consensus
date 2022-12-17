@@ -13,7 +13,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
 
 /**
@@ -52,7 +51,7 @@ public class ConfigParser {
             return false;
         };
         // Read the header -> p vs ds
-        String[] header = br.readLine().split("\\s");
+        String[] header = br.readLine().split("\\s+");
         try {
             totalProposal = Integer.parseInt(header[0]);
             maxProposalLength = Integer.parseInt(header[1]);
@@ -63,12 +62,17 @@ public class ConfigParser {
         }
         Parameters.setParams();
         // Load first batch of proposals
-        originals = new LinkedList<>();
-        for(String line; currentProposal < PROPOSAL_BATCH && (line = br.readLine()) != null; ) {
-            if (line.isBlank()) {
-                continue;
+        try {
+            for (String line;
+                currentProposal < PROPOSAL_BATCH && (line = br.readLine()) != null; ) {
+                if (line.isBlank()) {
+                    continue;
+                }
+                readLine(line);
             }
-            readLine(line);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
         if (currentProposal == totalProposal) {
             br.close();
@@ -81,23 +85,20 @@ public class ConfigParser {
      * @return true if read at least one, false otherwise
      */
     public static boolean readProposals() {
-        // If already read all proposals
+        // If already read all proposals, then already closed buffer
         if (currentProposal == totalProposal) {
             return false;
         }
         synchronized (br) {
             try {
                 int p = 0;
-                for (String line; p < Math.min(MAX_COMPRESSION, PROPOSAL_BATCH) && (line = br.readLine()) != null; ) {
-                    if (line.isBlank()) {
-                        continue;
-                    }
+                // Load min between MAX_COMPRESSION (8) and the current batch (needed when batch is less than 8)
+                for (String line; p < Math.min(MAX_COMPRESSION, PROPOSAL_BATCH) && (line = br.readLine()) != null; ++p) {
                     readLine(line);
                     if (currentProposal == totalProposal) {
                         br.close();
                         break;
                     }
-                    ++p;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -113,8 +114,8 @@ public class ConfigParser {
      */
     private static void readLine(String line) {
         try {
-            String[] splits = line.split("\\s");
-            Set<Integer> values = new HashSet<>();
+            String[] splits = line.split("\\s+");
+            Set<Integer> values = new HashSet<>(maxProposalLength);
             for (String split : splits) {
                 values.add(Integer.parseInt(split));
             }
@@ -128,6 +129,7 @@ public class ConfigParser {
      * Close the file reader if still open
      */
     public static void closeFile() {
+        // If already closed
         if (currentProposal == totalProposal) {
             return;
         }

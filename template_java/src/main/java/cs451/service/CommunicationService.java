@@ -65,8 +65,8 @@ public class CommunicationService {
      */
     public static void deliver(Set<Integer> proposals) {
         synchronized (writer) {
-            Iterator<Integer> iterator = proposals.iterator();
             try {
+                Iterator<Integer> iterator = proposals.iterator();
                 while (iterator.hasNext()) {
                     int num = iterator.next();
                     // Check if it's last number
@@ -79,6 +79,7 @@ public class CommunicationService {
                 if (flush) {
                     writer.flush();
                 }
+                // Flush in an alternate fashion
                 flush = !flush;
             } catch (IOException e) {
                 e.printStackTrace();

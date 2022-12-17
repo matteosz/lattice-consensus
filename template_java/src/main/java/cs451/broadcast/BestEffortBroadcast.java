@@ -87,13 +87,18 @@ public class BestEffortBroadcast {
     }
 
     /**
-     * Broadcast to all host a given proposal.
-     * Simply put the proposal at the beginning of the shared list.
-     * The beginning ensures that will be loaded before the original proposals.
+     * Broadcast to all host a given proposal and deliver to my host.
+     * Simply put the proposal in a synchronized tree set, that
+     * ensures processing in ascending order.
      * @param proposal to broadcast
      */
     public static void broadcast(Proposal proposal) {
-        proposalsToSend.addFirst(proposal);
+        // Deliver to myself
+        bebDeliver(Proposal.createProposal(proposal));
+        // Broadcast to anyone else
+        synchronized (proposalsToSend) {
+            proposalsToSend.add(proposal);
+        }
     }
 
     /**

@@ -6,7 +6,6 @@ import cs451.message.TimedPacket;
 import cs451.parser.Host;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -31,7 +30,7 @@ public class Process {
     public static int NUM_HOSTS;
 
     /** Thread-safe queue of shared proposals to send to every host */
-    public static final ConcurrentLinkedDeque<Proposal> proposalsToSend = new ConcurrentLinkedDeque<>();
+    public static final Set<Proposal> proposalsToSend = new TreeSet<>();
 
     /** Information about this distant host */
     private final Host host;
@@ -61,9 +60,9 @@ public class Process {
      * Maps to represent all the proposals' ids delivered, divided by
      * type and associated by the active counts been delivered
      */
-    private final Map<Integer, Integer> proposalsDelivered = new HashMap<>(),
-                             ackDelivered = new HashMap<>(),
-                             nackDelivered = new HashMap<>();
+    private final Map<Integer, Compressor> proposalsDelivered = new HashMap<>(),
+                                           ackDelivered = new HashMap<>(),
+                                           nackDelivered = new HashMap<>();
 
     /** Data structure to deliver cleaning request */
     private final Compressor cleanDelivered = new Compressor(false);
@@ -261,13 +260,12 @@ public class Process {
      * @param map delivery data structure
      * @return true if correctly added and not delivered before, else otherwise
      */
-    private static boolean commonDeliver(int proposalNumber, int activeCount, Map<Integer, Integer> map) {
-        int old = map.getOrDefault(proposalNumber, 0);
-        if (activeCount > old) {
-            map.put(proposalNumber, activeCount);
+    private static boolean commonDeliver(int proposalNumber, int activeCount, Map<Integer, Compressor> map) {
+        if (!map.containsKey(proposalNumber)) {
+            map.put(proposalNumber, new Compressor(false, activeCount));
             return true;
         }
-        return false;
+        return map.get(proposalNumber).add(activeCount);
     }
 
 }

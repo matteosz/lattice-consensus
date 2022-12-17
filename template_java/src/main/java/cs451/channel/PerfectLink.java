@@ -1,5 +1,6 @@
 package cs451.channel;
 
+import cs451.broadcast.BestEffortBroadcast;
 import cs451.message.Packet;
 import cs451.message.Proposal;
 import cs451.process.Process;
@@ -8,6 +9,7 @@ import java.net.SocketException;
 import java.util.function.Consumer;
 
 import static cs451.channel.Network.getProcess;
+import static cs451.process.Process.MY_HOST;
 
 /**
  * The highest channel abstraction.
@@ -62,7 +64,12 @@ public class PerfectLink {
      * @param targetId id of recipient
      */
     public static void sendAck(Proposal proposal, byte targetId) {
-        getProcess(targetId).addAckProposal(proposal);
+        if (targetId == MY_HOST) {
+            // Don't send to myself but immediately deliver
+            BestEffortBroadcast.bebDeliver(proposal);
+        } else {
+            getProcess(targetId).addAckProposal(proposal);
+        }
     }
 
     /**
@@ -71,7 +78,12 @@ public class PerfectLink {
      * @param targetId id of recipient
      */
     public static void sendNack(Proposal proposal, byte targetId) {
-        getProcess(targetId).addNackProposal(proposal);
+        if (targetId == MY_HOST) {
+            // Don't send to myself but immediately deliver
+            BestEffortBroadcast.bebDeliver(proposal);
+        } else {
+            getProcess(targetId).addNackProposal(proposal);
+        }
     }
 
 }

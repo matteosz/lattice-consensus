@@ -166,14 +166,17 @@ public class StubbornLink {
     private static Packet craftSharedPacket() {
         int len = HEADER;
         List<Proposal> sublist = new LinkedList<>();
-        Iterator<Proposal> iterator = proposalsToSend.iterator();
-        while (iterator.hasNext() && sublist.size() < MAX_COMPRESSION) {
-            // Find how many bytes the current proposal occupies to find the fit
-            Proposal curr = iterator.next();
-            if (MAX_PACKET_SIZE - len >= curr.getBytes()) {
-                len += curr.getBytes();
-                sublist.add(curr);
-                iterator.remove();
+        synchronized (proposalsToSend) {
+            Iterator<Proposal> iterator = proposalsToSend.iterator();
+            while (sublist.size() < MAX_COMPRESSION && iterator.hasNext()) {
+                // Find how many bytes the current proposal occupies to find the fit
+                Proposal curr = iterator.next();
+                int bytes = curr.getBytes();
+                if (MAX_PACKET_SIZE - len >= bytes) {
+                    len += bytes;
+                    sublist.add(curr);
+                    iterator.remove();
+                }
             }
         }
         // If I have at least a proposal to pack

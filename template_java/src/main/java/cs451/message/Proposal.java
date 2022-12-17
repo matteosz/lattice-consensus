@@ -8,7 +8,7 @@ import java.util.Set;
  *
  * A proposal is a set of integers plus some metadata.
  */
-public class Proposal {
+public class Proposal implements Comparable<Proposal> {
 
     /** Length in bytes of an ack proposal - 1 byte + 2 integers */
     private static final int ACK_COUNT = 1 + 2 * Integer.BYTES;
@@ -71,6 +71,15 @@ public class Proposal {
      */
     public static Proposal createProposal(int proposalNumber, byte type, byte sender, Set<Integer> values, int activeProposalNumber) {
         return new Proposal(proposalNumber, type, sender, new HashSet<>(values), activeProposalNumber);
+    }
+
+    /**
+     * Deep copy the given proposal.
+     * @param proposal to copy
+     * @return new copy
+     */
+    public static Proposal createProposal(Proposal proposal) {
+        return new Proposal(proposal.getProposalNumber(), proposal.getType(), proposal.getSender(), new HashSet<>(proposal.getProposedValues()), proposal.getActiveProposalNumber());
     }
 
     /**
@@ -137,4 +146,14 @@ public class Proposal {
         return type == 1 || type == 3;
     }
 
+    /**
+     * Comparable interface implementation.
+     * @param o the object to be compared.
+     * @return the difference between proposal numbers or, if 0, between active proposal numbers
+     */
+    @Override
+    public int compareTo(Proposal o) {
+        int diff = this.proposalNumber - o.proposalNumber;
+        return diff == 0? this.activeProposalNumber - o.activeProposalNumber : diff;
+    }
 }
