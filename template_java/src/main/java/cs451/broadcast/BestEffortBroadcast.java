@@ -91,10 +91,9 @@ public class BestEffortBroadcast {
      * @param highPriority whether the proposal is going to be put in head or not.
      */
     public static void broadcast(Proposal proposal, boolean highPriority) {
-        // Deliver to myself
-        bebDeliver(Proposal.createProposal(proposal));
-        // Broadcast to anyone else
         if (highPriority) {
+            // Deliver to myself
+            bebDeliver(Proposal.createProposal(proposal));
             proposalsToSend.addFirst(proposal);
         } else {
             proposalsToSend.add(proposal);
