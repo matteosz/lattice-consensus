@@ -23,24 +23,24 @@ sleep 10;
 
 # Case 2
 
-proc=2; prop=10000000; vs=10; ds=20; t=60; c=1;
-echo "Processes: " $proc;
-echo "VS=" $vs "DS=" $ds;
-echo "Time: " $t "s";
-../template_java/cleanup.sh;
-../template_java/build.sh > /dev/null;
-if [ $c = 1 ]; then 
-rm ../logs/*;
-else
-cd ../logs;
-rm !*.config|"hosts";
-cd ../tools;
-fi;
-python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
-sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
-sleep 10;
+#proc=2; prop=10000000; vs=10; ds=20; t=60; c=1;
+#echo "Processes: " $proc;
+#echo "VS=" $vs "DS=" $ds;
+#echo "Time: " $t "s";
+#../template_java/cleanup.sh;
+#../template_java/build.sh > /dev/null;
+#if [ $c = 1 ]; then 
+#rm ../logs/*;
+#else
+#cd ../logs;
+#rm !*.config|"hosts";
+#cd ../tools;
+#fi;
+#python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
+#sleep 10;
+#wc -l ../logs/*.output;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
+#sleep 10;
 
 # Case 3
 

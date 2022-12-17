@@ -1,5 +1,8 @@
 package cs451.utilities;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Utilities class used for converting
  * byte to int/long and vice-versa.
@@ -11,6 +14,9 @@ public class Utilities {
 
     /** Long version of the mask. */
     public static final long LONG_MASK = 0xff;
+
+    /** Constant empty set */
+    public static final Set<Integer> EMPTY = new HashSet<>();
 
     /**
      * Fill a byte array starting from an offset with a

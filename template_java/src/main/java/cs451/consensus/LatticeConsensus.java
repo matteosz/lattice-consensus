@@ -11,6 +11,7 @@ import cs451.message.Compressor;
 import cs451.message.Proposal;
 import cs451.parser.ConfigParser;
 import cs451.service.CommunicationService;
+import cs451.utilities.Utilities;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,10 +74,10 @@ public class LatticeConsensus {
             Proposal proposal = iterator.next();
             // Populate the consensus data structure given this proposal as loaded
             populateProposal(proposal);
-            // Load this proposal to be broadcast
-            BestEffortBroadcast.broadcast(proposal, false);
             // Clear the entry from list
             iterator.remove();
+            // Load this proposal to be broadcast
+            BestEffortBroadcast.broadcast(proposal, false);
         }
         // Start the BEB broadcast and all the underlying instances
         BestEffortBroadcast.start();
@@ -89,8 +90,9 @@ public class LatticeConsensus {
     public static void deliverProposal(Proposal proposal) {
         int id = proposal.getProposalNumber();
         // If accepted values is a subset of the proposed values
-        if (!acceptedValue.containsKey(id) || proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
-            acceptedValue.put(id, proposal.getProposedValues());
+        if (proposal.getProposedValues().containsAll(acceptedValue.getOrDefault(id,
+            Utilities.EMPTY))) {
+            acceptedValue.put(id, new HashSet<>(proposal.getProposedValues()));
             // Send an ack to the proposal's sender
             PerfectLink.sendAck(new Proposal(id, (byte) 1, MY_HOST, null, proposal.getActiveProposalNumber()), proposal.getSender());
         } else {
@@ -158,7 +160,7 @@ public class LatticeConsensus {
      */
     private static void checkAck(int id) {
         // If received the majority of ack and the proposal is currently active
-        if (active.contains(id) && ackCount.get(id)[0] > majority) {
+        if (active.contains(id) && (ackCount.get(id)[0] > majority)) {
             // Increment the window since I've delivered a proposal
             if (++finished == Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
                 if (ConfigParser.readProposals()) {
@@ -213,10 +215,10 @@ public class LatticeConsensus {
             Proposal proposal = iterator.next();
             // Populate the consensus data structure given this proposal as loaded
             populateProposal(proposal);
-            // Add to the shared proposals
-            BestEffortBroadcast.broadcast(proposal, false);
             // Clear the entry from list
             iterator.remove();
+            // Add to the shared proposals
+            BestEffortBroadcast.broadcast(proposal, false);
         }
     }
 
