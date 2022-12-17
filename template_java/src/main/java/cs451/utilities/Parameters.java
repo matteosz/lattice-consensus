@@ -12,19 +12,19 @@ import cs451.message.Packet;
  */
 public class Parameters {
 
-    /** Starting timeout for each host */
+    /** Starting timeout for each host. */
     public static int TIMEOUT = 1024;
 
-    /** Threshold for the maximum timeout for a host */
+    /** Threshold for the maximum timeout for a host. */
     public static int MAX_TIMEOUT = 32768;
 
-    /** Threshold to be arbitrary added to hosts' timeout to prevent collisions */
+    /** Threshold to be arbitrary added to hosts' timeout to prevent collisions. */
     public static int THRESHOLD = 15;
 
-    /** Maximum number of packets to resend at a given time in the system */
+    /** Maximum number of packets to resend at a given time in the system. */
     public static int LINK_BATCH = 2048;
 
-    /** Window size for the proposal to be processed */
+    /** Window size for the proposal to be processed. */
     public static int PROPOSAL_BATCH;
 
     /**

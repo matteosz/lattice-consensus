@@ -5,18 +5,18 @@ import java.util.Set;
 
 /**
  * It represents a proposal in a consensus round.
- *
+ * <p>
  * A proposal is a set of integers plus some metadata.
  */
-public class Proposal implements Comparable<Proposal> {
+public class Proposal {
 
-    /** Length in bytes of an ack proposal - 1 byte + 2 integers */
+    /** Length in bytes of an ack proposal -> 1 byte + 2 integers. */
     private static final int ACK_COUNT = 1 + 2 * Integer.BYTES;
 
-    /** Proposal unique id */
+    /** Proposal unique id. */
     private final int proposalNumber;
 
-    /** Active proposal number used in consensus */
+    /** Active proposal number used in consensus. */
     private int activeProposalNumber;
 
     /**
@@ -27,19 +27,19 @@ public class Proposal implements Comparable<Proposal> {
      */
     private final byte type;
 
-    /** Sender id of the proposal */
+    /** Sender id of the proposal. */
     private byte sender;
 
-    /** Real proposal, set of integers */
+    /** Real proposal, set of integers. */
     private Set<Integer> proposedValues;
 
     /**
      * Simple constructor for a proposal.
-     * @param proposalNumber id of the proposal
-     * @param type of proposal (0, 1, 2)
-     * @param sender id
-     * @param proposedValues set of integer
-     * @param activeProposalNumber current active count in the consensus round
+     * @param proposalNumber id of the proposal.
+     * @param type of proposal (0, 1, 2).
+     * @param sender id.
+     * @param proposedValues set of integer.
+     * @param activeProposalNumber current active count in the consensus round.
      */
     public Proposal(int proposalNumber, byte type, byte sender,
         Set<Integer> proposedValues, int activeProposalNumber) {
@@ -52,7 +52,7 @@ public class Proposal implements Comparable<Proposal> {
 
     /**
      * Create a proposal of type CLEAN.
-     * @param proposalNumber id of proposal to clean
+     * @param proposalNumber id of proposal to clean.
      */
     public Proposal(int proposalNumber) {
         this.proposalNumber = proposalNumber;
@@ -62,12 +62,12 @@ public class Proposal implements Comparable<Proposal> {
     /**
      * Statically create a proposal given some proposed values.
      * These values are hard copied into a new hash set.
-     * @param proposalNumber id of the proposal
-     * @param type (0, 1, 2)
-     * @param sender id
-     * @param values proposed values to use in the proposal
-     * @param activeProposalNumber active count in consensus
-     * @return new proposal
+     * @param proposalNumber id of the proposal.
+     * @param type (0, 1, 2).
+     * @param sender id.
+     * @param values proposed values to use in the proposal.
+     * @param activeProposalNumber active count in consensus.
+     * @return new proposal.
      */
     public static Proposal createProposal(int proposalNumber, byte type, byte sender, Set<Integer> values, int activeProposalNumber) {
         return new Proposal(proposalNumber, type, sender, new HashSet<>(values), activeProposalNumber);
@@ -75,50 +75,50 @@ public class Proposal implements Comparable<Proposal> {
 
     /**
      * Deep copy the given proposal.
-     * @param proposal to copy
-     * @return new copy
+     * @param proposal to copy.
+     * @return new copy.
      */
     public static Proposal createProposal(Proposal proposal) {
         return new Proposal(proposal.getProposalNumber(), proposal.getType(), proposal.getSender(), new HashSet<>(proposal.getProposedValues()), proposal.getActiveProposalNumber());
     }
 
     /**
-     * @return proposal id
+     * @return proposal id.
      */
     public int getProposalNumber() {
         return proposalNumber;
     }
 
     /**
-     * @return active proposal count
+     * @return active proposal count.
      */
     public int getActiveProposalNumber() {
         return activeProposalNumber;
     }
 
     /**
-     * @return type of the proposal (0, 1, 2, 3)
+     * @return type of the proposal (0, 1, 2, 3).
      */
     public byte getType() {
         return type;
     }
 
     /**
-     * @return set of proposed values (int)
+     * @return set of proposed values (int).
      */
     public Set<Integer> getProposedValues() {
         return proposedValues;
     }
 
     /**
-     * @return sender id
+     * @return sender id.
      */
     public byte getSender() {
         return sender;
     }
 
     /**
-     * @return number of proposed values
+     * @return number of proposed values.
      */
     public int getLength() {
         return proposedValues.size();
@@ -127,7 +127,7 @@ public class Proposal implements Comparable<Proposal> {
     /**
      * Compute the length that the proposal has in bytes when
      * serialized within a packet.
-     * @return number of bytes used
+     * @return number of bytes used.
      */
     public int getBytes() {
         if (type == 1 || type == 3) {
@@ -140,20 +140,10 @@ public class Proposal implements Comparable<Proposal> {
     }
 
     /**
-     * @return true if type is ACK or CLEAN, false otherwise
+     * @return true if type is ACK or CLEAN, false otherwise.
      */
     public boolean isAck() {
         return type == 1 || type == 3;
     }
 
-    /**
-     * Comparable interface implementation.
-     * @param o the object to be compared.
-     * @return the difference between proposal numbers or, if 0, between active proposal numbers
-     */
-    @Override
-    public int compareTo(Proposal o) {
-        int diff = this.proposalNumber - o.proposalNumber;
-        return diff == 0? this.activeProposalNumber - o.activeProposalNumber : diff;
-    }
 }

@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static cs451.channel.Network.getProcess;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
@@ -22,33 +21,28 @@ import static cs451.process.Process.MY_HOST;
 
 /**
  * The lowest abstraction for the channels.
- *
+ * <p>
  * Main functions:
- * 1) It uses a blocking queue to store datagram packets to send and a thread infinitely polling
+ * 1) It uses a blocking queue to store the datagram packets to send and a thread infinitely polling
  *    from the queue to send through the socket.
  * 2) Another thread listens to the socket and deliver packets to upper layers.
  */
 public class FairLossLink {
 
-    /** UDP socket */
+    /** UDP socket. */
     private static DatagramSocket socket;
 
-    /**  Blocking queue containing datagram packets to be sent */
+    /**  Blocking queue containing datagram packets to be sent. */
     private static final BlockingQueue<DatagramPacket> datagramsToSend = new LinkedBlockingQueue<>();
 
-    /** Running flag to stop the threads when the application stops */
+    /** Running flag to stop the threads when the application stops. */
     private static final AtomicBoolean running = new AtomicBoolean(true);
-
-    /** Consumer function given by the upper layer, called in deliver time */
-    private static Consumer<Packet> packetCallback;
 
     /**
      * Initialize the FairLoss Link.
-     * @param packetCallback a consumer function to call the delivery of the upper layer
      * @throws SocketException
      */
-    public static void start(Consumer<Packet> packetCallback) throws SocketException {
-        FairLossLink.packetCallback = packetCallback;
+    public static void start() throws SocketException {
         socket = new DatagramSocket(hosts.get(MY_HOST).getPort());
         ExecutorService workers = Executors.newFixedThreadPool(2);
         workers.execute(FairLossLink::dequeuePacket);
@@ -57,8 +51,8 @@ public class FairLossLink {
 
     /**
      * Create a datagram packet and insert it in the blocking queue.
-     * @param packet packet to be serialized and inserted in the queue
-     * @param target host's id of the future recipient
+     * @param packet packet to be serialized and inserted in the queue.
+     * @param target host's id of the future recipient.
      */
     public static void enqueuePacket(Packet packet, byte target) {
         Host targetHost = getProcess(target).getHost();
@@ -74,7 +68,7 @@ public class FairLossLink {
     }
 
     /**
-     * Poll UDP datagrams from the queue and send them through the socket
+     * Poll UDP datagrams from the queue and send them through the socket.
      */
     private static void dequeuePacket() {
         while (running.get()) {
@@ -92,7 +86,7 @@ public class FairLossLink {
 
     /**
      * Receive datagram packets through the socket,
-     * deserialize them and deliver to the upper layer
+     * deserialize them and deliver to the upper layer.
      */
     private static void receivePackets() {
         while (running.get()) {
@@ -101,8 +95,8 @@ public class FairLossLink {
             try {
                 // The method receive will block until a datagram is received
                 socket.receive(datagramPacket);
-                // Call the consumer function of the deserialized packet
-                packetCallback.accept(new Packet(datagramPacket.getData()));
+                // Call the consumer function on the deserialized packet
+                StubbornLink.stubbornDeliver(new Packet(datagramPacket.getData()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -110,7 +104,7 @@ public class FairLossLink {
     }
 
     /**
-     * Set atomically the running flag to false
+     * Set atomically the running flag to false.
      */
     public static void stopThreads() {
         running.set(false);

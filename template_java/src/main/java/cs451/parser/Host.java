@@ -10,21 +10,21 @@ import static cs451.utilities.Utilities.fromIntegerToByte;
  */
 public class Host {
 
-    /** ID of the host in the system, it's a byte starting from 0 to max. 127 */
+    /** ID of the host in the system, it's a byte starting from 0 to max 127. */
     private byte id;
 
-    /** IP address of the host */
+    /** IP address of the host. */
     private InetAddress ip;
 
-    /** Port to use for the socket by the host */
+    /** Port to use for the socket by the host. */
     private int port;
 
     /**
-     * Creates a host by parsing id, ip and port
-     * @param idString host's id as string to parse
-     * @param ipString host's ip address
-     * @param portString host's socket port
-     * @return true if correctly parsed, false otherwise
+     * Creates a host by parsing id, ip and port.
+     * @param idString host's id as string to parse.
+     * @param ipString host's ip address.
+     * @param portString host's socket port.
+     * @return true if correctly parsed, false otherwise.
      */
     public boolean populate(String idString, String ipString, String portString) {
         try {
@@ -54,21 +54,21 @@ public class Host {
     }
 
     /**
-     * @return id of the host
+     * @return id of the host.
      */
     public byte getId() {
         return id;
     }
 
     /**
-     * @return ip address as InetAddress
+     * @return ip address as InetAddress.
      */
     public InetAddress getIpAsAddress() {
         return ip;
     }
 
     /**
-      * @return host's port
+      * @return host's port.
      */
     public int getPort() {
         return port;

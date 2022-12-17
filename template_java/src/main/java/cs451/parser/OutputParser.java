@@ -13,9 +13,9 @@ public class OutputParser {
 
     /**
      * Parse the output filename and create the writer.
-     * @param key argument in the command line (--arg)
-     * @param value value after the key
-     * @return true if correctly parsed, false otherwise
+     * @param key argument in the command line (--arg).
+     * @param value value after the key.
+     * @return true if correctly parsed, false otherwise.
      */
     public static boolean populate(String key, String value) {
         if (!key.equals("--output")) {

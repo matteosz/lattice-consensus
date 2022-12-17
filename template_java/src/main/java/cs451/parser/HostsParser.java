@@ -15,14 +15,14 @@ import java.util.Map;
  */
 public class HostsParser {
 
-    /** Mapping the hosts info to their ids */
+    /** Mapping the hosts info to their ids. */
     public static final Map<Byte, Host> hosts = new HashMap<>();
 
     /**
      * Parse the hosts file.
-     * @param key argument in the command line (--arg)
-     * @param filename value after the key
-     * @return true if correctly parsed, false otherwise
+     * @param key argument in the command line (--arg).
+     * @param filename value after the key.
+     * @return true if correctly parsed, false otherwise.
      */
     public static boolean populate(String key, String filename) {
         if (!key.equals("--hosts")) {
@@ -63,7 +63,7 @@ public class HostsParser {
 
     /**
      * Check if all hosts' ids are in a correct range.
-     * @return true if all correct, false otherwise
+     * @return true if all correct, false otherwise.
      */
     private static boolean checkIdRange() {
         int num = hosts.size();

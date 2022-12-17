@@ -28,14 +28,14 @@ import java.io.IOException;
  * This project implements a weak form of consensus (Lattice Consensus)
  * among a constrained number of processes (128 at most). To serve the
  * purpose it implements also a stack of underlying abstractions,
- * from the FairLoss link to the Best Effort Broadcast.
+ * from the Fair-Loss link to the Best-Effort Broadcast.
  *
  */
 public class Main {
 
     /**
      * Add a function as shutdown hook, in order to be
-     * triggered by SIGINT or SIGTERM events
+     * triggered by SIGINT or SIGTERM events.
      */
     private static void initSignalHandlers() {
         Runtime.getRuntime().addShutdownHook(new Thread(CommunicationService::logAndTerminate));
@@ -43,7 +43,7 @@ public class Main {
 
     /**
      * Main function to which pass args to be parsed.
-     * @param args command line arguments
+     * @param args command line arguments.
      */
     public static void main(String[] args) throws IOException {
         // Assign the shutdown hook

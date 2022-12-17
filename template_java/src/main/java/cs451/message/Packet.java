@@ -17,7 +17,7 @@ import static cs451.utilities.Utilities.fromLongToByteArray;
  */
 public class Packet {
 
-    /** Static constants used for the offset of metadata in the byte array */
+    /** Static constants used for the offset of metadata in the byte array. */
     public static final int
                      MAX_COMPRESSION = 8,
                      PCK_ID_OS = 0,
@@ -29,31 +29,31 @@ public class Packet {
 
     /**
      * Max. dimension of a packet in bytes, it will be at most HEADER + 8 * MAX_PROPOSAL_SIZE,
-     * where the maximum proposal size is (4 + ds) * 4
+     * where the maximum proposal size is (4 + ds) * 4.
      */
     public static int MAX_PACKET_SIZE;
 
-    /** Integer representing the unique packet id */
+    /** Integer representing the unique packet id. */
     private final int packetId;
 
-    /** Flag to indicate whether the packet is an ack */
+    /** Flag to indicate whether the packet is an ack. */
     private final boolean isAck;
 
-    /** Host's id of the sender */
+    /** Host's id of the sender. */
     private final byte senderId;
 
-    /** Timestamp of the packet's creation */
+    /** Timestamp of the packet's creation. */
     private long timestamp;
 
-    /** Number of proposals packed */
+    /** Number of proposals packed. */
     private final byte numberOfProposals;
 
-    /** Serialized packed to be converted to datagram packet */
+    /** Serialized packed to be converted to datagram packet. */
     private byte[] data;
 
     /**
      * Build a packet by extracting the metadata from the byte array.
-     * @param data serialized packet (byte array)
+     * @param data serialized packet (byte array).
      */
     public Packet(byte[] data) {
         this.packetId = fromByteToIntegerArray(data, PCK_ID_OS);
@@ -67,10 +67,10 @@ public class Packet {
     /**
      * Build a packet given metadata and list of proposals.
      * It serializes the packet into a byte array.
-     * @param proposals list of proposals to pack
-     * @param packetId id of packet
-     * @param senderId id of sender
-     * @param len length of the byte array
+     * @param proposals list of proposals to pack.
+     * @param packetId id of packet.
+     * @param senderId id of sender.
+     * @param len length of the byte array.
      */
     public Packet(List<Proposal> proposals, int packetId, byte senderId, int len) {
         // Allocate the array
@@ -113,12 +113,12 @@ public class Packet {
 
     /**
      * Private constructor that simply assign the passed parameters.
-     * @param data byte array
-     * @param packetId id of the packet
-     * @param senderId id of the sender
-     * @param isAck flag if it's ack or not
-     * @param timestamp at creation time
-     * @param numberOfProposals packed
+     * @param data byte array.
+     * @param packetId id of the packet.
+     * @param senderId id of the sender.
+     * @param isAck flag if it's ack or not.
+     * @param timestamp at creation time.
+     * @param numberOfProposals packed.
      */
     private Packet(byte[] data, int packetId, byte senderId, boolean isAck, long timestamp, byte numberOfProposals) {
         this.packetId = packetId;
@@ -130,7 +130,7 @@ public class Packet {
     }
 
     /**
-     * @return byte array (serialized packet)
+     * @return byte array (serialized packet).
      */
     public byte[] getBytes() {
         return data;
@@ -138,7 +138,7 @@ public class Packet {
 
     /**
      * Change the timestamp to current time
-     * and update the data array
+     * and update the data array.
      */
     public void updateTimestamp() {
         this.timestamp = System.currentTimeMillis();
@@ -147,7 +147,7 @@ public class Packet {
 
     /**
      * Generate a new packet which is the ack of the given one.
-     * @return ack packet
+     * @return ack packet.
      */
     public Packet convertToAck() {
         // For the ack we simply need the header of packet
@@ -160,7 +160,7 @@ public class Packet {
 
     /**
      * Apply a consumer function to the proposals contained in a packet.
-     * @param callback consumer function to apply
+     * @param callback consumer function to apply.
      */
     public void applyToProposals(Consumer<Proposal> callback) {
         int ptr = HEADER;
@@ -193,48 +193,38 @@ public class Packet {
     }
 
     /**
-     * @return packet id
+     * @return packet id.
      */
     public int getPacketId() {
         return packetId;
     }
 
     /**
-     * @return sender id
+     * @return sender id.
      */
     public byte getSenderId() {
         return senderId;
     }
 
     /**
-     * @return true if it's ack, false otherwise
+     * @return true if it's ack, false otherwise.
      */
     public boolean isAck() {
         return isAck;
     }
 
     /**
-     * @return packet's timestamp
+     * @return packet's timestamp.
      */
     public long getTimestamp() {
         return timestamp;
     }
 
     /**
-     * @return delta between current time and timestamp
+     * @return delta between current time and timestamp.
      */
     public long getEmissionTime() {
         return System.currentTimeMillis() - timestamp;
     }
 
-    @Override
-    public String toString() {
-        return "Packet{" +
-            "packetId=" + packetId +
-            ", isAck=" + isAck +
-            ", senderId=" + senderId +
-            ", timestamp=" + timestamp +
-            ", numberOfProposals=" + numberOfProposals +
-            "}";
-    }
 }

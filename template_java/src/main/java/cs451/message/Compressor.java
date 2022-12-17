@@ -8,24 +8,24 @@ package cs451.message;
 public class Compressor {
 
     /**
-     * LinkedList Node
+     * LinkedList Node.
      */
     private static class Node {
 
-        /** Left bound of the interval (included) */
+        /** Left bound of the interval (included). */
         private int first;
 
-        /** Right bound of the interval (included) */
+        /** Right bound of the interval (included). */
         private int last;
 
-        /** Next list's node */
+        /** Next list's node. */
         private Node next;
 
         /**
          * Node simple constructor.
-         * @param first left-bound (included)
-         * @param last right-bound (included)
-         * @param next next Node in the list
+         * @param first left-bound (included).
+         * @param last right-bound (included).
+         * @param next next Node in the list.
          */
         public Node(int first, int last, Node next) {
             this.first = first;
@@ -37,8 +37,8 @@ public class Compressor {
          * Try to extend the given interval.
          * This is only possible is value is consecutive to
          * first (on the left) or last (on the right).
-         * @param value with which extending the interval
-         * @return true if it's possible to extend, false otherwise
+         * @param value with which extending the interval.
+         * @return true if it's possible to extend, false otherwise.
          */
         public boolean extend(int value) {
             if (first == value + 1) {
@@ -57,7 +57,7 @@ public class Compressor {
          * Check the previous, current and next
          * nodes, after a list modification, to see
          * if a couple of intervals can be merged.
-         * @param prev previous node in the list
+         * @param prev previous node in the list.
          */
         public void overlap(Node prev) {
             if (prev != null && prev.last == first - 1) {
@@ -71,8 +71,8 @@ public class Compressor {
 
         /**
          * Check if a value lies within the current interval.
-         * @param value integer
-         * @return true if it's included, false otherwise
+         * @param value integer.
+         * @return true if it's included, false otherwise.
          */
         public boolean included(int value) {
             return value >= first && value <= last;
@@ -81,27 +81,27 @@ public class Compressor {
         /**
          * Check if a given value precedes my interval,
          * in the way that it's not consecutive on the left to first.
-         * @param value integer
+         * @param value integer.
          * @return true if value lies on the left of first, not being
-         * consecutive to it, false otherwise
+         * consecutive to it, false otherwise.
          */
         public boolean follows(int value) {
             return first > value + 1;
         }
     }
 
-    /** Head of the linked list */
+    /** Head of the linked list. */
     private Node head;
 
-    /** Access flag used to indicate whether it's thread-safe and synchronize the access */
+    /** Access flag used to indicate whether it's thread-safe and synchronize the access. */
     private final Boolean access;
 
-    /** Lock of the data structure */
+    /** Lock of the data structure. */
     private final Object lock = new Object();
 
     /**
      * Create an empty compressor.
-     * @param access whether it has to be thread-safe
+     * @param access whether it has to be thread-safe.
      */
     public Compressor(boolean access) {
         this.access = access;
@@ -110,8 +110,8 @@ public class Compressor {
 
     /**
      * Create a compressor with an initial value.
-     * @param access whether it has to be thread-safe
-     * @param offset initial value
+     * @param access whether it has to be thread-safe.
+     * @param offset initial value.
      */
     public Compressor(boolean access, int offset) {
         this.access = access;
@@ -121,8 +121,8 @@ public class Compressor {
     /**
      * If the compressor is thread-free, it synchronizes the
      * access and call the core contains function.
-     * @param value to check
-     * @return true if it's in the list, false otherwise
+     * @param value to check.
+     * @return true if it's in the list, false otherwise.
      */
     public boolean contains(int value) {
         if (access) {
@@ -135,8 +135,8 @@ public class Compressor {
 
     /**
      * Check if the list contains a value.
-     * @param value to be checked
-     * @return true if it's in the list, false otherwise
+     * @param value to be checked.
+     * @return true if it's in the list, false otherwise.
      */
     private boolean coreContains(int value) {
         // If value < curr.first early stop the search
@@ -151,8 +151,8 @@ public class Compressor {
     /**
      * If the compressor is thread-free, it synchronizes the
      * access and call the core add function.
-     * @param value
-     * @return true if added, false if already there
+     * @param value to add.
+     * @return true if added, false if already there.
      */
     public boolean add(int value) {
         if (access) {
@@ -165,8 +165,8 @@ public class Compressor {
 
     /**
      * Add a value to the list in the right position.
-     * @param value
-     * @return true if added, false if already there
+     * @param value to add.
+     * @return true if added, false if already there.
      */
     private boolean coreAdd(int value) {
         if (head == null) {
@@ -202,7 +202,7 @@ public class Compressor {
     }
 
     /**
-     * @return the right bound of the head, -1 if head is null
+     * @return the right bound of the head, -1 if head is null.
      */
     public int takeLast() {
         if (access) {

@@ -1,6 +1,7 @@
 package cs451.broadcast;
 
-import static cs451.channel.Network.getNetwork;
+import static cs451.process.Process.MY_HOST;
+import static cs451.process.Process.NUM_HOSTS;
 import static cs451.process.Process.proposalsToSend;
 
 import cs451.channel.PerfectLink;
@@ -11,13 +12,12 @@ import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 /**
  * It serves to send to all hosts a given proposal.
- *
+ * <p>
  * It has 2 main functions:
- *  1) Freeing the delivery of the underlying layer putting the
+ *  1) Freeing the delivery of the underlying layer, by putting the
  *     delivered proposals in a queue to process them later on.
  *  2) Send to all the hosts a given proposal.
  */
@@ -25,11 +25,11 @@ public class BestEffortBroadcast {
 
     /**
      * Blocking queue of proposals delivered from underlying layer
-     * to be delivered by the upper one
+     * to be delivered by the upper one.
      */
     private static final BlockingQueue<Proposal> linkDelivered = new LinkedBlockingQueue<>();
 
-    /** Running flag to stop the thread when the application stops */
+    /** Running flag to stop the thread when the application stops. */
     private static final AtomicBoolean running = new AtomicBoolean(true);
 
     /**
@@ -37,13 +37,10 @@ public class BestEffortBroadcast {
      * Then, take from the blocking queue the proposals
      * and call the consumer function based on its type
      * to deliver them to the upper layer.
-     * @param proposalConsumer consumer function for proposal of type PROPOSAL
-     * @param ackConsumer consumer function for proposal of type ACK
-     * @param nackConsumer consumer function for proposal of type NACK
      * @throws SocketException
      */
-    public static void start(Consumer<Proposal> proposalConsumer, Consumer<Proposal> ackConsumer, Consumer<Proposal> nackConsumer) throws SocketException {
-        PerfectLink.start(BestEffortBroadcast::bebDeliver);
+    public static void start() throws SocketException {
+        PerfectLink.start();
         // Start delivering
         while (running.get()) {
             try {
@@ -51,18 +48,18 @@ public class BestEffortBroadcast {
                 switch (proposal.getType()) {
                     case 0:
                         // If it's PROPOSAL type
-                        proposalConsumer.accept(proposal);
+                        LatticeConsensus.deliverProposal(proposal);
                         break;
                     case 1:
                         // If it's ACK type
-                        ackConsumer.accept(proposal);
+                        LatticeConsensus.deliverAck(proposal);
                         break;
                     case 2:
                         // If it's NACK type
-                        nackConsumer.accept(proposal);
+                        LatticeConsensus.deliverNAck(proposal);
                         break;
                         // It's a clean message
-                    case 3:
+                    default:
                         LatticeConsensus.clean(proposal.getProposalNumber());
                 }
             } catch (InterruptedException e) {
@@ -74,7 +71,7 @@ public class BestEffortBroadcast {
 
     /**
      * Put in the blocking queue the proposal to be delivered.
-     * @param proposal to deliver
+     * @param proposal to deliver.
      */
     public static void bebDeliver(Proposal proposal) {
         try {
@@ -90,29 +87,36 @@ public class BestEffortBroadcast {
      * Broadcast to all host a given proposal and deliver to my host.
      * Simply put the proposal in a synchronized tree set, that
      * ensures processing in ascending order.
-     * @param proposal to broadcast
+     * @param proposal to broadcast.
+     * @param highPriority whether the proposal is going to be put in head or not.
      */
-    public static void broadcast(Proposal proposal) {
+    public static void broadcast(Proposal proposal, boolean highPriority) {
         // Deliver to myself
         bebDeliver(Proposal.createProposal(proposal));
         // Broadcast to anyone else
-        synchronized (proposalsToSend) {
+        if (highPriority) {
+            proposalsToSend.addFirst(proposal);
+        } else {
             proposalsToSend.add(proposal);
         }
     }
 
     /**
      * Broadcast to all hosts a proposal of type ACK (or CLEAN).
-     * @param proposal of ACK/CLEAN type to broadcast
+     * @param proposal of ACK/CLEAN type to broadcast.
      */
     public static void broadcastDelivered(Proposal proposal) {
-        for (byte id : getNetwork().keySet()) {
-            PerfectLink.sendAck(proposal, id);
+        for (byte id = 0; id < NUM_HOSTS && id >= 0; ++id) {
+            if (id == MY_HOST) {
+                bebDeliver(proposal);
+            } else {
+                PerfectLink.sendAck(proposal, id);
+            }
         }
     }
 
     /**
-     * Set atomically the running flag to false
+     * Set atomically the running flag to false.
      */
     public static void stopThreads() {
         running.set(false);

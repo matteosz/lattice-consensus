@@ -6,22 +6,22 @@ package cs451.message;
  */
 public class TimedPacket {
 
-    /** Encapsulated packet */
+    /** Encapsulated packet. */
     private final Packet packet;
 
-    /** Timestamp of the creation of the timed packet */
+    /** Timestamp of the creation of the timed packet. */
     private long timestamp;
 
-    /** Timeout of the host to which this packet is directed */
+    /** Timeout of the host to which this packet is directed. */
     private long timeout;
 
-    /** Whether the underlying packet is a collection of ack */
+    /** Whether the underlying packet is a collection of ACK proposals. */
     private final boolean ack;
 
     /**
      * Create a TimedPacket from parameters.
-     * @param timeout host's timeout
-     * @param packet encapsulated packet
+     * @param timeout host's timeout.
+     * @param packet encapsulated packet.
      */
     public TimedPacket(long timeout, Packet packet, boolean ack) {
         this.packet = packet;
@@ -32,14 +32,14 @@ public class TimedPacket {
     }
 
     /**
-     * @return encapsulated packet
+     * @return encapsulated packet.
      */
     public Packet getPacket() {
         return packet;
     }
 
     /**
-     * @return true if host's timeout has expired
+     * @return true if host's timeout has expired.
      */
     public boolean timeoutExpired() {
         return System.currentTimeMillis() - timestamp > timeout;
@@ -47,7 +47,7 @@ public class TimedPacket {
 
     /**
      * Update the timestamp and timeout.
-     * @param timeout new host's timeout
+     * @param timeout new host's timeout.
      */
     public void update(long timeout) {
         packet.updateTimestamp();
@@ -56,7 +56,7 @@ public class TimedPacket {
     }
 
     /**
-     * @return true if the packet is a collection of ack, false otherwise
+     * @return true if the packet is a collection of ack, false otherwise.
      */
     public boolean isAck() {
         return ack;

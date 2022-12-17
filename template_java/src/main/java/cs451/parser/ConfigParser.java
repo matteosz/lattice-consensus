@@ -22,25 +22,25 @@ import java.util.Set;
  */
 public class ConfigParser {
 
-    /** BufferedReader to read from config files the proposals */
+    /** BufferedReader to read from config files the proposals. */
     private static BufferedReader br;
 
-    /** Current last proposal read */
+    /** Current last proposal read. */
     private static int currentProposal = 0;
 
-    /** Total number of proposals */
+    /** Total number of proposals. */
     public static int totalProposal;
 
-    /** Maximum number of distinct elements in a proposal's shot */
+    /** Maximum number of distinct elements in a proposal's shot. */
     public static int maxProposalLength;
 
-    /** Maximum number of distinct elements in total */
+    /** Maximum number of distinct elements in total. */
     public static int maxDistinctValues;
 
     /**
      * Read the config file and populate the proposals list.
-     * @param value config filename
-     * @return true if correctly parsed, false otherwise
+     * @param value config filename.
+     * @return true if correctly parsed, false otherwise.
      */
     public static boolean populate(String value) throws IOException {
         File file = new File(value);
@@ -82,7 +82,7 @@ public class ConfigParser {
 
     /**
      * Read a "packet" of proposal.
-     * @return true if read at least one, false otherwise
+     * @return true if read at least one, false otherwise.
      */
     public static boolean readProposals() {
         // If already read all proposals, then already closed buffer
@@ -110,7 +110,7 @@ public class ConfigParser {
 
     /**
      * Read and parse a line of the config file.
-     * @param line string with proposal's set
+     * @param line string with proposal's set.
      */
     private static void readLine(String line) {
         try {
@@ -126,7 +126,7 @@ public class ConfigParser {
     }
 
     /**
-     * Close the file reader if still open
+     * Close the file reader if still open.
      */
     public static void closeFile() {
         // If already closed

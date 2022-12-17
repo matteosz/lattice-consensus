@@ -21,43 +21,43 @@ import java.util.Set;
 
 /**
  * It implements a weak form of consensus in asynchronous networks.
- *
+ * <p>
  * Main functions:
  *  1) Propose a set values to other hosts.
  *  2) Decide on a set of common value.
  */
 public class LatticeConsensus {
 
-    /** Half of the hosts, that together with the local host represents the majority */
+    /** Half of the hosts, that together with the local host represents the majority. */
     private static int majority;
 
-    /** Set of current active proposals */
+    /** Set of current active proposals. */
     private static final Set<Integer> active = new HashSet<>();
 
-    /** Mapping the proposal original id to the respective active count */
+    /** Mapping the proposal original id to the respective active count. */
     private final static Map<Integer, Integer> activeProposal = new HashMap<>();
 
-    /** Mapping to a given proposal id the number of ack (int[0]) and nack (int[1]) */
+    /** Mapping to a given proposal id the number of ack (int[0]) and nack (int[1]). */
     private final static Map<Integer, Integer[]> ackCount = new HashMap<>();
 
-    /** Mapping to a given proposal id the set of integers as proposed and accepted values */
+    /** Mapping to a given proposal id the set of integers as proposed and accepted values. */
     private static final Map<Integer, Set<Integer>> proposedValue = new HashMap<>(),
                                                     acceptedValue = new HashMap<>();
 
     /**
      * Compressor to save the delivered proposal as range.
      * Since proposal's ids start from 0, it's initialized with -1
-     * to anchor the first proposal
+     * to anchor the first proposal.
      */
     private static final Compressor delivered = new Compressor(false, -1);
 
-    /** List of original proposals to send globally */
+    /** List of original proposals to send globally. */
     public static final LinkedList<Proposal> originals = new LinkedList<>();
 
-    /** Counter to keep track of delivered proposals to send new ones */
+    /** Counter to keep track of delivered proposals to send new ones. */
     private static byte finished = 0;
 
-    /** Map to keep track of counter of delivered proposal to clean */
+    /** Map to keep track of counter of delivered proposal to clean. */
     private static final Map<Integer, Integer> deliveredCount = new HashMap<>();
 
     /**
@@ -66,7 +66,7 @@ public class LatticeConsensus {
      * @throws SocketException
      */
     public static void start() throws SocketException {
-        majority = (NUM_HOSTS >> 1);
+        majority = NUM_HOSTS >> 1;
         // Initialize data structures, loading a first batch of proposals
         Iterator<Proposal> iterator = originals.listIterator();
         while (iterator.hasNext()) {
@@ -74,19 +74,19 @@ public class LatticeConsensus {
             // Populate the consensus data structure given this proposal as loaded
             populateProposal(proposal);
             // Load this proposal to be broadcast
-            BestEffortBroadcast.broadcast(proposal);
+            BestEffortBroadcast.broadcast(proposal, false);
             // Clear the entry from list
             iterator.remove();
         }
         // Start the BEB broadcast and all the underlying instances
-        BestEffortBroadcast.start(LatticeConsensus::deliverProposal, LatticeConsensus::deliverAck, LatticeConsensus::deliverNAck);
+        BestEffortBroadcast.start();
     }
 
     /**
      * Deliver a proposal of type PROPOSAL.
-     * @param proposal delivered by underlying layer
+     * @param proposal delivered by underlying layer.
      */
-    private static void deliverProposal(Proposal proposal) {
+    public static void deliverProposal(Proposal proposal) {
         int id = proposal.getProposalNumber();
         // If accepted values is a subset of the proposed values
         if (!acceptedValue.containsKey(id) || proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
@@ -103,9 +103,9 @@ public class LatticeConsensus {
 
     /**
      * Deliver a proposal of type ACK.
-     * @param proposal delivered by underlying layer
+     * @param proposal delivered by underlying layer.
      */
-    private static void deliverAck(Proposal proposal) {
+    public static void deliverAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
         if (active.contains(id) && activeId == activeProposal.get(id)) {
@@ -119,9 +119,9 @@ public class LatticeConsensus {
 
     /**
      * Deliver a proposal of type NACK.
-     * @param proposal delivered by underlying layer
+     * @param proposal delivered by underlying layer.
      */
-    private static void deliverNAck(Proposal proposal) {
+    public static void deliverNAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
         if (active.contains(id) && activeId == activeProposal.get(id)) {
@@ -136,7 +136,7 @@ public class LatticeConsensus {
 
     /**
      * Nack event: when the number of nack increases this event is triggered.
-     * @param id of proposal that triggered the event
+     * @param id of proposal that triggered the event.
      */
     private static void checkNAck(int id) {
         Integer[] ack = ackCount.get(id);
@@ -148,19 +148,19 @@ public class LatticeConsensus {
             // Set ack and nack to 0
             ack[0] = 0; ack[1] = 0;
             // Broadcast to everyone the new proposal with different active count
-            BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId));
+            BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId), true);
         }
     }
 
     /**
      * Ack event: when the number of ack increases this event is triggered.
-     * @param id proposal id that triggered the event
+     * @param id proposal id that triggered the event.
      */
     private static void checkAck(int id) {
         // If received the majority of ack and the proposal is currently active
         if (ackCount.get(id)[0] > majority) {
             // Increment the window since I've delivered a proposal
-            if (++finished >= Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
+            if (++finished == Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
                 if (ConfigParser.readProposals()) {
                     loadNext();
                 }
@@ -174,8 +174,7 @@ public class LatticeConsensus {
             while (lastDelivered <= lastToDeliver) {
                 CommunicationService.deliver(proposedValue.get(lastDelivered));
                 // Send decided lastDelivered to then clean
-                BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
-                clean(lastDelivered++);
+                BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered++));
             }
             // Remove the delivered proposal from active ones
             active.remove(id);
@@ -185,7 +184,7 @@ public class LatticeConsensus {
     /**
      * Clean proposal's metadata after being sure
      * everyone has decided that round.
-     * @param id proposal's id decided by a distant host
+     * @param id proposal's id decided by a distant host.
      */
     public static void clean(int id) {
         if (!deliveredCount.containsKey(id)) {
@@ -206,7 +205,7 @@ public class LatticeConsensus {
     }
 
     /**
-     * Load the next proposal from original ones
+     * Load the next proposal from original ones.
      */
     private static void loadNext() {
         Iterator<Proposal> iterator = originals.listIterator();
@@ -215,7 +214,7 @@ public class LatticeConsensus {
             // Populate the consensus data structure given this proposal as loaded
             populateProposal(proposal);
             // Add to the shared proposals
-            BestEffortBroadcast.broadcast(proposal);
+            BestEffortBroadcast.broadcast(proposal, false);
             // Clear the entry from list
             iterator.remove();
         }
@@ -224,7 +223,7 @@ public class LatticeConsensus {
     /**
      * Populate the data structures to store
      * metadata about a given proposal.
-     * @param proposal to load
+     * @param proposal to load.
      */
     private static void populateProposal(Proposal proposal) {
         int id = proposal.getProposalNumber();

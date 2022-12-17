@@ -10,7 +10,7 @@ public class Parser {
 
     /**
      * Parse the input.
-     * @param args arguments passed from command line
+     * @param args arguments passed from command line.
      */
     public static void parse(String[] args) throws IOException {
         // Check that the arguments are 7
@@ -18,15 +18,8 @@ public class Parser {
                                 !HostsParser.populate(args[2], args[3])  ||
                                 !OutputParser.populate(args[4], args[5]) ||
                                 !ConfigParser.populate(args[6])) {
-            help();
+            System.exit(1);
         }
-    }
-
-    /**
-     * Help function to signal error in parsing
-     */
-    private static void help() {
-        System.exit(1);
     }
 
 }

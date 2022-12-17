@@ -20,9 +20,6 @@ if output_path[-1] != '/':
 number_processes = int(sys.argv[3])
 number_proposal = int(sys.argv[4])
 
-print("Number of processes: " + str(number_processes))
-print("Number of proposals: " + str(number_proposal))
-
 proposes = []
 for i in range(number_proposal):
     proposes.append([])

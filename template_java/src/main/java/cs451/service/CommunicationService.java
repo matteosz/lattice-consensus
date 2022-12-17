@@ -15,21 +15,21 @@ import java.util.Set;
 /**
  * Manager class to start the consensus and
  * deliver proposals by writing the output.
- *
+ * <p>
  * Main functions:
  *  1) Load all the classes.
  *  2) Write the logs.
  */
 public class CommunicationService {
 
-    /** Buffered Writer to write logs on output file */
+    /** Buffered Writer to write logs on output file. */
     public static BufferedWriter writer;
 
-    /** Flush to alternate flushing for improved performance */
+    /** Flush to alternate flushing for improved performance. */
     private static boolean flush = true;
 
     /**
-     * Start the consensus and initialize all static fields
+     * Start the consensus and initialize all static fields.
      */
     public static void start() {
         Network.populateNetwork();
@@ -43,7 +43,7 @@ public class CommunicationService {
 
     /**
      * After the SIGINT or SIGTERM, stop all threads
-     * and logs into the output file
+     * and logs into the output file.
      */
     public static void logAndTerminate() {
         BestEffortBroadcast.stopThreads();
@@ -61,7 +61,7 @@ public class CommunicationService {
 
     /**
      * Deliver a proposal by writing it into the sb as new line.
-     * @param proposals (simply set of integers) to deliver
+     * @param proposals (simply set of integers) to deliver.
      */
     public static void deliver(Set<Integer> proposals) {
         synchronized (writer) {

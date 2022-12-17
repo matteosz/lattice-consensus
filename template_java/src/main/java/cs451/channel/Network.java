@@ -6,6 +6,7 @@ import static cs451.process.Process.MY_HOST;
 import cs451.parser.Host;
 import cs451.process.Process;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,8 +15,10 @@ import java.util.Map;
  */
 public class Network {
 
-    /** Mapping host id with the relative process class */
+    /** Mapping host id with the relative process class. */
     private static final Map<Byte, Process> network = new HashMap<>();
+
+    public static Collection<Process> processes;
 
     /**
      * Populate the network allocating the processes.
@@ -27,21 +30,16 @@ public class Network {
                 network.put(entry.getKey(), new Process(entry.getValue()));
             }
         }
+        processes = network.values();
     }
 
     /**
      * Retrieves a process given its id.
-     * @param id of the host
-     * @return Process of the given host
+     * @param id of the host.
+     * @return Process of the given host.
      */
     public static Process getProcess(byte id) {
         return network.get(id);
     }
 
-    /**
-     * @return the whole network map
-     */
-    public static Map<Byte, Process> getNetwork() {
-        return network;
-    }
 }
