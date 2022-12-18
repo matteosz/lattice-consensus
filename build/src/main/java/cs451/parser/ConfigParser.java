@@ -97,7 +97,7 @@ public class ConfigParser {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return !originals.isEmpty();
         }
         return true;
@@ -131,7 +131,7 @@ public class ConfigParser {
         try {
             br.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 

@@ -1,7 +1,6 @@
 package cs451.broadcast;
 
-import static cs451.process.Process.MY_HOST;
-import static cs451.process.Process.NUM_HOSTS;
+import static cs451.channel.Network.processesId;
 import static cs451.process.Process.proposalsToSend;
 
 import cs451.channel.PerfectLink;
@@ -89,8 +88,6 @@ public class BestEffortBroadcast {
      */
     public static void broadcast(Proposal proposal, boolean highPriority) {
         if (highPriority) {
-            // Deliver to myself
-            bebDeliver(Proposal.createProposal(proposal));
             proposalsToSend.addFirst(proposal);
         } else {
             proposalsToSend.add(proposal);
@@ -102,12 +99,8 @@ public class BestEffortBroadcast {
      * @param proposal of ACK/CLEAN type to broadcast.
      */
     public static void broadcastDelivered(Proposal proposal) {
-        for (byte id = 0; id < NUM_HOSTS && id >= 0; ++id) {
-            if (id == MY_HOST) {
-                bebDeliver(proposal);
-            } else {
-                PerfectLink.sendAck(proposal, id);
-            }
+        for (byte id : processesId) {
+            PerfectLink.sendAck(proposal, id);
         }
     }
 

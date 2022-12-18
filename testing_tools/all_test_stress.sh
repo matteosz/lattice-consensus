@@ -27,27 +27,27 @@ sleep 10;
 
 # Case 2
 
-proc=2; prop=10000000; vs=10; ds=20; t=60; c=1;
-echo "Processes: " $proc;
-echo "VS=" $vs "DS=" $ds;
-echo "Time: " $t "s";
-../build/cleanup.sh;
-../build/build.sh > /dev/null;
-if [ $c = 1 ]; then 
-rm ../logs/*;
-else
-cd ../logs;
-rm !*.config|"hosts";
-cd ../tools;
-fi;
-python3 stress_perf.py agreement -r ../build/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
-sleep 10;
-#wc -l ../logs/*.output;
-for i in $(seq -f "%02g" $proc); do
-  touch ../logs/proc$i.output;
-done;
-node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-python3 checkLattice.py ../logs ../logs $proc $prop;
+#proc=2; prop=10000000; vs=10; ds=20; t=60; c=1;
+#echo "Processes: " $proc;
+#echo "VS=" $vs "DS=" $ds;
+#echo "Time: " $t "s";
+#../build/cleanup.sh;
+#../build/build.sh > /dev/null;
+#if [ $c = 1 ]; then 
+#rm ../logs/*;
+#else
+#cd ../logs;
+#rm !*.config|"hosts";
+#cd ../tools;
+#fi;
+#python3 stress_perf.py agreement -r ../build/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
+#sleep 10;
+##wc -l ../logs/*.output;
+#for i in $(seq -f "%02g" $proc); do
+#  touch ../logs/proc$i.output;
+#done;
+#node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 checkLattice.py ../logs ../logs $proc $prop;
 #sleep 10;
 
 # Case 3

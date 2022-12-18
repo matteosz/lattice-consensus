@@ -49,7 +49,7 @@ public class CommunicationService {
                 writer.close();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         ConfigParser.closeFile();
     }
@@ -60,6 +60,7 @@ public class CommunicationService {
      */
     public static void deliver(Set<Integer> proposals) {
         try {
+            // Early stop to avoid writing after program termination
             if (!running.get()) {
                 return;
             }
@@ -77,7 +78,7 @@ public class CommunicationService {
                 writer.flush();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 

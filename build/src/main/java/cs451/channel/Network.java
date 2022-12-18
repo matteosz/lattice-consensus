@@ -18,7 +18,11 @@ public class Network {
     /** Mapping host id with the relative process class. */
     private static final Map<Byte, Process> network = new HashMap<>();
 
+    /** View of the processes in the network. */
     public static Collection<Process> processes;
+
+    /** View of processes' ids in the network. */
+    public static Collection<Byte> processesId;
 
     /**
      * Populate the network allocating the processes.
@@ -31,6 +35,7 @@ public class Network {
             }
         }
         processes = network.values();
+        processesId = network.keySet();
     }
 
     /**

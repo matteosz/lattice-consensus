@@ -144,8 +144,16 @@ public class LatticeConsensus {
             // Increment active count
             int activeId = activeProposal.get(id) + 1;
             activeProposal.put(id, activeId);
-            // Set ack and nack to 0
-            ack[0] = 0; ack[1] = 0;
+            // Simulate delivery to myself
+            if (proposedValue.get(id).containsAll(acceptedValue.get(id))) {
+                // Set ack to 1 and nack to 0
+                ack[0] = 1; ack[1] = 0;
+            } else {
+                proposedValue.get(id).addAll(acceptedValue.get(id));
+                // Set ack to 0 and nack to 1
+                ack[0] = 0; ack[1] = 1;
+            }
+            acceptedValue.get(id).addAll(proposedValue.get(id));
             // Broadcast to everyone the new proposal with different active count
             BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId), true);
         }
@@ -173,9 +181,11 @@ public class LatticeConsensus {
             // Deliver contiguous proposals if possible
             while (lastDelivered <= lastToDeliver) {
                 CommunicationService.deliver(proposedValue.get(lastDelivered));
+                // Try to clean
                 proposedValue.remove(lastDelivered);
-                // Send decided lastDelivered to then clean
-                BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
+                if (!clean(lastDelivered)) {
+                    BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
+                }
                 ++lastDelivered;
             }
             // Remove the delivered proposal from active ones
@@ -193,16 +203,18 @@ public class LatticeConsensus {
      * Clean proposal's metadata after being sure
      * everyone has decided that round.
      * @param id proposal's id decided by a distant host.
+     * @return true if cleaned, false if still not enough delivered.
      */
-    public static void clean(int id) {
+    public static boolean clean(int id) {
         int prev = deliveredCount.getOrDefault(id, 0) + 1;
         if (prev == NUM_HOSTS) {
             // Everyone has decided -> can clean
             acceptedValue.remove(id);
             deliveredCount.remove(id);
-        } else {
-            deliveredCount.put(id, prev);
+            return true;
         }
+        deliveredCount.put(id, prev);
+        return false;
     }
 
     /**
