@@ -1,4 +1,5 @@
 import sys 
+import os
 
 if(len(sys.argv) != 5):
     print("Incorrect arguments")
@@ -48,6 +49,10 @@ for i in range(number_proposal):
 
 for i in range(1, number_processes+1):
     try:
+        # Create the output if missing
+        if not os.path.exists(output_path + str(i) + '.output'):
+            with open(output_path + str(i) + '.output', 'w') as f:
+                pass
         with open(output_path + str(i) + '.output') as f:
             lines = f.readlines()
 
