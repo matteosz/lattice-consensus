@@ -231,8 +231,8 @@ public class LatticeConsensus {
             acceptedValue.put(id, new HashSet<>(proposal.getProposedValues()));
             ack[0] = 1;
         } else {
-            acceptedValue.get(id).addAll(proposal.getProposedValues());
             proposedValue.get(id).addAll(acceptedValue.get(id));
+            acceptedValue.get(id).addAll(proposal.getProposedValues());
             ack[1] = 1;
         }
         ackCount.put(id, ack);
