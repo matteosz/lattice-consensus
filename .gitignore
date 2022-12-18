@@ -1,3 +1,5 @@
-**/.idea/
+**/.idea
 logs/
 **/.DS_Store
+example/
+template_java/target
