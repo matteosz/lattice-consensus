@@ -104,12 +104,13 @@ public class LatticeConsensus {
     public static void deliverAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
-        if (activeId == activeProposal.getOrDefault(id, -1)) {
+        if (activeId == activeProposal.getOrDefault(id, 0)) {
             // Increase the ack counter
             ++ackCount.get(id)[0];
             // Now check 2 events, since ack has been incremented
-            checkAck(id);
-            checkNAck(id);
+            if (!checkAck(id)) {
+                checkNAck(id);
+            }
         }
     }
 
@@ -120,7 +121,7 @@ public class LatticeConsensus {
     public static void deliverNAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
-        if (activeId == activeProposal.getOrDefault(id, -1)) {
+        if (activeId == activeProposal.getOrDefault(id, 0)) {
             // Add to my proposed values all the proposal's values
             proposedValue.get(id).addAll(proposal.getProposedValues());
             // Increment the nack counter
@@ -136,7 +137,6 @@ public class LatticeConsensus {
      */
     private static void checkNAck(int id) {
         Integer[] ack = ackCount.get(id);
-        System.out.println(Arrays.toString(ack));
         // If nack > 0 and nack + ack >= f + 1 and the proposal is currently active
         if ((ack[1] > 0) && ((ack[0] + ack[1]) > majority)) {
             // Increment active count
@@ -153,7 +153,7 @@ public class LatticeConsensus {
      * Ack event: when the number of ack increases this event is triggered.
      * @param id proposal id that triggered the event.
      */
-    private static void checkAck(int id) {
+    private static boolean checkAck(int id) {
         // If received the majority of ack and the proposal is currently active
         if (ackCount.get(id)[0] > majority) {
             // Remove the delivered proposal from active ones
@@ -178,7 +178,9 @@ public class LatticeConsensus {
                 BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
                 ++lastDelivered;
             }
+            return true;
         }
+        return false;
     }
 
     /**
