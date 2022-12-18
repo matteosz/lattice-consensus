@@ -114,8 +114,7 @@ public class ConfigParser {
             for (String split : splits) {
                 values.add(Integer.parseInt(split));
             }
-            originals.add(new Proposal(currentProposal, (byte) 0, MY_HOST, values, 1));
-            ++currentProposal;
+            originals.add(new Proposal(++currentProposal, (byte) 0, MY_HOST, values, 1));
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }

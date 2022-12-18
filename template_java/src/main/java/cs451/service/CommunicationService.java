@@ -68,11 +68,12 @@ public class CommunicationService {
                 int num = iterator.next();
                 // Check if it's last number
                 if (!iterator.hasNext()) {
-                    writer.write(String.format("%d\n", num));
+                    writer.write(String.format("%d", num));
                 } else {
                     writer.write(String.format("%d ", num));
                 }
             }
+            writer.newLine();
             writer.flush();
         } catch (Exception e) {
             e.printStackTrace();
