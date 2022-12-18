@@ -164,10 +164,7 @@ public class LatticeConsensus {
                     loadNext();
                 }
                 finished = 0;
-                // Force memory reclamation
-                if (++batchFinished % GC_BATCH == 0) {
-                    System.gc();
-                }
+                ++batchFinished;
             }
             // Take last delivered proposal
             int lastDelivered = delivered.takeLast() + 1;
@@ -184,6 +181,11 @@ public class LatticeConsensus {
             // Remove the delivered proposal from active ones
             activeProposal.remove(id);
             ackCount.remove(id);
+            // Force memory reclamation
+            if (batchFinished == GC_BATCH) {
+                batchFinished = 0;
+                System.gc();
+            }
         }
     }
 
@@ -219,7 +221,7 @@ public class LatticeConsensus {
 
     /**
      * Populate the data structures to store
-     * metadata about a given proposal.
+     * metadata about a given proposal and broadcast it.
      * @param proposal to load.
      */
     private static void broadcastProposal(Proposal proposal) {
@@ -227,6 +229,7 @@ public class LatticeConsensus {
         activeProposal.put(id, 1);
         proposedValue.put(id, new HashSet<>(proposal.getProposedValues()));
         Integer[] ack = new Integer[] {0, 0};
+        // Simulate delivery to myself
         if (!acceptedValue.containsKey(id) || proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
             acceptedValue.put(id, new HashSet<>(proposal.getProposedValues()));
             ack[0] = 1;
