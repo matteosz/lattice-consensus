@@ -26,11 +26,16 @@ const decided = decidedFns
       .map((l) => new Set(l))
   );
 
+const totConsensus = decided
+  .map((f) => f.length)
+  .reduce((a, b) => a+b);
+
 const nConsensus = decided
   .map((f) => f.length)
-  .reduce((a, b) => a + b);
+  .reduce((a, b) => Math.max(a, b));
+  
 console.log(
-  `There were ${nConsensus} consensus across ${decided.length} files`
+  `There were ${totConsensus} consensus across ${decided.length} files`
 );
 
 const isSubset = (a, b) => {
