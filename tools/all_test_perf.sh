@@ -1,4 +1,4 @@
-#!/bin/sh
+!/bin/sh
 
 # Case 1
 
@@ -17,8 +17,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 2
@@ -38,8 +42,12 @@ sleep 10;
 #fi;
 #python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 #sleep 10;
-#wc -l ../logs/*.output;
-#python3 lattice_validater.py ../logs ../logs $proc $prop;
+##wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+##python3 lattice_validater.py ../logs ../logs $proc $prop;
 #sleep 10;
 
 # Case 3
@@ -59,8 +67,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
 
@@ -81,8 +93,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
 
@@ -103,8 +119,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
 
@@ -125,8 +145,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 # Case 7
 
@@ -145,8 +169,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 8
@@ -166,8 +194,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 9
@@ -187,8 +219,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 10
@@ -208,8 +244,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 11
@@ -229,8 +269,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 12
@@ -250,8 +294,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 13
@@ -271,8 +319,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 14
@@ -292,8 +344,12 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 15
@@ -313,5 +369,9 @@ cd ../tools;
 fi;
 python3 performance.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
 sleep 10;
-wc -l ../logs/*.output;
-python3 lattice_validater.py ../logs ../logs $proc $prop;
+#wc -l ../logs/*.output;
+for i in $(seq -f "%02g" $proc); do
+  touch ../logs/proc$i.output;
+done;
+./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+#python3 lattice_validater.py ../logs ../logs $proc $prop;

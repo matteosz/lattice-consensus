@@ -132,7 +132,7 @@ class LatticeAgreementValidation:
         hostsfile = os.path.join(directory, "hosts")
         configfiles = []
         for pid in range(self.procs):
-            configfile = os.path.join(directory, "lattice-agreement-{}.config".format(pid+1))
+            configfile = os.path.join(directory, "proc{:02d}.config".format(pid+1))
             configfiles.append(configfile)
 
         if redo is True:
@@ -305,7 +305,7 @@ def startProcesses(processes, runscript, hostsFilePath, configFilePaths, outputD
             "--hosts",
             hostsFilePath,
             "--output",
-            os.path.join(outputDirPath, "{}.output".format(pid)),
+            os.path.join(outputDirPath, "proc{:02d}.output".format(pid)),
             config_path,
         ]
 
@@ -496,9 +496,9 @@ if __name__ == "__main__":
         "concurrency": 0,  # How many threads are interferring with the running processes
         "attempts": 0,  # How many interferring attempts each threads does
         "attemptsDistribution": {  # Probability with which an interferring thread will
-            "STOP": 0,  # select an interferring action (make sure they add up to 1)
-            "CONT": 1,
-            "TERM": 0,
+            "STOP": 0.48,  # select an interferring action (make sure they add up to 1)
+            "CONT": 0.48,
+            "TERM": 0.04,
         },
     }
 
