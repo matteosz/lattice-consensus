@@ -42,6 +42,8 @@ public class LatticeConsensus {
     private static final Map<Integer, Set<Integer>> proposedValue = new HashMap<>(),
                                                     acceptedValue = new HashMap<>();
 
+    private static final Map<Integer, Set<Integer>> baseline = new HashMap<>();
+
     /**
      * Compressor to save the delivered proposal as range.
      * Since proposal's ids start from 0, it's initialized with -1
@@ -85,8 +87,7 @@ public class LatticeConsensus {
     public static void deliverProposal(Proposal proposal) {
         int id = proposal.getProposalNumber();
         // If accepted values is a subset of the proposed values
-        if (proposal.getProposedValues().containsAll(acceptedValue.getOrDefault(id,
-            Utilities.EMPTY))) {
+        if (!acceptedValue.containsKey(id) || proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
             acceptedValue.put(id, proposal.getProposedValues());
             // Send an ack to the proposal's sender
             PerfectLink.sendAck(new Proposal(id, (byte) 1, MY_HOST, null, proposal.getActiveProposalNumber()), proposal.getSender());
@@ -144,8 +145,10 @@ public class LatticeConsensus {
             activeProposal.put(id, activeId);
             // Set ack and nack to 0
             ack[0] = 0; ack[1] = 0;
+            Set<Integer> newSet = new HashSet<>(proposedValue.get(id));
+            newSet.addAll(baseline.get(id));
             // Broadcast to everyone the new proposal with different active count
-            BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId), true);
+            BestEffortBroadcast.broadcast(new Proposal(id, (byte) 0, MY_HOST, newSet, activeId), true);
         }
     }
 
@@ -169,8 +172,11 @@ public class LatticeConsensus {
             int lastToDeliver = delivered.takeLast();
             // Deliver contiguous proposals if possible
             while (lastDelivered <= lastToDeliver) {
+                // Add baseline (original proposal) to proposed values
+                proposedValue.get(lastDelivered).addAll(baseline.get(lastDelivered));
                 CommunicationService.deliver(proposedValue.get(lastDelivered));
                 proposedValue.remove(lastDelivered);
+                baseline.remove(lastDelivered);
                 // Send decided lastDelivered to then clean
                 BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
                 ++lastDelivered;
@@ -219,17 +225,9 @@ public class LatticeConsensus {
     private static void populateProposal(Proposal proposal) {
         int id = proposal.getProposalNumber();
         activeProposal.put(id, 1);
-        proposedValue.put(id, new HashSet<>(proposal.getProposedValues()));
+        baseline.put(id, new HashSet<>(proposal.getProposedValues()));
+        proposedValue.put(id, new HashSet<>());
         Integer[] ack = new Integer[] {0, 0};
-        // Immediately deliver to myself
-        if (proposal.getProposedValues().containsAll(acceptedValue.getOrDefault(id,
-                Utilities.EMPTY))) {
-            acceptedValue.put(id, new HashSet<>(proposal.getProposedValues()));
-            ++ack[0];
-        } else {
-            proposedValue.get(id).addAll(acceptedValue.get(id));
-            ++ack[1];
-        }
         ackCount.put(id, ack);
         // Add to the shared proposals
         BestEffortBroadcast.broadcast(proposal, false);
