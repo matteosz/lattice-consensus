@@ -12,6 +12,7 @@ import cs451.message.Proposal;
 import cs451.parser.ConfigParser;
 import cs451.service.CommunicationService;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -135,6 +136,7 @@ public class LatticeConsensus {
      */
     private static void checkNAck(int id) {
         Integer[] ack = ackCount.get(id);
+        System.out.println(Arrays.toString(ack));
         // If nack > 0 and nack + ack >= f + 1 and the proposal is currently active
         if ((ack[1] > 0) && ((ack[0] + ack[1]) > majority)) {
             // Increment active count
@@ -218,7 +220,8 @@ public class LatticeConsensus {
         int id = proposal.getProposalNumber();
         activeProposal.put(id, 1);
         proposedValue.put(id, new HashSet<>(proposal.getProposedValues()));
-        ackCount.put(id, new Integer[] {0, 0});
+        Integer[] ack = new Integer[] {0, 0};
+        ackCount.put(id, ack);
         // Add to the shared proposals with normal priority
         BestEffortBroadcast.broadcast(proposal, false);
     }
