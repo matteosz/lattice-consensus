@@ -110,11 +110,12 @@ public class ConfigParser {
     private static void readLine(String line) {
         try {
             String[] splits = line.strip().split(" ");
-            Set<Integer> values = new HashSet<>();
+            Set<Integer> values = new HashSet<>(maxProposalLength);
             for (String split : splits) {
                 values.add(Integer.parseInt(split));
             }
-            originals.add(new Proposal(currentProposal++, (byte) 0, MY_HOST, values, 1));
+            originals.add(new Proposal(currentProposal, (byte) 0, MY_HOST, values, 1));
+            ++currentProposal;
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }
