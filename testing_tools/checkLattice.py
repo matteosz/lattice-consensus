@@ -27,7 +27,7 @@ for i in range(number_proposal):
 
 for i in range(1, number_processes+1):
     try:
-        with open(config_path + 'lattice-agreement-' + str(i) + '.config') as f:
+        with open(config_path + 'proc{:02d}.config'.format(i)) as f:
             lines = f.readlines()
             lines = lines[1:]
             
@@ -49,11 +49,7 @@ for i in range(number_proposal):
 
 for i in range(1, number_processes+1):
     try:
-        # Create the output if missing
-        if not os.path.exists(output_path + str(i) + '.output'):
-            with open(output_path + str(i) + '.output', 'w') as f:
-                pass
-        with open(output_path + str(i) + '.output') as f:
+        with open(output_path + 'proc{:02d}.output'.format(i)) as f:
             lines = f.readlines()
 
             p=0

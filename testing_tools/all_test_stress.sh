@@ -22,32 +22,32 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 2
 
-#proc=2; prop=10000000; vs=10; ds=20; t=60; c=1;
-#echo "Processes: " $proc;
-#echo "VS=" $vs "DS=" $ds;
-#echo "Time: " $t "s";
-#../template_java/cleanup.sh;
-#../template_java/build.sh > /dev/null;
-#if [ $c = 1 ]; then 
-#rm ../logs/*;
-#else
-#cd ../logs;
-#rm !*.config|"hosts";
-#cd ../tools;
-#fi;
-#python3 stress_perf.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
-#sleep 10;
-##wc -l ../logs/*.output;
+proc=2; prop=10000000; vs=10; ds=20; t=60; c=1;
+echo "Processes: " $proc;
+echo "VS=" $vs "DS=" $ds;
+echo "Time: " $t "s";
+../template_java/cleanup.sh;
+../template_java/build.sh > /dev/null;
+if [ $c = 1 ]; then 
+rm ../logs/*;
+else
+cd ../logs;
+rm !*.config|"hosts";
+cd ../tools;
+fi;
+python3 stress_perf.py agreement -r ../template_java/run.sh -l ../logs -p $proc -n $prop -v $vs -d $ds -t $t -c $c > /dev/null;
+sleep 10;
+#wc -l ../logs/*.output;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-##python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 #sleep 10;
 
 # Case 3
@@ -72,7 +72,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
 
@@ -98,7 +98,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
 
@@ -124,7 +124,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
 
@@ -150,7 +150,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 # Case 7
 
@@ -174,7 +174,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 8
@@ -199,7 +199,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 9
@@ -224,7 +224,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 10
@@ -249,7 +249,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 11
@@ -274,7 +274,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 12
@@ -299,7 +299,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 13
@@ -324,7 +324,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 14
@@ -349,7 +349,7 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
 sleep 10;
 
 # Case 15
@@ -374,4 +374,4 @@ for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
 node --max-old-space-size=8192 checkLattice.js ../logs/proc*.output ../logs/proc*.config;
-#python3 checkLattice.py ../logs ../logs $proc $prop;
+python3 checkLattice.py ../logs ../logs $proc $prop;
