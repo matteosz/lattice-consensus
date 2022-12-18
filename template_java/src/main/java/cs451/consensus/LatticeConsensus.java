@@ -170,11 +170,13 @@ public class LatticeConsensus {
             // Deliver contiguous proposals if possible
             while (lastDelivered <= lastToDeliver) {
                 CommunicationService.deliver(proposedValue.get(lastDelivered));
+                proposedValue.remove(lastDelivered);
                 // Send decided lastDelivered to then clean
                 BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered++));
             }
             // Remove the delivered proposal from active ones
             activeProposal.remove(id);
+            ackCount.remove(lastDelivered);
         }
     }
 
@@ -187,9 +189,7 @@ public class LatticeConsensus {
         int prev = deliveredCount.getOrDefault(id, 0) + 1;
         if (prev == NUM_HOSTS) {
             // Everyone has decided -> can clean
-            proposedValue.remove(id);
             acceptedValue.remove(id);
-            ackCount.remove(id);
             deliveredCount.remove(id);
         } else {
             deliveredCount.put(id, prev);

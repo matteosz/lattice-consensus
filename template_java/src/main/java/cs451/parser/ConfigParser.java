@@ -51,7 +51,7 @@ public class ConfigParser {
             return false;
         };
         // Read the header -> p vs ds
-        String[] header = br.readLine().split("\\s");
+        String[] header = br.readLine().strip().split(" ");
         try {
             totalProposal = Integer.parseInt(header[0]);
             maxProposalLength = Integer.parseInt(header[1]);
@@ -109,8 +109,8 @@ public class ConfigParser {
      */
     private static void readLine(String line) {
         try {
-            String[] splits = line.split("\\s");
-            Set<Integer> values = new HashSet<>(maxProposalLength);
+            String[] splits = line.strip().split(" ");
+            Set<Integer> values = new HashSet<>();
             for (String split : splits) {
                 values.add(Integer.parseInt(split));
             }
