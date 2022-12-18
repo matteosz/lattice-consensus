@@ -12,9 +12,6 @@ import cs451.message.Packet;
  */
 public class Parameters {
 
-    /** Flag to signal the writer has been started, it avoids null pointer exception */
-    public static boolean STARTED = false;
-
     /** Starting timeout for each host. */
     public static int TIMEOUT = 1024;
 

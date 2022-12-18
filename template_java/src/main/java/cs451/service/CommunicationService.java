@@ -47,12 +47,10 @@ public class CommunicationService {
         BestEffortBroadcast.stopThreads();
         StubbornLink.stopThreads();
         FairLossLink.stopThreads();
-        if (Parameters.STARTED) {
-            try {
-                writer.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         ConfigParser.closeFile();
     }
@@ -68,12 +66,11 @@ public class CommunicationService {
                 int num = iterator.next();
                 // Check if it's last number
                 if (!iterator.hasNext()) {
-                    writer.write(String.format("%d", num));
+                    writer.write(String.format("%d\n", num));
                 } else {
                     writer.write(String.format("%d ", num));
                 }
             }
-            writer.newLine();
             writer.flush();
         } catch (Exception e) {
             e.printStackTrace();

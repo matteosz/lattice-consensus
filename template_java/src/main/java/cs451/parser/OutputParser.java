@@ -26,8 +26,6 @@ public class OutputParser {
         File file = new File(value);
         try {
             CommunicationService.writer = new BufferedWriter(new FileWriter(file.getPath()), 32768);
-            Parameters.STARTED = true;
-            System.out.println("I should have created the output file");
         } catch (IOException e) {
             e.printStackTrace();
             return false;
