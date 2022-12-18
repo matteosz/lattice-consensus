@@ -80,32 +80,33 @@ public class StubbornLink {
             // First try to resend all possible ack for all processes
             Packet sharedPacket = null;
             if (resendPackets()) {
+                hasSpace = true;
                 // Craft the shared packet if enough space
                 sharedPacket = craftSharedPacket();
-                hasSpace = true;
             }
             byte inc = 0;
             for (Process process : processes) {
-                // Send the crafted shared packet if crafted
+                // Send the shared packet if crafted
                 if (sharedPacket != null) {
                     sendPacket(process, sharedPacket, false);
                 }
-                // ACK: they're lightweight, send them immediately
+                List<Proposal> ack;
                 int[] ackLen = {HEADER};
-                List<Proposal> ack = Process.getNextAckProposals(ackLen, process.getAckToSend());
-                if (!ack.isEmpty()) {
-                    sendPacket(process, new Packet(ack, packetNumber, MY_HOST, ackLen[0]), true);
-                }
                 // NACK: can be heavy, send only if enough space
                 if (hasSpace) {
-                    ackLen[0] = HEADER;
                     ack = Process.getNextAckProposals(ackLen, process.getNackToSend());
                     if (!ack.isEmpty()) {
                         // Use packet number + 1
-                        sendPacket(process, new Packet(ack, packetNumber + 1, MY_HOST, ackLen[0]),
+                        sendPacket(process, new Packet(ack, packetNumber, MY_HOST, ackLen[0]),
                             false);
-                        inc = 1;
                     }
+                }
+                // ACK: they're lightweight, send them immediately
+                ackLen[0] = HEADER;
+                ack = Process.getNextAckProposals(ackLen, process.getAckToSend());
+                if (!ack.isEmpty()) {
+                    sendPacket(process, new Packet(ack, packetNumber + 1, MY_HOST, ackLen[0]), true);
+                    inc = 1;
                 }
             }
             packetNumber += inc + 1;

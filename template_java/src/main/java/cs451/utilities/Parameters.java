@@ -27,6 +27,8 @@ public class Parameters {
     /** Window size for the proposal to be processed. */
     public static int PROPOSAL_BATCH;
 
+    public static int GC_BATCH;
+
     /**
      * Tune the hyper-params depending on the number of hosts.
      */
@@ -39,14 +41,17 @@ public class Parameters {
             // From 0 to 39 hosts
             case 0: case 1: case 2: case 3:
                 PROPOSAL_BATCH = 64;
+                GC_BATCH = 512;
                 break;
             // From 40 to 79 hosts
             case 4: case 5: case 6: case 7:
                 PROPOSAL_BATCH = 32;
+                GC_BATCH = 256;
                 break;
             // From 80 to 128 hosts
             default:
                 PROPOSAL_BATCH = 16;
+                GC_BATCH = 128;
         }
         // Set the batch accordingly with ds
         if (maxDistinctValues < 150) {
@@ -58,14 +63,17 @@ public class Parameters {
         }
         if (maxDistinctValues >= 300 && maxDistinctValues < 500) {
             PROPOSAL_BATCH >>= 2;
+            GC_BATCH >>= 1;
         }
         if (maxDistinctValues >= 500 && maxDistinctValues < 800) {
             PROPOSAL_BATCH >>= 3;
             LINK_BATCH >>= 1;
+            GC_BATCH >>= 2;
         }
         if (maxDistinctValues >= 800) {
             PROPOSAL_BATCH >>= 4;
             LINK_BATCH >>= 2;
+            GC_BATCH >>= 3;
         }
     }
 

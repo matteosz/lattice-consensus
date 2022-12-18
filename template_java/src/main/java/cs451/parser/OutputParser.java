@@ -1,7 +1,6 @@
 package cs451.parser;
 
 import cs451.service.CommunicationService;
-import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

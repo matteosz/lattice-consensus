@@ -3,6 +3,7 @@ package cs451.consensus;
 import static cs451.message.Packet.MAX_COMPRESSION;
 import static cs451.process.Process.MY_HOST;
 import static cs451.process.Process.NUM_HOSTS;
+import static cs451.utilities.Parameters.GC_BATCH;
 import static cs451.utilities.Parameters.PROPOSAL_BATCH;
 
 import cs451.broadcast.BestEffortBroadcast;
@@ -12,7 +13,6 @@ import cs451.message.Proposal;
 import cs451.parser.ConfigParser;
 import cs451.service.CommunicationService;
 import java.net.SocketException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -54,6 +54,9 @@ public class LatticeConsensus {
 
     /** Counter to keep track of delivered proposals to send new ones. */
     private static byte finished = 0;
+
+    /** Counter to keep track of finished batches. */
+    private static int batchFinished = 0;
 
     /** Map to keep track of counter of delivered proposal to clean. */
     private static final Map<Integer, Integer> deliveredCount = new HashMap<>();
@@ -108,9 +111,8 @@ public class LatticeConsensus {
             // Increase the ack counter
             ++ackCount.get(id)[0];
             // Now check 2 events, since ack has been incremented
-            if (!checkAck(id)) {
-                checkNAck(id);
-            }
+            checkNAck(id);
+            checkAck(id);
         }
     }
 
@@ -153,18 +155,19 @@ public class LatticeConsensus {
      * Ack event: when the number of ack increases this event is triggered.
      * @param id proposal id that triggered the event.
      */
-    private static boolean checkAck(int id) {
+    private static void checkAck(int id) {
         // If received the majority of ack and the proposal is currently active
         if (ackCount.get(id)[0] > majority) {
-            // Remove the delivered proposal from active ones
-            activeProposal.remove(id);
-            ackCount.remove(id);
             // Increment the window since I've delivered a proposal
             if (++finished == Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
                 if (ConfigParser.readProposals()) {
                     loadNext();
                 }
                 finished = 0;
+                // Force memory reclamation
+                if (++batchFinished % GC_BATCH == 0) {
+                    System.gc();
+                }
             }
             // Take last delivered proposal
             int lastDelivered = delivered.takeLast() + 1;
@@ -178,9 +181,10 @@ public class LatticeConsensus {
                 BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
                 ++lastDelivered;
             }
-            return true;
+            // Remove the delivered proposal from active ones
+            activeProposal.remove(id);
+            ackCount.remove(id);
         }
-        return false;
     }
 
     /**
@@ -223,6 +227,14 @@ public class LatticeConsensus {
         activeProposal.put(id, 1);
         proposedValue.put(id, new HashSet<>(proposal.getProposedValues()));
         Integer[] ack = new Integer[] {0, 0};
+        if (!acceptedValue.containsKey(id) || proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
+            acceptedValue.put(id, new HashSet<>(proposal.getProposedValues()));
+            ack[0] = 1;
+        } else {
+            acceptedValue.get(id).addAll(proposal.getProposedValues());
+            proposedValue.get(id).addAll(acceptedValue.get(id));
+            ack[1] = 1;
+        }
         ackCount.put(id, ack);
         // Add to the shared proposals with normal priority
         BestEffortBroadcast.broadcast(proposal, false);

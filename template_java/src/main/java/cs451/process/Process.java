@@ -57,7 +57,7 @@ public class Process {
      * Maps to represent all the proposals' ids delivered, divided by
      * type and associated by the active counts been delivered.
      */
-    private final Map<Integer, Compressor> proposalsDelivered = new HashMap<>(),
+    private final Map<Integer, Integer> proposalsDelivered = new HashMap<>(),
                                            ackDelivered = new HashMap<>(),
                                            nackDelivered = new HashMap<>();
 
@@ -256,12 +256,12 @@ public class Process {
      * @param map delivery data structure.
      * @return true if correctly added and not delivered before, else otherwise.
      */
-    private static boolean commonDeliver(int proposalNumber, int activeCount, Map<Integer, Compressor> map) {
-        if (!map.containsKey(proposalNumber)) {
-            map.put(proposalNumber, new Compressor(false, activeCount));
+    private static boolean commonDeliver(int proposalNumber, int activeCount, Map<Integer, Integer> map) {
+        if (map.getOrDefault(proposalNumber, 0) < activeCount) {
+            map.put(proposalNumber, activeCount);
             return true;
         }
-        return map.get(proposalNumber).add(activeCount);
+        return false;
     }
 
 }

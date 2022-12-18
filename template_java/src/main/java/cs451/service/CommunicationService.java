@@ -7,7 +7,6 @@ import cs451.channel.StubbornLink;
 import cs451.consensus.LatticeConsensus;
 
 import cs451.parser.ConfigParser;
-import cs451.utilities.Parameters;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Iterator;
@@ -31,7 +30,6 @@ public class CommunicationService {
      */
     public static void start() {
         Network.populateNetwork();
-        // Start the consensus
         try {
             LatticeConsensus.start();
         } catch (IOException e) {

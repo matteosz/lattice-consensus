@@ -26,7 +26,6 @@ public class TimedPacket {
     public TimedPacket(long timeout, Packet packet, boolean ack) {
         this.packet = packet;
         this.timeout = timeout;
-        // Set timestamp to current time in ms
         this.timestamp = System.currentTimeMillis();
         this.ack = ack;
     }
