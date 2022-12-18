@@ -33,7 +33,7 @@ public class BestEffortBroadcast {
     private static final AtomicBoolean running = new AtomicBoolean(true);
 
     /**
-     * Initialize the Beb broadcast.
+     * Initialize the BEB broadcast.
      * Then, take from the blocking queue the proposals
      * and call the consumer function based on its type
      * to deliver them to the upper layer.
@@ -84,7 +84,7 @@ public class BestEffortBroadcast {
     }
 
     /**
-     * Broadcast to all host a given proposal and deliver to my host.
+     * Broadcast to all host a given proposal.
      * Simply put the proposal in a synchronized tree set, that
      * ensures processing in ascending order.
      * @param proposal to broadcast.
@@ -92,8 +92,6 @@ public class BestEffortBroadcast {
      */
     public static void broadcast(Proposal proposal, boolean highPriority) {
         if (highPriority) {
-            // Deliver to myself
-            bebDeliver(Proposal.createProposal(proposal));
             proposalsToSend.addFirst(proposal);
         } else {
             proposalsToSend.add(proposal);
@@ -102,6 +100,7 @@ public class BestEffortBroadcast {
 
     /**
      * Broadcast to all hosts a proposal of type ACK (or CLEAN).
+     * Deliver directly the proposal directed to my host.
      * @param proposal of ACK/CLEAN type to broadcast.
      */
     public static void broadcastDelivered(Proposal proposal) {
