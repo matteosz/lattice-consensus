@@ -5,13 +5,13 @@ import cs451.message.Proposal;
 import cs451.message.TimedPacket;
 import cs451.process.Process;
 
+import cs451.service.CommunicationService;
 import java.net.SocketException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cs451.channel.Network.getProcess;
 import static cs451.channel.Network.processes;
@@ -29,9 +29,6 @@ import static cs451.process.Process.proposalsToSend;
  * 2) Deliver once the underlying layer has delivered as well.
  */
 public class StubbornLink {
-
-    /** Running flag to stop the thread when the application stops. */
-    private static final AtomicBoolean running = new AtomicBoolean(true);
 
     /** Starting id to be assigned to packets. */
     private static int packetNumber = 1;
@@ -75,7 +72,7 @@ public class StubbornLink {
      *  2) If at least half of the hosts have enough space, load new packets.
      */
     private static void sendPackets() {
-        while (running.get()) {
+        while (CommunicationService.running.get()) {
             boolean hasSpace = false;
             // First try to resend all possible ack for all processes
             Packet sharedPacket = null;
@@ -191,13 +188,6 @@ public class StubbornLink {
             ++process.windowSize;
         }
         FairLossLink.enqueuePacket(packet, process.getId());
-    }
-
-    /**
-     * Set atomically the running flag to false.
-     */
-    public static void stopThreads() {
-        running.set(false);
     }
 
 }

@@ -44,7 +44,7 @@ public class LatticeConsensus {
 
     /**
      * Compressor to save the delivered proposal as range.
-     * Since proposal's ids start from 1, it's initialized with 0
+     * Since proposal's ids start from 0, it's initialized with -1
      * to anchor the first proposal.
      */
     private static final Compressor delivered = new Compressor(false, 0);
@@ -144,16 +144,8 @@ public class LatticeConsensus {
             // Increment active count
             int activeId = activeProposal.get(id) + 1;
             activeProposal.put(id, activeId);
-            // Emulate delivery to myself
-            if (proposedValue.get(id).containsAll(acceptedValue.get(id))) {
-                // Set ack to 1 and nack to 0
-                ack[0] = 1; ack[1] = 0;
-            } else {
-                proposedValue.get(id).addAll(acceptedValue.get(id));
-                // Set ack to 0 and nack to 1
-                ack[0] = 0; ack[1] = 1;
-            }
-            acceptedValue.get(id).addAll(proposedValue.get(id));
+            // Set ack and nack to 0
+            ack[0] = 0; ack[1] = 0;
             // Broadcast to everyone the new proposal with different active count
             BestEffortBroadcast.broadcast(Proposal.createProposal(id, (byte) 0, MY_HOST, proposedValue.get(id), activeId), true);
         }
@@ -237,7 +229,7 @@ public class LatticeConsensus {
         activeProposal.put(id, 1);
         proposedValue.put(id, new HashSet<>(proposal.getProposedValues()));
         Integer[] ack = new Integer[] {0, 0};
-        // Emulate delivery to myself
+        // Simulate delivery to myself
         if (!acceptedValue.containsKey(id) || proposal.getProposedValues().containsAll(acceptedValue.get(id))) {
             acceptedValue.put(id, new HashSet<>(proposal.getProposedValues()));
             ack[0] = 1;

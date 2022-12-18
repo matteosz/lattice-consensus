@@ -8,10 +8,10 @@ import cs451.channel.PerfectLink;
 
 import cs451.consensus.LatticeConsensus;
 import cs451.message.Proposal;
+import cs451.service.CommunicationService;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * It serves to send to all hosts a given proposal.
@@ -29,11 +29,8 @@ public class BestEffortBroadcast {
      */
     private static final BlockingQueue<Proposal> linkDelivered = new LinkedBlockingQueue<>();
 
-    /** Running flag to stop the thread when the application stops. */
-    private static final AtomicBoolean running = new AtomicBoolean(true);
-
     /**
-     * Initialize the BEB broadcast.
+     * Initialize the Beb broadcast.
      * Then, take from the blocking queue the proposals
      * and call the consumer function based on its type
      * to deliver them to the upper layer.
@@ -42,7 +39,7 @@ public class BestEffortBroadcast {
     public static void start() throws SocketException {
         PerfectLink.start();
         // Start delivering
-        while (running.get()) {
+        while (CommunicationService.running.get()) {
             try {
                 Proposal proposal = linkDelivered.take();
                 switch (proposal.getType()) {
@@ -84,7 +81,7 @@ public class BestEffortBroadcast {
     }
 
     /**
-     * Broadcast to all host a given proposal.
+     * Broadcast to all host a given proposal and deliver to my host.
      * Simply put the proposal in a synchronized tree set, that
      * ensures processing in ascending order.
      * @param proposal to broadcast.
@@ -92,6 +89,8 @@ public class BestEffortBroadcast {
      */
     public static void broadcast(Proposal proposal, boolean highPriority) {
         if (highPriority) {
+            // Deliver to myself
+            bebDeliver(Proposal.createProposal(proposal));
             proposalsToSend.addFirst(proposal);
         } else {
             proposalsToSend.add(proposal);
@@ -100,7 +99,6 @@ public class BestEffortBroadcast {
 
     /**
      * Broadcast to all hosts a proposal of type ACK (or CLEAN).
-     * Deliver directly the proposal directed to my host.
      * @param proposal of ACK/CLEAN type to broadcast.
      */
     public static void broadcastDelivered(Proposal proposal) {
@@ -111,13 +109,6 @@ public class BestEffortBroadcast {
                 PerfectLink.sendAck(proposal, id);
             }
         }
-    }
-
-    /**
-     * Set atomically the running flag to false.
-     */
-    public static void stopThreads() {
-        running.set(false);
     }
 
 }

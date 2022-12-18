@@ -1,9 +1,6 @@
 package cs451.service;
 
-import cs451.broadcast.BestEffortBroadcast;
-import cs451.channel.FairLossLink;
 import cs451.channel.Network;
-import cs451.channel.StubbornLink;
 import cs451.consensus.LatticeConsensus;
 
 import cs451.parser.ConfigParser;
@@ -11,6 +8,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Manager class to start the consensus and
@@ -24,6 +22,9 @@ public class CommunicationService {
 
     /** Buffered Writer to write logs on output file. */
     public static BufferedWriter writer;
+
+    /** Running flag. */
+    public static final AtomicBoolean running = new AtomicBoolean(true);
 
     /**
      * Start the consensus and initialize all static fields.
@@ -42,11 +43,11 @@ public class CommunicationService {
      * and logs into the output file.
      */
     public static void logAndTerminate() {
-        BestEffortBroadcast.stopThreads();
-        StubbornLink.stopThreads();
-        FairLossLink.stopThreads();
+        running.set(false);
         try {
-            writer.close();
+            synchronized (writer) {
+                writer.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,17 +60,22 @@ public class CommunicationService {
      */
     public static void deliver(Set<Integer> proposals) {
         try {
-            Iterator<Integer> iterator = proposals.iterator();
-            while (iterator.hasNext()) {
-                int num = iterator.next();
-                // Check if it's last number
-                if (!iterator.hasNext()) {
-                    writer.write(String.format("%d\n", num));
-                } else {
-                    writer.write(String.format("%d ", num));
-                }
+            if (!running.get()) {
+                return;
             }
-            writer.flush();
+            synchronized (writer) {
+                Iterator<Integer> iterator = proposals.iterator();
+                while (iterator.hasNext()) {
+                    int num = iterator.next();
+                    // Check if it's last number
+                    if (!iterator.hasNext()) {
+                        writer.write(String.format("%d\n", num));
+                    } else {
+                        writer.write(String.format("%d ", num));
+                    }
+                }
+                writer.flush();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

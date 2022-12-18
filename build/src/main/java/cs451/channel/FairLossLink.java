@@ -3,6 +3,7 @@ package cs451.channel;
 import cs451.message.Packet;
 import cs451.parser.Host;
 
+import cs451.service.CommunicationService;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -12,7 +13,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cs451.channel.Network.getProcess;
 import static cs451.message.Packet.MAX_PACKET_SIZE;
@@ -34,9 +34,6 @@ public class FairLossLink {
 
     /**  Blocking queue containing datagram packets to be sent. */
     private static final BlockingQueue<DatagramPacket> datagramsToSend = new LinkedBlockingQueue<>();
-
-    /** Running flag to stop the threads when the application stops. */
-    private static final AtomicBoolean running = new AtomicBoolean(true);
 
     /**
      * Initialize the FairLoss Link.
@@ -71,7 +68,7 @@ public class FairLossLink {
      * Poll UDP datagrams from the queue and send them through the socket.
      */
     private static void dequeuePacket() {
-        while (running.get()) {
+        while (CommunicationService.running.get()) {
             try {
                 // The method take will wait if the queue is empty
                 socket.send(datagramsToSend.take());
@@ -89,7 +86,7 @@ public class FairLossLink {
      * deserialize them and deliver to the upper layer.
      */
     private static void receivePackets() {
-        while (running.get()) {
+        while (CommunicationService.running.get()) {
             // In the worst scenario the buffer will have the max UDP packet size
             DatagramPacket datagramPacket = new DatagramPacket(new byte[MAX_PACKET_SIZE], MAX_PACKET_SIZE);
             try {
@@ -101,13 +98,6 @@ public class FairLossLink {
                 e.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Set atomically the running flag to false.
-     */
-    public static void stopThreads() {
-        running.set(false);
     }
 
 }
