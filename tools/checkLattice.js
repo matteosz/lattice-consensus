@@ -1,4 +1,9 @@
 #!/usr/local/bin/node
+
+/**
+ * Credits to @enzopellegrini for this validator
+ */
+
 const fs = require("fs");
 const { exit } = require("process");
 
@@ -23,7 +28,7 @@ const decided = decidedFns
 
 const nConsensus = decided
   .map((f) => f.length)
-  .reduce((a, b) => Math.max(a, b));
+  .reduce((a, b) => a + b);
 console.log(
   `There were ${nConsensus} consensus across ${decided.length} files`
 );
