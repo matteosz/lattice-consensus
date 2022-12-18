@@ -103,7 +103,7 @@ public class LatticeConsensus {
     public static void deliverAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
-        if (activeId == activeProposal.getOrDefault(id, 0)) {
+        if (activeId == activeProposal.getOrDefault(id, -1)) {
             // Increase the ack counter
             ++ackCount.get(id)[0];
             // Now check 2 events, since ack has been incremented
@@ -119,7 +119,7 @@ public class LatticeConsensus {
     public static void deliverNAck(Proposal proposal) {
         int id = proposal.getProposalNumber(), activeId = proposal.getActiveProposalNumber();
         // If the active proposal number of the received proposal is the current one
-        if (activeId == activeProposal.getOrDefault(id, 0)) {
+        if (activeId == activeProposal.getOrDefault(id, -1)) {
             // Add to my proposed values all the proposal's values
             proposedValue.get(id).addAll(proposal.getProposedValues());
             // Increment the nack counter
@@ -154,6 +154,9 @@ public class LatticeConsensus {
     private static void checkAck(int id) {
         // If received the majority of ack and the proposal is currently active
         if (ackCount.get(id)[0] > majority) {
+            // Remove the delivered proposal from active ones
+            activeProposal.remove(id);
+            ackCount.remove(id);
             // Increment the window since I've delivered a proposal
             if (++finished == Math.min(MAX_COMPRESSION, PROPOSAL_BATCH)) {
                 if (ConfigParser.readProposals()) {
@@ -173,9 +176,6 @@ public class LatticeConsensus {
                 BestEffortBroadcast.broadcastDelivered(new Proposal(lastDelivered));
                 ++lastDelivered;
             }
-            // Remove the delivered proposal from active ones
-            activeProposal.remove(id);
-            ackCount.remove(id);
         }
     }
 

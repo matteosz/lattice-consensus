@@ -21,7 +21,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -46,7 +46,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 ##python3 lattice_validater.py ../logs ../logs $proc $prop;
 #sleep 10;
 
@@ -71,7 +71,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
@@ -97,7 +97,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
@@ -123,7 +123,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 echo "Sleeping 10s";
 sleep 10;
@@ -149,7 +149,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 # Case 7
@@ -173,7 +173,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -198,7 +198,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -223,7 +223,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -248,7 +248,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -273,7 +273,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -298,7 +298,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -323,7 +323,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -348,7 +348,7 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
 sleep 10;
 
@@ -373,5 +373,5 @@ sleep 10;
 for i in $(seq -f "%02g" $proc); do
   touch ../logs/proc$i.output;
 done;
-./checkLattice.js ../logs/proc*.output ../logs/proc*.config;
+node checkLattice.js ../logs/proc*.output ../logs/proc*.config;
 #python3 lattice_validater.py ../logs ../logs $proc $prop;
